@@ -1,0 +1,16 @@
+Worflow: ARBM_SME_EligibilityChecksProcess_Test
+
+	StartEvent: MessageStartEvent
+		next: Block_1_Reusable_Logic
+
+	Block_1_Reusable_Logic: ScriptTask
+		next: Block_2_Reusable_Logic
+
+	Block_2_Reusable_Logic: ScriptTask
+		next: SaveOutput
+
+	NewMessageEvent: EndEvent
+
+	SaveOutput: ScriptTask
+		next: NewMessageEvent
+

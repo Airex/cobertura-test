@@ -1,0 +1,15 @@
+Worflow: ARBM_SME_ManualVerification_ManualTask
+
+	StartEvent: MessageStartEvent
+		next: ManualVerification_ManualTask
+
+	End: EndEvent
+
+	ManualVerification_ManualTask: SubProcessTask
+		next: Proccess_ManualVerification_ManualTask
+
+	Proccess_ManualVerification_ManualTask: ScriptTask
+		next: End
+
+	DW_BatchOrderUpsert_SaveToDb_RuleResult: SubProcessStartTask
+

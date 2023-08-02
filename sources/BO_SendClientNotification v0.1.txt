@@ -1,0 +1,7 @@
+Worflow: BO_SendClientNotification
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

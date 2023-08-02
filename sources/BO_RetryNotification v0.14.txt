@@ -1,0 +1,26 @@
+Worflow: BO_RetryNotification
+
+	StartEvent: MessageStartEvent
+		next: CheckActionData
+
+	End: EndEvent
+
+	PrepareSaveOutput: ScriptTask
+		next: End
+
+	CheckActionData: Gateway
+		switch:
+			else: SetFormPayload
+			conn: CheckSendNotification
+
+	SetFormPayload: ScriptTask
+		next: End
+
+	SendNotification: SubProcessTask
+		next: PrepareSaveOutput
+
+	CheckSendNotification: Gateway
+		switch:
+			conn: SendNotification
+			else: PrepareSaveOutput
+

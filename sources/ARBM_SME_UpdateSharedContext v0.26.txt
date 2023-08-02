@@ -1,0 +1,25 @@
+Worflow: ARBM_SME_UpdateSharedContext
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetEventsByTypeId: SubProcessTask
+		next: GetApplicantsTrackingEventId
+
+	GetApplicantsTrackingEventId: ScriptTask
+		next: GetEventState
+
+	GetEventState: SubProcessTask
+		next: UpdateContext
+
+	UpdateContext: SubProcessTask
+		next: NotifySharedContextWasUpdated
+
+	SetTags: ScriptTask
+		next: GetEventsByTypeId
+
+	NotifySharedContextWasUpdated: SignalTask
+		next: End
+

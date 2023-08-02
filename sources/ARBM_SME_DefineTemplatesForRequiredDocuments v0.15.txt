@@ -1,0 +1,27 @@
+Worflow: ARBM_SME_DefineTemplatesForRequiredDocuments
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	SetTags: ScriptTask
+		next: PrepareKeyList
+
+	PrepareKeyList: ScriptTask
+		next: IsMoreTemplates_GW?
+
+	GetLinkToTemplate: ComponentTask
+		next: PrepareOutput
+
+	IsMoreTemplates_GW?: Gateway
+		switch:
+			else: End
+			conn: GetLinkToTemplate
+
+	PrepareOutput: ScriptTask
+		next: UpdateCounter
+
+	UpdateCounter: ScriptTask
+		next: IsMoreTemplates_GW?
+

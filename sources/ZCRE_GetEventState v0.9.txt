@@ -1,0 +1,13 @@
+Worflow: ZCRE_GetEventState
+
+	StartEvent: MessageStartEvent
+		next: DW_GetConditionActionsByEventId
+
+	End: EndEvent
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	DW_GetConditionActionsByEventId: ComponentTask
+		next: PrepareOutput
+

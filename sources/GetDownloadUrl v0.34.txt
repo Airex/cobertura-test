@@ -1,0 +1,29 @@
+Worflow: GetDownloadUrl
+
+	StartEvent: MessageStartEvent
+		next: ShouldSaveOutput_GW?
+
+	End: EndEvent
+
+	PrepareUrl: ScriptTask
+		next: ShouldGetPresignedUrl_GW?
+
+	ShouldGetPresignedUrl_GW?: Gateway
+		switch:
+			else: GetPresignUrl
+			conn: CountAndSave
+
+	ShouldSaveOutput_GW?: Gateway
+		switch:
+			else: PrepareUrl
+			conn: SaveOutput
+
+	CountAndSave: ScriptTask
+		next: ShouldSaveOutput_GW?
+
+	SaveOutput: ScriptTask
+		next: End
+
+	GetPresignUrl: ComponentTask
+		next: CountAndSave
+

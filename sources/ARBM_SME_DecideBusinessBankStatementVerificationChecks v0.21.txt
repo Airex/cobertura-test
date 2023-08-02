@@ -1,0 +1,7 @@
+Worflow: ARBM_SME_DecideBusinessBankStatementVerificationChecks
+
+	9197e9a1-4b51-431c-881d-031d40bede1a: FlowVerification
+		next: 
+
+	ee0b8d19-4076-428a-a6c0-9862d10c694f: FlowVerification
+

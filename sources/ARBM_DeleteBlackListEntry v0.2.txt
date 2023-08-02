@@ -1,0 +1,10 @@
+Worflow: ARBM_DeleteBlackListEntry
+
+	StartEvent: MessageStartEvent
+		next: DW_DeleteBlackListEntry
+
+	End: EndEvent
+
+	DW_DeleteBlackListEntry: SubProcessTask
+		next: End
+

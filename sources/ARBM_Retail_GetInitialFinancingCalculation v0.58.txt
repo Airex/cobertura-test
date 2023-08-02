@@ -1,0 +1,55 @@
+Worflow: ARBM_Retail_GetInitialFinancingCalculation
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	IsDataMocked?: Gateway
+		switch:
+			conn: ReturnMockData
+			else: CheckdUseZdeCalculation
+
+	GetInitialFinancingCalculationError: BoundaryErrorEvent
+		next: ThowError
+
+	GetInitialFinancingCalculation: ComponentTask
+		switch:
+			next: GetInitialFinancingCalculationError
+			next: CheckHasError
+
+	SaveOutput: ScriptTask
+		next: End
+
+	ThowError: ScriptTask
+		next: End
+
+	PerformZdeCalculationError: BoundaryErrorEvent
+		next: ThowError
+
+	PerformZdeCalculation: ComponentTask
+		switch:
+			next: PerformZdeCalculationError
+			next: GetCalculationResult
+
+	CheckdUseZdeCalculation: Gateway
+		switch:
+			else: GetInitialFinancingCalculation
+			conn: PerformZdeCalculation
+
+	GetCalculationResultError: BoundaryErrorEvent
+		next: ThowError
+
+	GetCalculationResult: ScriptTask
+		switch:
+			next: GetCalculationResultError
+			next: SaveOutput
+
+	CheckHasError: Gateway
+		switch:
+			else: SaveOutput
+			conn: ThowError
+

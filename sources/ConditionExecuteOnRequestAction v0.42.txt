@@ -1,0 +1,52 @@
+Worflow: ConditionExecuteOnRequestAction
+
+	StartEvent: MessageStartEvent
+		next: GetOrder
+
+	End: EndEvent
+
+	ExecuteActionError: BoundaryErrorEvent
+		next: End
+
+	ExecuteAction: SubProcessTask
+		switch:
+			next: ExecuteActionError
+			next: End
+
+	SaveConditions: SubProcessTask
+		next: GetCondition
+
+	GetOrder: SubProcessTask
+		next: TriggerConditions
+
+	GetCondition: SubProcessTask
+		next: PrepareActionToExecute
+
+	PrepareActionParameters: ScriptTask
+		next: ExecuteAction
+
+	CheckActionActive: Gateway
+		switch:
+			conn: PrepareActionParameters
+			else: ScheduledResponse
+
+	TriggerConditions: ComponentTask
+		next: FindNewConditions
+
+	FindNewConditions: ScriptTask
+		next: CheckConditionTriggered
+
+	CheckConditionTriggered: Gateway
+		switch:
+			conn: SaveConditions
+			else: NothingExecuteResponse
+
+	NothingExecuteResponse: ResponseTask
+		next: End
+
+	ScheduledResponse: ResponseTask
+		next: End
+
+	PrepareActionToExecute: ScriptTask
+		next: CheckActionActive
+

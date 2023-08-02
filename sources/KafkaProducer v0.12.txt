@@ -1,0 +1,10 @@
+Worflow: KafkaProducer
+
+	StartEvent: MessageStartEvent
+		next: Publish
+
+	End: EndEvent
+
+	Publish: ComponentTask
+		next: End
+

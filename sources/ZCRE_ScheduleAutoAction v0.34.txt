@@ -1,0 +1,40 @@
+Worflow: ZCRE_ScheduleAutoAction
+
+	End: EndEvent
+
+	LoadAutoActions: SubProcessTask
+		next: CheckHasMoreActions
+
+	CheckHasMoreActions: Gateway
+		switch:
+			conn: ExecuteAction
+			else: PrepareNextBatch
+
+	ExecuteActionError: BoundaryErrorEvent
+		next: NextAction
+
+	ExecuteAction: SubProcessStartTask
+		switch:
+			next: ExecuteActionError
+			next: NextAction
+
+	NextAction: ScriptTask
+		next: CheckHasMoreActions
+
+	NewMessageEvent: TimerStartEvent
+		next: MutexEnter
+
+	MutexEnter: ComponentTask
+		next: LoadAutoActions
+
+	CheckNeedNextBatch: Gateway
+		switch:
+			else: End
+			conn: DummyTimeout
+
+	DummyTimeout: TimerEvent
+		next: LoadAutoActions
+
+	PrepareNextBatch: ScriptTask
+		next: CheckNeedNextBatch
+

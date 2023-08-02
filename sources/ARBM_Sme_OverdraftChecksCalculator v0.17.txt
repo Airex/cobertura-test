@@ -1,0 +1,19 @@
+Worflow: ARBM_Sme_OverdraftChecksCalculator
+
+	StartEvent: MessageStartEvent
+		next: GetPreparedPayload
+
+	End: EndEvent
+
+	PerformCalculations: ComponentTask
+		next: Decision
+
+	SetOutput: ScriptTask
+		next: End
+
+	GetPreparedPayload: ScriptTask
+		next: PerformCalculations
+
+	Decision: SubDecisionTask
+		next: SetOutput
+

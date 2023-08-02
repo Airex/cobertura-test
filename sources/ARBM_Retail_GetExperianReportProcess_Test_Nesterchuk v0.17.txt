@@ -1,0 +1,84 @@
+Worflow: ARBM_Retail_GetExperianReportProcess_Test_Nesterchuk
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	IsDataMocked?: Gateway
+		switch:
+			conn: ReturnMockData
+			else: IsAllInputDataProvided?
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	SetOutput: ScriptTask
+		next: End
+
+	ShoudRequestXml?: Gateway
+		switch:
+			conn: CreateManualTask_ExperianReportRetrievalByTokensError
+			conn: WaitingXml
+			else: SetOutput
+
+	WaitingXml: TimerEvent
+		next: GetExperianReportXml
+
+	WaitingByTokens: TimerEvent
+		next: GetExperianReportByTokens
+
+	ShoudRequestByTokens?: Gateway
+		switch:
+			conn: WaitingByTokens
+			conn: CreateManualTask_ExperianReportRetrievalByTokensError
+			else: GetExperianReportXml
+
+	IsAllInputDataProvided?: Gateway
+		switch:
+			else: SetOutput
+			conn: GetExperianReport
+
+	GetExperianReport: ComponentTask
+		next: ManualRejectionInGetExperianReport?
+
+	GetExperianReportByTokens: ComponentTask
+		next: ManualRejectionInGetExperianReportByTokens?
+
+	SetReportTokens: ScriptTask
+		next: GetExperianReportByTokens
+
+	HaveReportTokens?: Gateway
+		switch:
+			conn: SetReportTokens
+			else: CreateManualTask_ExperianReportRetrievalByTokensError
+
+	SetRejectionReason: ScriptTask
+		next: End
+
+	CreateManualTask_ExperianReportRetrievalByTokensError: SubProcessTask
+		next: CheckConditionResolutionByTokens
+
+	CheckConditionResolutionByTokens: Gateway
+		switch:
+			else: SetRejectionReason
+			conn: GetExperianReport
+
+	GetExperianReportXml: ComponentTask
+		next: ManualRejectionInGetExperianReportXml?
+
+	ManualRejectionInGetExperianReport?: Gateway
+		switch:
+			else: HaveReportTokens?
+			conn: SetRejectionReason
+
+	ManualRejectionInGetExperianReportByTokens?: Gateway
+		switch:
+			else: ShoudRequestByTokens?
+			conn: SetRejectionReason
+
+	ManualRejectionInGetExperianReportXml?: Gateway
+		switch:
+			else: ShoudRequestXml?
+			conn: SetRejectionReason
+

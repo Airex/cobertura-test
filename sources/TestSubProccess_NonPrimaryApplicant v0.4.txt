@@ -1,0 +1,13 @@
+Worflow: TestSubProccess_NonPrimaryApplicant
+
+	StartEvent: MessageStartEvent
+		next: timer
+
+	End: EndEvent
+
+	timer: TimerEvent
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+

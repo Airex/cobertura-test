@@ -1,0 +1,13 @@
+Worflow: KafkaTest
+
+	StartEvent: MessageStartEvent
+		next: CallKafkaProducer
+
+	End: EndEvent
+
+	CallKafkaProducer: SubProcessTask
+		next: Response
+
+	Response: ResponseTask
+		next: End
+

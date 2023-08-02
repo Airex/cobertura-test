@@ -1,0 +1,13 @@
+Worflow: ARBM_NotificationSeviceDocumentGeneration
+
+	StartEvent: MessageStartEvent
+		next: Notifications_Notify
+
+	End: EndEvent
+
+	Notifications_Notify: ComponentTask
+		next: SetOutput
+
+	SetOutput: ScriptTask
+		next: End
+

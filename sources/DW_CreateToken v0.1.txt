@@ -1,0 +1,16 @@
+Worflow: DW_CreateToken
+
+	StartEvent: MessageStartEvent
+		next: PrepareQuery
+
+	End: EndEvent
+
+	PrepareQuery: ScriptTask
+		next: AdwQuery
+
+	AdwQuery: ComponentTask
+		next: PrepareOutput
+
+	PrepareOutput: ScriptTask
+		next: End
+

@@ -1,0 +1,42 @@
+Worflow: ARBM_Retail_GetCommodityTradingEcertificatesByBursa
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	GetEcertificateDetailsOfBIDMatchingInformationFromBSASError: BoundaryErrorEvent
+		next: GetDetailsOfOTCReportingInfoFromBSAS
+
+	GetEcertificateDetailsOfBIDMatchingInformationFromBSAS: ComponentTask
+		switch:
+			next: GetEcertificateDetailsOfBIDMatchingInformationFromBSASError
+			next: GetDetailsOfOTCReportingInfoFromBSAS
+
+	IsDataMocked?: Gateway
+		switch:
+			conn: ReturnMockData
+			else: GetEcertificateDetailsOfBIDMatchingInformationFromBSAS
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	SaveOutput: ScriptTask
+		next: End
+
+	GetDetailsOfOTCReportingInfoFromBSASError: BoundaryErrorEvent
+		next: GetSellToBMIS_STBInfoFromBSAS
+
+	GetDetailsOfOTCReportingInfoFromBSAS: ComponentTask
+		switch:
+			next: GetDetailsOfOTCReportingInfoFromBSASError
+			next: GetSellToBMIS_STBInfoFromBSAS
+
+	GetSellToBMIS_STBInfoFromBSASError: BoundaryErrorEvent
+		next: SaveOutput
+
+	GetSellToBMIS_STBInfoFromBSAS: ComponentTask
+		switch:
+			next: GetSellToBMIS_STBInfoFromBSASError
+			next: SaveOutput
+

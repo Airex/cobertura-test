@@ -1,0 +1,42 @@
+Worflow: ARBM_Retail_GetIsPersonInDynamicBlacklist
+
+	StartEvent: MessageStartEvent
+		next: DW_FindPartiesByEmailOrNRIC
+
+	End: EndEvent
+
+	DW_FindPartiesByEmailOrNRIC: ComponentTask
+		next: IsNoPartiesFound?
+
+	IsNoPartiesFound?: Gateway
+		switch:
+			conn: SaveOutput_IsNotBlacklisted
+			else: DW_FindBlacklistClsForIdsByEntityTypeAndCodeValue
+
+	SaveOutput_IsNotBlacklisted: ScriptTask
+		next: End
+
+	IsPersonBlacklistedLegalAndTradeChecks?: Gateway
+		switch:
+			conn: SaveOutput_IsNotBlacklisted
+			else: SaveOutput_IsBlacklisted
+
+	SaveOutput_IsBlacklisted: ScriptTask
+		next: End
+
+	DW_FindBlacklistClsForIdsByEntityTypeAndCodeValue: ComponentTask
+		next: IsCodeValueSuspectedFraud?
+
+	CalculateNumbOfDaysSincePreviousCls: ScriptTask
+		next: IsPersonBlacklistedLegalAndTradeChecks?
+
+	IsCodeValueSuspectedFraud?: Gateway
+		switch:
+			else: CalculateNumbOfDaysSincePreviousCls
+			conn: IsPersonBlacklistedSuspectedFraud?
+
+	IsPersonBlacklistedSuspectedFraud?: Gateway
+		switch:
+			else: SaveOutput_IsNotBlacklisted
+			conn: SaveOutput_IsBlacklisted
+

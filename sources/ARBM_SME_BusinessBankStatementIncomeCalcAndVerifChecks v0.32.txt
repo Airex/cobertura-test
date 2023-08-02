@@ -1,0 +1,43 @@
+Worflow: ARBM_SME_BusinessBankStatementIncomeCalcAndVerifChecks
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	CalculateBusinessBankStatementIncomeError: BoundaryErrorEvent
+		next: GetDataManualReviewIncomeCalculation_ManualTask
+
+	CalculateBusinessBankStatementIncome: SubProcessTask
+		switch:
+			next: CalculateBusinessBankStatementIncomeError
+			next: IfIncomeCalculationResponseEmpty
+
+	InitMockSettings: ScriptTask
+		next: CalculateBusinessBankStatementIncome
+
+	DecideSMEIncomeCheckStatus: SubDecisionTask
+		next: SaveToDb_Rules_SelfEmployedIncomeCheck
+
+	SendOutputData: ScriptTask
+		next: End
+
+	SaveToDb_Rules_SelfEmployedIncomeCheck: ComponentTask
+		next: SendOutputData
+
+	IfIncomeCalculationResponseEmpty: Gateway
+		switch:
+			conn: DecideSMEIncomeCheckStatus
+			else: GetDataManualReviewIncomeCalculation_ManualTask
+
+	GetDataManualReviewIncomeCalculation_ManualTask: SubProcessTask
+		next: IfManualTaskIncomeCalcRetry
+
+	IfManualTaskIncomeCalcRetry: Gateway
+		switch:
+			conn: CalculateBusinessBankStatementIncome
+			else: DecideSMEIncomeCheckStatus
+
+	SetTags: ScriptTask
+		next: InitMockSettings
+

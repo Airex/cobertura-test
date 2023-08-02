@@ -1,0 +1,10 @@
+Worflow: Test2
+
+	StartEvent: MessageStartEvent
+		next: NewScript
+
+	End: EndEvent
+
+	NewScript: ScriptTask
+		next: End
+

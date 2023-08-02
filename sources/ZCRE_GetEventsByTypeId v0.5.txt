@@ -1,0 +1,13 @@
+Worflow: ZCRE_GetEventsByTypeId
+
+	StartEvent: MessageStartEvent
+		next: DW_GetEventsByTypeId
+
+	End: EndEvent
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	DW_GetEventsByTypeId: ComponentTask
+		next: PrepareOutput
+

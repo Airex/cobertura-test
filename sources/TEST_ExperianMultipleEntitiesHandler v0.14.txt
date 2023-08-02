@@ -1,0 +1,38 @@
+Worflow: TEST_ExperianMultipleEntitiesHandler
+
+	StartEvent: MessageStartEvent
+		next: OriginalExperianRequest
+
+	End: EndEvent
+
+	OriginalExperianRequest: SubProcessTask
+		next: IsItMultipleEntitiesError
+
+	IsItMultipleEntitiesError: Gateway
+		switch:
+			else: End
+			conn: ExtractRefs
+
+	ExtractRefs: ScriptTask
+		next: AdditionalExperianRequestByRefId
+
+	AdditionalExperianRequestByRefId: SubProcessTask
+		next: GenerateDocument
+
+	NewGateway: Gateway
+		switch:
+			conn: AdditionalExperianRequestByRefId
+			else: ProcessDiffs
+
+	GenerateDocument: ComponentTask
+		next: AttachDocument
+
+	AttachDocument: ComponentTask
+		next: NewGateway
+
+	ProcessDiffs: ScriptTask
+		next: AttachDiffFile
+
+	AttachDiffFile: ComponentTask
+		next: End
+

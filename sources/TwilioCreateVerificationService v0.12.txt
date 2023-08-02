@@ -1,0 +1,18 @@
+Worflow: TwilioCreateVerificationService
+
+	StartEvent: MessageStartEvent
+		next: CreateVerificationService
+
+	End: EndEvent
+
+	CreateVerificationServiceError: BoundaryErrorEvent
+		next: SetCreateVerificationServiceOutput
+
+	CreateVerificationService: ComponentTask
+		switch:
+			next: CreateVerificationServiceError
+			next: SetCreateVerificationServiceOutput
+
+	SetCreateVerificationServiceOutput: ScriptTask
+		next: End
+

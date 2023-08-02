@@ -1,0 +1,32 @@
+Worflow: ARBM_CCRIS_PushUpdateSignal
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	Update_ARBM_CCRIS_App: SignalTask
+		next: isSignalReceived?
+
+	isSignalReceived?: Gateway
+		switch:
+			conn: End
+			else: shouldRetry?
+
+	Delay: TimerEvent
+		next: IncrementDelay
+
+	shouldRetry?: Gateway
+		switch:
+			conn: Delay
+			else: ThrowError
+
+	ThrowError: ScriptTask
+		next: End
+
+	Init: ScriptTask
+		next: Update_ARBM_CCRIS_App
+
+	IncrementDelay: ScriptTask
+		next: Update_ARBM_CCRIS_App
+

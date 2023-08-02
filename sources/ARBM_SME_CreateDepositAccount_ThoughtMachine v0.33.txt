@@ -1,0 +1,74 @@
+Worflow: ARBM_SME_CreateDepositAccount_ThoughtMachine
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	CreateThoughtMachineDepositAccountError: BoundaryErrorEvent
+		next: CreateDepositAccount_ManualTask
+
+	CreateThoughtMachineDepositAccount: ComponentTask
+		switch:
+			next: CreateThoughtMachineDepositAccountError
+			next: IsHttpCallError?
+
+	OnDepositAccountCreationStatus: SignalEvent
+		next: IsDepositAccountCreated?
+
+	IsDepositAccountCreated?: Gateway
+		switch:
+			else: SetIsWrongAccountStatus
+			conn: SetAccountIdGlobalVars
+
+	NextStepAfterManualTask_GW?: Gateway
+		switch:
+			conn: SaveRejectReasonCodeToOutput
+			conn: SetGlobalVarsToDefault
+			else: SaveOutput
+
+	IsHttpCallError?: Gateway
+		switch:
+			conn: CreateDepositAccount_ManualTask
+			else: DepositAccountCreationTimeout_GW?
+
+	CreateDepositAccount_ManualTask: SubProcessTask
+		next: NextStepAfterManualTask_GW?
+
+	SaveRejectReasonCodeToOutput: ScriptTask
+		next: End
+
+	SetIsWrongAccountStatus: ScriptTask
+		next: CreateDepositAccount_ManualTask
+
+	SetGlobalVarsToDefault: ScriptTask
+		next: CreateThoughtMachineDepositAccount
+
+	SetTags: ScriptTask
+		next: ShouldSimulateCreateDepositAccountSkip_GW?
+
+	DepositAccountCreationTimeout_GW?: Gateway
+		switch:
+			conn: OnDepositAccountCreationStatus
+			conn: DepositAccountCreationTimeout
+
+	DepositAccountCreationTimeout: TimerEvent
+		next: CreateDepositAccount_ManualTask
+
+	Init: ScriptTask
+		next: SetTags
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SetAccountIdGlobalVars: ScriptTask
+		next: SaveOutput
+
+	ShouldSimulateCreateDepositAccountSkip_GW?: Gateway
+		switch:
+			else: CreateThoughtMachineDepositAccount
+			conn: SaveOutput_Simulation
+
+	SaveOutput_Simulation: ScriptTask
+		next: End
+

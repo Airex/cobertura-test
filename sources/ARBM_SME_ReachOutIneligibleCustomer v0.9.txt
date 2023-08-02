@@ -1,0 +1,24 @@
+Worflow: ARBM_SME_ReachOutIneligibleCustomer
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	SetTags: ScriptTask
+		next: PostReachOutIneligibleCustomer_ManualTask
+
+	PostReachOutIneligibleCustomer_ManualTask: SubProcessTask
+		next: IsManualTaskSimulation?
+
+	IsManualTaskSimulation?: Gateway
+		switch:
+			else: GetReachOutIneligibleCustomerResult_ManualTask
+			conn: ReachOutIneligibleCustomerManualTaskResult
+
+	ReachOutIneligibleCustomerManualTaskResult: ScriptTask
+		next: End
+
+	GetReachOutIneligibleCustomerResult_ManualTask: SubProcessTask
+		next: ReachOutIneligibleCustomerManualTaskResult
+

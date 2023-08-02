@@ -1,0 +1,84 @@
+Worflow: ARBM_HandleExperianErrorMultipleEntities
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	ExtractRefs: ScriptTask
+		next: GetWorkflowNameToGetExperianReport
+
+	AdditionalExperianRequestByRefId: SubProcessTask
+		next: SaveExperianReportToGlobalVars
+
+	ShouldRetrieveNextExperianReport_GW?: Gateway
+		switch:
+			conn: AdditionalExperianRequestByRefId
+			else: GetAllExperianReportsHaveSameContents
+
+	GenerateDocument: ComponentTask
+		next: AttachDocument
+
+	AttachDocument: ComponentTask
+		next: SaveDocumentUuidToGlobalVars
+
+	SaveExperianReportToGlobalVars: ScriptTask
+		next: ShouldRetrieveNextExperianReport_GW?
+
+	GetAllExperianReportsHaveSameContents: ScriptTask
+		next: AreAllExperianReportsTheSame_GW?
+
+	SaveOutput: ScriptTask
+		next: End
+
+	AreAllExperianReportsTheSame_GW?: Gateway
+		switch:
+			conn: SaveOutput
+			else: InitIterator
+
+	CreateManualTask_ExperianReportMultipleCCRISEntitiesError: SubProcessTask
+		next: SaveSelectedExperianReportOnOutput
+
+	SaveSelectedExperianReportOnOutput: ScriptTask
+		next: End
+
+	InitIterator: ScriptTask
+		next: ShouldRepeatDocumentGeneration_GW?
+
+	ShouldRepeatDocumentGeneration_GW?: Gateway
+		switch:
+			conn: GenerateDocument
+			else: ProcessDiffs
+
+	SaveDocumentUuidToGlobalVars: ScriptTask
+		next: IncrementIterator
+
+	GetWorkflowNameToGetExperianReport: ScriptTask
+		next: AutoSelectExperianMultipleEntity?
+
+	ProcessDiffs: ScriptTask
+		next: AttachDiffFile
+
+	AttachDiffFile: ComponentTask
+		next: SaveDiffDocumentUuidToGlobalVars
+
+	IncrementIterator: ScriptTask
+		next: ShouldRepeatDocumentGeneration_GW?
+
+	SaveDiffDocumentUuidToGlobalVars: ScriptTask
+		next: CreateManualTask_ExperianReportMultipleCCRISEntitiesError
+
+	SetTags: ScriptTask
+		next: ExtractRefs
+
+	AutoSelectExperianMultipleEntity?: Gateway
+		switch:
+			conn: AutoSelectPolicy
+			else: AdditionalExperianRequestByRefId
+
+	AutoSelectPolicy: ScriptTask
+		next: ExperianRequestByRefId
+
+	ExperianRequestByRefId: SubProcessTask
+		next: SaveOutput
+

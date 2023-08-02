@@ -1,0 +1,29 @@
+Worflow: ARBM_SME_DetermineCustomerRolesForGuarantors
+
+	Copy_StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	LinkApplicantWithSME: ComponentTask
+		next: IsElseGuarantor_GW?
+
+	PreparedPayload: ScriptTask
+		next: LinkApplicantWithSME
+
+	Init: ScriptTask
+		next: IsGuarantor_GW?
+
+	IsElseGuarantor_GW?: Gateway
+		switch:
+			else: End
+			conn: PreparedPayload
+
+	IsGuarantor_GW?: Gateway
+		switch:
+			conn: PreparedPayload
+			else: End
+
+	SetTags: ScriptTask
+		next: Init
+

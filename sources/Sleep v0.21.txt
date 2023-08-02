@@ -1,0 +1,60 @@
+Worflow: Sleep
+
+	StartEvent: MessageStartEvent
+		next: ShouldWaitByNode?
+
+	End: EndEvent
+
+	Node_SleepError: BoundaryErrorEvent
+		next: End
+
+	Node_Sleep: ScriptTask
+		switch:
+			next: Node_SleepError
+			next: End
+
+	Check_Async: Gateway
+		switch:
+			else: Start_Sleep_Async
+			conn: Check_Zero_Seconds
+
+	Start_Sleep_Async: SubProcessStartTask
+		next: Async_Gateway
+
+	Async_Gateway: Gateway
+		switch:
+			conn: Start_Sleep_Async_Success
+			conn: Start_Sleep_Async_Fail
+
+	Start_Sleep_Async_Success: SubProcessSucceededEvent
+		next: End
+
+	Start_Sleep_Async_Fail: SubProcessFailedEvent
+		next: End
+
+	Check_Is_Long_Running: Gateway
+		switch:
+			conn: Check_Async
+			else: Long_Real_Timer
+
+	Long_Real_Timer: TimerEvent
+		next: End
+
+	Check_Zero_Seconds: Gateway
+		switch:
+			conn: Node_Sleep
+			else: End
+
+	WaitError: BoundaryErrorEvent
+		next: End
+
+	Wait: ScriptTask
+		switch:
+			next: WaitError
+			next: End
+
+	ShouldWaitByNode?: Gateway
+		switch:
+			conn: Wait
+			else: Long_Real_Timer
+

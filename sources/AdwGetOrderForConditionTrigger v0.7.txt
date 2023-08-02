@@ -1,0 +1,16 @@
+Worflow: AdwGetOrderForConditionTrigger
+
+	StartEvent: MessageStartEvent
+		next: PrepareQuery
+
+	End: EndEvent
+
+	AdwQuery: ComponentTask
+		next: PrepareOutput
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	PrepareQuery: ScriptTask
+		next: AdwQuery
+

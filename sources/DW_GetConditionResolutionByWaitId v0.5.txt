@@ -1,0 +1,16 @@
+Worflow: DW_GetConditionResolutionByWaitId
+
+	StartEvent: MessageStartEvent
+		next: PrepareQuery
+
+	End: EndEvent
+
+	AdwQuery: ComponentTask
+		next: PrepareOutput
+
+	PrepareQuery: ScriptTask
+		next: AdwQuery
+
+	PrepareOutput: ScriptTask
+		next: End
+

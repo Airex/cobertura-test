@@ -1,0 +1,39 @@
+Worflow: ARBM_SME_UpdateSmeDetails
+
+	Copy_StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	CreateSMEProfile: ComponentTask
+		next: CreateAddressesSme
+
+	GetPreparedPayload: ScriptTask
+		next: CreateSMEProfile
+
+	GetPresentedDocuments: SubDecisionTask
+		next: GetCountryById
+
+	DW_GetBusinessSubSectorDescriptionByCodeValue: ComponentTask
+		next: GetPresentedDocuments
+
+	CreateAddressesSme: ComponentTask
+		next: isDebugMode_GW?
+
+	GetSMEProfile: ComponentTask
+		next: GetSmeBySmeId
+
+	GetSmeBySmeId: ComponentTask
+		next: End
+
+	GetCountryById: SubProcessTask
+		next: GetPreparedPayload
+
+	SetTags: ScriptTask
+		next: DW_GetBusinessSubSectorDescriptionByCodeValue
+
+	isDebugMode_GW?: Gateway
+		switch:
+			conn: GetSMEProfile
+			else: End
+

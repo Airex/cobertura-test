@@ -1,0 +1,27 @@
+Worflow: ARBM_Retail_ContactAddressReview_ManualTask
+
+	StartEvent: MessageStartEvent
+		next: DW_FindPartyAddressesByPartySenderId
+
+	End: EndEvent
+
+	ContactAddressReview_ManualTask: SubProcessTask
+		next: IsResultOfManualTaskProceed?
+
+	DW_FindPartyAddressesByPartySenderId: ComponentTask
+		next: ContactAddressReview_ManualTask
+
+	IsResultOfManualTaskProceed?: Gateway
+		switch:
+			else: PrepareOutputReject
+			conn: PrepareOutputProceed
+
+	PrepareOutputProceed: ScriptTask
+		next: DW_SetPartyAddress
+
+	PrepareOutputReject: ScriptTask
+		next: End
+
+	DW_SetPartyAddress: ComponentTask
+		next: End
+

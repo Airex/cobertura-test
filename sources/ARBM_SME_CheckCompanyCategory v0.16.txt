@@ -1,0 +1,22 @@
+Worflow: ARBM_SME_CheckCompanyCategory
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	DecideCompanyCheckResult: SubDecisionTask
+		next: SaveRuleResultToDB
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SaveRuleResultToDB: ComponentTask
+		next: SaveOutput
+
+	SetTags: ScriptTask
+		next: GetCompanyCategoryByBrn
+
+	GetCompanyCategoryByBrn: ScriptTask
+		next: DecideCompanyCheckResult
+

@@ -1,0 +1,16 @@
+Worflow: ARBM_SME_InitDefaultRuleStatuses
+
+	StartEvent: MessageStartEvent
+		next: DW_GetDefaultValidRuleStatuses
+
+	End: EndEvent
+
+	DW_BatchOrderUpsert_DefaultRuleStatuses: SubProcessStartTask
+		next: End
+
+	GetPreparedPayload: ScriptTask
+		next: DW_BatchOrderUpsert_DefaultRuleStatuses
+
+	DW_GetDefaultValidRuleStatuses: SubProcessTask
+		next: GetPreparedPayload
+

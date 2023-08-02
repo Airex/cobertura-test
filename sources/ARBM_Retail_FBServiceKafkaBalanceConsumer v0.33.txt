@@ -1,0 +1,30 @@
+Worflow: ARBM_Retail_FBServiceKafkaBalanceConsumer
+
+	StartEvent: MessageStartEvent
+		next: InitProcess
+
+	End: EndEvent
+
+	FBServiceKafkaBalanceConsumer: SignalTask
+
+	DW_SetStatementLine: ComponentTask
+		next: DW_SetStatementLinePaymentMeans
+
+	DW_SetStatement: ComponentTask
+		next: DW_SetStatementLine
+
+	DW_SetStatementLinePaymentMeans: ComponentTask
+		next: End
+
+	DW_FindOrder: ComponentTask
+		next: DW_FindPaymentMeansBySenderIdSenderScopeId
+
+	DW_FindFinaccount: ComponentTask
+		next: DW_FindOrder
+
+	DW_FindPaymentMeansBySenderIdSenderScopeId: ComponentTask
+		next: DW_SetStatement
+
+	InitProcess: ScriptTask
+		next: DW_FindFinaccount
+

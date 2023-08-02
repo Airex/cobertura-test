@@ -1,0 +1,21 @@
+Worflow: ARBM_Retail_EligibilityChecksProcess_Test
+
+	StartEvent: MessageStartEvent
+		next: Block_1_Reusable_Logic
+
+	Block_1_Reusable_Logic: ScriptTask
+		next: IsCustomerSelfEmployed?
+
+	Block_2_Reusable_Logic: ScriptTask
+		next: SaveOutput
+
+	NewMessageEvent: EndEvent
+
+	SaveOutput: ScriptTask
+		next: NewMessageEvent
+
+	IsCustomerSelfEmployed?: Gateway
+		switch:
+			conn: Block_2_Reusable_Logic
+			else: SaveOutput
+

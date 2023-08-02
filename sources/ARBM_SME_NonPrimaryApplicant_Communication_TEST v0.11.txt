@@ -1,0 +1,34 @@
+Worflow: ARBM_SME_NonPrimaryApplicant_Communication_TEST
+
+	StartEvent: MessageStartEvent
+		next: NextAction_GW?
+
+	End: EndEvent
+
+	NextAction_GW?: Gateway
+		switch:
+			conn: GetContext
+			conn: SetContext
+			conn: StopProcess
+
+	GetContext: MessageEvent
+		next: GetContextSignal
+
+	SetContext: MessageEvent
+		next: SetContexSignal
+
+	UpdateContext: ScriptTask
+		next: NextAction_GW?
+
+	SetContexSignal: SignalTask
+		next: NextAction_GW?
+
+	GetContextSignal: SignalTask
+		next: GetActualContext
+
+	StopProcess: MessageEvent
+		next: End
+
+	GetActualContext: SignalEvent
+		next: UpdateContext
+

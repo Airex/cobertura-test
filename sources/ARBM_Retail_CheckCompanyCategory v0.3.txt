@@ -1,0 +1,25 @@
+Worflow: ARBM_Retail_CheckCompanyCategory
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	ExtractEmailDomain: ScriptTask
+		next: GetCompanyCategoryByDomainName
+
+	GetCompanyCategoryByDomainName: SubProcessTask
+		next: DecideCompanyCheckResult
+
+	DecideCompanyCheckResult: SubDecisionTask
+		next: SaveRuleResultToDB
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SaveRuleResultToDB: ComponentTask
+		next: SaveOutput
+
+	SetTags: ScriptTask
+		next: ExtractEmailDomain
+

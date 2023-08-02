@@ -1,0 +1,67 @@
+Worflow: BO_CloseFinAccount
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	Prepare_Output: ScriptTask
+		next: Cleanup
+
+	Init: ScriptTask
+		next: IsActionStartedOrSubmitted?
+
+	IsActionStartedOrSubmitted?: Gateway
+		switch:
+			conn: IsApprove?
+			else: Prepare_InitialResponsePayload
+
+	Prepare_InitialResponsePayload: ScriptTask
+		next: Prepare_Output
+
+	Validate_SubmittedData: ScriptTask
+		next: IsValid?
+
+	Cleanup: ScriptTask
+		next: End
+
+	Set_Tags: ScriptTask
+		next: Init
+
+	ShouldSaveCommentToOrder?: Gateway
+		switch:
+			else: Prepare_Output
+			conn: Save_OrderComment
+
+	Save_OrderCommentError: BoundaryErrorEvent
+		next: Set_Error
+
+	Save_OrderComment: SubProcessTask
+		switch:
+			next: Save_OrderCommentError
+			next: Prepare_Output
+
+	Do_FinAccClosureError: BoundaryErrorEvent
+		next: Set_Error
+
+	Do_FinAccClosure: SubProcessTask
+		switch:
+			next: Do_FinAccClosureError
+			next: ShouldSaveCommentToOrder?
+
+	Set_Error: ScriptTask
+		next: Prepare_Output
+
+	IsValid?: Gateway
+		switch:
+			else: Prepare_Output
+			conn: Do_FinAccClosure
+
+	IsApprove?: Gateway
+		switch:
+			else: Set_TransactionCancelled
+			conn: Validate_SubmittedData
+
+	Set_TransactionCancelled: ScriptTask
+		next: ShouldSaveCommentToOrder?
+

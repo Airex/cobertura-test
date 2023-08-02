@@ -1,0 +1,7 @@
+Worflow: ARBM_Retail_DecideCustomerRiskRatingCheck
+
+	aebb9224-d31e-4f5a-aac7-24473155f350: FlowVerification
+		next: 
+
+	b658a56f-1b5a-465d-883e-ac07d9e3fec2: FlowVerification
+

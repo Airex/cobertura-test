@@ -1,0 +1,13 @@
+Worflow: ARBM_SME_GetDataKeeperContext_SignalWaiting
+
+	StartEvent: MessageStartEvent
+		next: GetCurrentContext
+
+	End: EndEvent
+
+	GetCurrentContext: SignalEvent
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+

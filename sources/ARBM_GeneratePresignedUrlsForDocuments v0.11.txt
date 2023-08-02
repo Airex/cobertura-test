@@ -1,0 +1,24 @@
+Worflow: ARBM_GeneratePresignedUrlsForDocuments
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: IsDocument?
+
+	IsDocument?: Gateway
+		switch:
+			else: End
+			conn: PrepareDocumentDownload
+
+	PrepareDocumentDownload: ScriptTask
+		next: GetDownloadUrl
+
+	OutputDocument: ScriptTask
+		next: IsDocument?
+
+	GetDownloadUrl: ComponentTask
+		next: OutputDocument
+

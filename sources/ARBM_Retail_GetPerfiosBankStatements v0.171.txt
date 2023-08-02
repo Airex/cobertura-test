@@ -1,0 +1,97 @@
+Worflow: ARBM_Retail_GetPerfiosBankStatements
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	UploadBankStatementToPerfiosError: BoundaryErrorEvent
+		next: GetDownloadUrl
+
+	UploadBankStatementToPerfios: ComponentTask
+		switch:
+			next: UploadBankStatementToPerfiosError
+			next: IfHttpCallError
+
+	SaveOutputObject: ScriptTask
+		next: End
+
+	ProcessBankStatementInPerfiosError: BoundaryErrorEvent
+		next: Error
+
+	ProcessBankStatementInPerfios: ComponentTask
+		switch:
+			next: ProcessBankStatementInPerfiosError
+			next: isProcessError_GW
+
+	RetrieveBankStatementReportFromPerfiosError: BoundaryErrorEvent
+		next: IfNotRetrieveReport
+
+	RetrieveBankStatementReportFromPerfios: ComponentTask
+		switch:
+			next: RetrieveBankStatementReportFromPerfiosError
+			next: IfNotRetrieveReport
+
+	End: EndEvent
+
+	TimerEvent: TimerEvent
+		next: RetrieveBankStatementReportFromPerfios
+
+	IncrTimer: ScriptTask
+		next: TimerEvent
+
+	IfNotRetrieveReport: Gateway
+		switch:
+			conn: IncrTimer
+			else: isRetrieveError_GW
+
+	ReturnSimulationData: ScriptTask
+		next: End
+
+	GetDownloadUrlError: BoundaryErrorEvent
+		next: IfErrorAndSimulation
+
+	GetDownloadUrl: ComponentTask
+		switch:
+			next: GetDownloadUrlError
+			next: IfErrorAndSimulation
+
+	IfHttpCallError: Gateway
+		switch:
+			conn: GetDownloadUrl
+			else: isUploadError_GW
+			conn: ReturnSimulationData
+
+	IfErrorAndSimulation: Gateway
+		switch:
+			conn: UploadBankStatementToPerfios
+			conn: ReturnSimulationData
+			else: Error
+
+	Error: ScriptTask
+		next: End
+
+	isUploadError_GW: Gateway
+		switch:
+			else: ProcessBankStatementInPerfios
+			conn: Error
+
+	GetSimulationData: ScriptTask
+		next: UploadBankStatementToPerfios
+
+	IfSimulation: Gateway
+		switch:
+			conn: ReturnSimulationData
+			else: isRetrieveError_GW
+
+	isRetrieveError_GW: Gateway
+		switch:
+			else: SaveOutputObject
+			conn: Error
+
+	SetTags: ScriptTask
+		next: GetSimulationData
+
+	isProcessError_GW: Gateway
+		switch:
+			else: RetrieveBankStatementReportFromPerfios
+			conn: Error
+

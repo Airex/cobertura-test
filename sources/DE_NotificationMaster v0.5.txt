@@ -1,0 +1,26 @@
+Worflow: DE_NotificationMaster
+
+	StartEvent: MessageStartEvent
+		next: isPeriodical?
+
+	End: EndEvent
+
+	preparePostponedNotifications: ScriptTask
+		next: isPostponedNotification?
+
+	isPostponedNotification?: Gateway
+		switch:
+			else: End
+			conn: createPostponedNotification
+
+	createPostponedNotification: SubProcessStartTask
+		next: isPostponedNotification?
+
+	isPeriodical?: Gateway
+		switch:
+			conn: preparePostponedNotifications
+			else: ARBM_CreateMobilePushNotification
+
+	ARBM_CreateMobilePushNotification: SubProcessTask
+		next: End
+

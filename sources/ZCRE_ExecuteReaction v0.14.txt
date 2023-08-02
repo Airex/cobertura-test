@@ -1,0 +1,24 @@
+Worflow: ZCRE_ExecuteReaction
+
+	StartEvent: MessageStartEvent
+		next: FindReaction
+
+	End: EndEvent
+
+	ExecuteReaction: SubProcessTask
+		next: PrepareOutput
+
+	FindReaction: ScriptTask
+		next: CheckReactionFound
+
+	CheckReactionFound: Gateway
+		switch:
+			conn: ExecuteReaction
+			else: SetNotFound
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	SetNotFound: ScriptTask
+		next: PrepareOutput
+

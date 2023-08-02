@@ -1,0 +1,45 @@
+Worflow: ARBM_Retail_FAServiceKafkaAccountConsumer
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	DW_SetPartyFinancialAccount: ComponentTask
+		next: DW_SetPaymentMeans
+
+	DW_SetOrderFinancingTerms: ComponentTask
+		next: SG_FinancialAccountCreated
+
+	DW_SetPaymentMeans: ComponentTask
+		next: DW_LinkPaymentOrderPaymentMeans
+
+	DW_SetPaymentOrder: ComponentTask
+		next: DW_SetPaymentOrderParty
+
+	FAAccountEntity: SignalTask
+
+	End: EndEvent
+
+	DW_SetPaymentOrderParty: ComponentTask
+		next: DW_SetPartyFinancialAccount
+
+	DW_FindItemInCatalogue: ComponentTask
+		next: InitCatalogIds
+
+	InitProcess: ScriptTask
+		next: DW_FindItemInCatalogue
+
+	InitCatalogIds: ScriptTask
+		next: DW_SetPaymentOrder
+
+	DW_LinkPaymentOrderPaymentMeans: ComponentTask
+		next: DW_SetOrderFinancingTerms
+
+	SG_FinancialAccountCreated: SignalTask
+		next: End
+
+	MutexLockFinancialAccout: ComponentTask
+		next: InitProcess
+
+	SetTags: ScriptTask
+		next: MutexLockFinancialAccout
+

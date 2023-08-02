@@ -1,0 +1,7 @@
+Worflow: BOR_GetUploadDetails
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

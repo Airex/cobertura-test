@@ -1,0 +1,22 @@
+Worflow: ARBM_SME_GetMappedDataAppToCCRIS
+
+	StartEvent: MessageStartEvent
+		next: GetStateCodesForSeveralGuarantors
+
+	End: EndEvent
+
+	DecideCCRISStateCode_SME: SubDecisionTask
+		next: GetApplicantResidencyStatus_CCRIS_Code
+
+	PrepareFinalCCRISApplicationPayload: ScriptTask
+		next: End
+
+	GetApplicantResidencyStatus_CCRIS_Code: SubDecisionTask
+		next: GetDataMappedToCCRISValues
+
+	GetDataMappedToCCRISValues: ScriptTask
+		next: PrepareFinalCCRISApplicationPayload
+
+	GetStateCodesForSeveralGuarantors: SubProcessTask
+		next: DecideCCRISStateCode_SME
+

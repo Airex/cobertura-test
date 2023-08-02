@@ -1,0 +1,21 @@
+Worflow: ARBM_Retail_GetCustomer_FinancingData
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	GetCustomerFinancingData: ComponentTask
+		next: SaveOutput
+
+	IsDataMocked?: Gateway
+		switch:
+			else: GetCustomerFinancingData
+			conn: ReturnMockData
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	SaveOutput: ScriptTask
+		next: End
+

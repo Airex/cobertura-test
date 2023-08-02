@@ -1,0 +1,10 @@
+Worflow: ARBM_Retail_BusinessRegistrationNumberCheck_TESTING_ONLY
+
+	StartEvent: MessageStartEvent
+		next: SaveOutput
+
+	End: EndEvent
+
+	SaveOutput: ScriptTask
+		next: End
+

@@ -1,0 +1,10 @@
+Worflow: Convert_XML_TO_JSON_Test
+
+	StartEvent: MessageStartEvent
+		next: TransformInputXMLToJSON
+
+	End: EndEvent
+
+	TransformInputXMLToJSON: ScriptTask
+		next: End
+

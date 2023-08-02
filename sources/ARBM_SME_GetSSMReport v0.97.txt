@@ -1,0 +1,25 @@
+Worflow: ARBM_SME_GetSSMReport
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	ExtractAndValidateData: ScriptTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: SaveToDb_Rule_SSMDataQuality
+
+	RetrieveSsmReport: SubProcessTask
+		next: ExtractAndValidateData
+
+	SaveToDb_Rule_SSMDataQuality: ComponentTask
+		next: End
+
+	Init: ScriptTask
+		next: RetrieveSsmReport
+
+	SetTags: ScriptTask
+		next: Init
+

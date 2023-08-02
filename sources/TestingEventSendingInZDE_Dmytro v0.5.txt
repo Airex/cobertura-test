@@ -1,0 +1,10 @@
+Worflow: TestingEventSendingInZDE_Dmytro
+
+	StartEvent: MessageStartEvent
+		next: SendEvent
+
+	End: EndEvent
+
+	SendEvent: HttpMessageTask
+		next: End
+

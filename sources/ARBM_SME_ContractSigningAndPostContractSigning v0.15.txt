@@ -1,0 +1,48 @@
+Worflow: ARBM_SME_ContractSigningAndPostContractSigning
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	ContractSigningProcessError: BoundaryErrorEvent
+		next: ContractSigningProcessResult_GW?
+
+	ContractSigningProcess: SubProcessTask
+		switch:
+			next: ContractSigningProcessError
+			next: ContractSigningProcessResult_GW?
+
+	ContractSigningProcessResult_GW?: Gateway
+		switch:
+			conn: DecideCCRISRejReasonCode
+			else: SetStatus_ConditionallyAccepted_ContractSign
+
+	DecideCCRISRejReasonCode: SubDecisionTask
+		next: SaveOutput_StatusReject
+
+	SaveOutput_StatusReject: ScriptTask
+		next: End
+
+	PostContractSigningProcessError: BoundaryErrorEvent
+		next: PostContractSigningProcessResult_GW?
+
+	PostContractSigningProcess: SubProcessTask
+		switch:
+			next: PostContractSigningProcessError
+			next: PostContractSigningProcessResult_GW?
+
+	PostContractSigningProcessResult_GW?: Gateway
+		switch:
+			conn: DecideCCRISRejReasonCode
+			else: SaveOutput_StatusProceed
+
+	SetStatus_ConditionallyAccepted_ContractSign: SubProcessStartTask
+		next: PostContractSigningProcess
+
+	SaveOutput_StatusProceed: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: ContractSigningProcess
+

@@ -1,0 +1,19 @@
+Worflow: ARBM_Retail_ContactAddressCheck
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	DecideContactAddressVerificationCheck: SubDecisionTask
+		next: SaveRuleResultToDB
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SaveRuleResultToDB: ComponentTask
+		next: SaveOutput
+
+	SetTags: ScriptTask
+		next: DecideContactAddressVerificationCheck
+

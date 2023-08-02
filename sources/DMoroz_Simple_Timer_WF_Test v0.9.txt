@@ -1,0 +1,13 @@
+Worflow: DMoroz_Simple_Timer_WF_Test
+
+	StartEvent: MessageStartEvent
+		next: TimerBasedOnInputValue
+
+	End: EndEvent
+
+	TimerBasedOnInputValue: TimerEvent
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+

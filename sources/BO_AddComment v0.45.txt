@@ -1,0 +1,26 @@
+Worflow: BO_AddComment
+
+	StartEvent: MessageStartEvent
+		next: CheckActionData
+
+	End: EndEvent
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	SaveOrderCommentError: BoundaryErrorEvent
+		next: PrepareOutput
+
+	SaveOrderComment: SubProcessTask
+		switch:
+			next: SaveOrderCommentError
+			next: PrepareOutput
+
+	CheckActionData: Gateway
+		switch:
+			else: SetFormPayload
+			conn: SaveOrderComment
+
+	SetFormPayload: ScriptTask
+		next: End
+

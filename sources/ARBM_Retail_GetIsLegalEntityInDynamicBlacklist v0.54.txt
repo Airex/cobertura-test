@@ -1,0 +1,40 @@
+Worflow: ARBM_Retail_GetIsLegalEntityInDynamicBlacklist
+
+	StartEvent: MessageStartEvent
+		next: DW_FindPartyByCompanyId
+
+	End: EndEvent
+
+	SaveOutput_IsNotBlacklisted: ScriptTask
+		next: End
+
+	SaveOutput_IsBlacklisted: ScriptTask
+		next: End
+
+	DW_FindPartyByCompanyId: ComponentTask
+		next: IsPartyFound?
+
+	IsPartyFound?: Gateway
+		switch:
+			conn: DW_FindWorkContactEmailByPartyId
+			else: SaveOutput_IsNotBlacklisted
+
+	DW_FindWorkContactEmailByPartyId: ComponentTask
+		next: IsWorkContactEmailFound?
+
+	IsWorkContactEmailFound?: Gateway
+		switch:
+			else: SaveOutput_IsNotBlacklisted
+			conn: DW_FindAllBlacklistsByCodeValue
+
+	IsWorkContactEmailBlacklisted?: Gateway
+		switch:
+			conn: SaveOutput_IsBlacklisted
+			else: SaveOutput_IsNotBlacklisted
+
+	DW_FindAllBlacklistsByCodeValue: ComponentTask
+		next: GetIsLegalEntityBlacklisted
+
+	GetIsLegalEntityBlacklisted: ScriptTask
+		next: IsWorkContactEmailBlacklisted?
+

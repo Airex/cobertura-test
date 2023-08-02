@@ -1,0 +1,16 @@
+Worflow: Files_CreateDownloadLink
+
+	StartEvent: MessageStartEvent
+		next: BuildFileServiceLink
+
+	End: EndEvent
+
+	BuildFileServiceLink: ScriptTask
+		next: CreateDownloadLink
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	CreateDownloadLink: ComponentTask
+		next: PrepareOutput
+

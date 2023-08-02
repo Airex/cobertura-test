@@ -1,0 +1,1804 @@
+Worflow: ARBM_SME_Financing_Main
+
+	Start: MessageStartEvent
+		next: Init
+
+	ShowCheckRates: ResponseTask
+		next: canStartApplication?
+
+	Init: ScriptTask
+		next: GetConfigurationUri_Start
+
+	CheckRatesGateway: Gateway
+		switch:
+			conn: StartApplication
+			conn: Calculate
+
+	Calculate: MessageEvent
+		next: OnCalculate
+
+	StartApplication: MessageEvent
+		next: OnStartApplication
+
+	ShowEligibilityOptions: ResponseTask
+		next: ConsentGateway
+
+	SubmitEligibility: MessageEvent
+		next: OnSubmitEligibility
+
+	ShowPhoneNumberRequest: ResponseTask
+		next: isPhoneNumberVerificationCreated?
+
+	SubmitIneligibility: MessageEvent
+		next: OnSubmitIneligibility
+
+	Cancelation: EndEvent
+
+	ConsentGateway: Gateway
+		switch:
+			conn: SubmitEligibility
+			conn: SubmitIneligibility
+
+	OnCalculate: ScriptTask
+		next: CallInitialCalculator
+
+	OnStartApplication: ScriptTask
+		next: GetOrderSenderId
+
+	OnSubmitIneligibility: ScriptTask
+		next: ShowAlternativeOffer
+
+	canStartApplication?: Gateway
+		switch:
+			conn: CheckRatesGateway
+			else: Calculate
+
+	OnConsent: ScriptTask
+		next: DW_BatchOrderUpsert_SetDocsResultsOfVerif
+
+	SubmitPhoneNumber: MessageEvent
+		next: OnSubmitPhoneNumber
+
+	VerifyPhoneNumberOTP: MessageEvent
+		next: Twilio_PhoneNumberVerification_Check
+
+	OnSubmitPhoneNumber: ScriptTask
+		next: isPhoneNumberVerificationSkipped?
+
+	ShowBusinessDetailsRequest: ResponseTask
+		next: SubmitBusinessType
+
+	SubmitBusinessType: MessageEvent
+		next: OnSubmitBusinessType
+
+	isPhoneCodeValid?: Gateway
+		switch:
+			conn: PhoneNumberVerification_DeleteGV
+			else: PhoneNumberWrongCode_Validation
+
+	isExistingCustomer?: Gateway
+		switch:
+			conn: ShowBusinessDetailsRequest
+			else: SetValidationMsgExistingSmeCheck
+
+	CheckForExistingCustomerByPhoneNumber: SubProcessTask
+		next: isExistingCustomer?
+
+	CheckByBRN: SubProcessTask
+		next: isFullyOnboarded?
+
+	isFullyOnboarded?: Gateway
+		switch:
+			conn: CheckCompanyCategorization
+			else: Status_Reject
+
+	CheckCompanyCategorization: SubProcessTask
+		next: isCompanyBlacklisted?
+
+	isCompanyBlacklisted?: Gateway
+		switch:
+			else: ShowPushNotificationRequest
+			conn: Status_Reject
+
+	ShowPushNotificationRequest: ResponseTask
+		next: SubmitAppAccountDetails
+
+	SubmitAppAccountDetails: MessageEvent
+		next: OnSubmitAppAccountDetails
+
+	OnSubmitBusinessType: ScriptTask
+		next: isSubmitBusinessTypeValid?
+
+	OnSubmitAppAccountDetails: ScriptTask
+		next: RetrieveSsmReport
+
+	RetrieveSsmReport: SubProcessStartTask
+		next: CreatePrimaryApplicantInCustomerService
+
+	CreatePrimaryApplicantInCustomerService: SubProcessTask
+		next: submitApplication_Reminder
+
+	UpdateCustomerMobPreferencesInCustService: SubProcessTask
+		next: CreateIAMProfile
+
+	CreateIAMProfile: ScriptTask
+		next: DW_BatchOrderUpsert_SetPlainOrder
+
+	SubmitContactDetails: MessageEvent
+		next: OnSubmitContactDetails
+
+	AlternativeOfferGateway: Gateway
+		switch:
+			conn: SubmitContactDetails
+			conn: SkipContactDetails
+
+	ShowAlternativeOffer: ResponseTask
+		next: AlternativeOfferGateway
+
+	ShowThankYouPage: ResponseTask
+		next: Exit
+
+	Exit: MessageEvent
+		next: Status_Cancel
+
+	Status_Cancel: ResponseTask
+		next: IsOrderLineCreated_GW_3?
+
+	Status_Reject: ResponseTask
+		next: IsOrderLineCreated_GW_2?
+
+	Rejection: EndEvent
+
+	OnSubmitEligibility: ScriptTask
+		next: ProcessConsentDocuments
+
+	ShowConsent: ResponseTask
+		next: Consent
+
+	Consent: MessageEvent
+		next: OnConsent
+
+	ShowFirstLoginRequest: ResponseTask
+		next: ShowFinancingCenterGateway
+
+	ProcessConsentDocuments: SubProcessTask
+		next: ShowConsent
+
+	isPhoneNumberVerificationCreated?: Gateway
+		switch:
+			conn: PhoneNumberVerifivationGateway
+			else: SubmitPhoneNumber
+
+	PhoneNumberVerifivationGateway: Gateway
+		switch:
+			conn: VerifyPhoneNumberOTP
+			conn: SubmitPhoneNumber
+
+	PhoneNumber_Validation: ScriptTask
+		next: ShowPhoneNumberRequest
+
+	GetOrderSenderId: SubProcessTask
+		next: DW_SetOrder
+
+	ShowBusinessSectorRequest: ResponseTask
+		next: ShowBusinessSectorRequestGateway
+
+	FirstLogin: MessageEvent
+		next: OnFirstLogin_VerifyToken
+
+	isSsmReportReady?: Gateway
+		switch:
+			else: ShowPleaseRetryShortly
+			conn: isSsmReportValidationFailed_GW2?
+
+	ShowPleaseRetryShortly: ResponseTask
+		next: WaitSsmReport
+
+	WaitSsmReport: MessageEvent
+		next: ShowFirstLoginRequest
+
+	SubmitBusinessSector: MessageEvent
+		next: OnSubmitBusinessSector_VerifyToken
+
+	ShowAppDetailsRequest: ResponseTask
+		next: ShowAppDetailsRequestGateway
+
+	SubmitAppDetails: MessageEvent
+		next: OnSubmitAppDetails_VerifyToken
+
+	OnSubmitAppDetails: ScriptTask
+		next: GetSmeAddresses_OnSubmitAppDetails
+
+	BusinessSectorCheckError: BoundaryErrorEvent
+		next: isBusinessSectorPassed?
+
+	BusinessSectorCheck: SubDecisionTask
+		switch:
+			next: BusinessSectorCheckError
+			next: SaveToDb_Rule_BusinessSectorCheck_Rule5
+
+	isBusinessSectorPassed?: Gateway
+		switch:
+			conn: PostKafkaStatus_EligibilityFailed
+			else: ShowGuarantors
+
+	PostKafkaStatus_EligibilityFailed: SubProcessTask
+		next: Status_Reject
+
+	ShowGuarantors: ResponseTask
+		next: ShouldGoToEventGateway_GW?
+
+	DeclarePrimaryApplicant: MessageEvent
+		next: OnDeclarePrimaryApplicant_VerifyToken
+
+	OnDeclarePrimaryApplicant: ScriptTask
+		next: isPrimaryApplicantValid?
+
+	ShowEmailRequest: ResponseTask
+		next: ShouldSkipConvertPrimaryApplicantAddress_GW?
+
+	SubmitEmail: MessageEvent
+		next: OnSubmitEmail_VerifyToken
+
+	PhoneNumberVerification_DeleteGV: ScriptTask
+		next: CheckForExistingCustomerByPhoneNumber
+
+	OnSubmitEmail: ScriptTask
+		next: DW_BatchOrderUpsert_OnSubmitPrimaryApplicantDetails
+
+	ShowEmailVerificationDetails: ResponseTask
+		next: isEmailVerificationValid?
+
+	EmailVerify: MessageEvent
+		next: OnEmailVerify_VerifyToken
+
+	EmailRetry: MessageEvent
+		next: OnEmailRetry_VerifyToken
+
+	TooManyEmailRetries?: Gateway
+		switch:
+			conn: RefreshEmailVerificationAttempts
+			else: WorkEmailVerificationError_ManualTask
+
+	ShowEmailManualVerificationStatus: ResponseTask
+		next: ShowEmailManualVerificationStatusGateway
+
+	IsEmailCodeValid?: Gateway
+		switch:
+			else: EmailWrongCode_Validation
+			conn: ShowEmailVerified
+
+	EmailManualVerify: MessageEvent
+		next: OnEmailManualVerify_VerifyToken
+
+	WorkEmailVerificationError_ManualTask: SubProcessStartTask
+		next: ShowEmailManualVerificationStatus
+
+	ShowEmailManualVerificationStatusGateway: Gateway
+		switch:
+			conn: Cancel
+			conn: EmailManualVerify
+			conn: EmailVerification_ManualTask_Succeeded
+
+	EmailVerification_ManualTask_Succeeded: SubProcessSucceededEvent
+		next: isEmailVerification_ManualTask_Succeded_Push_Sent?
+
+	EmailManualVerificationStatusGateway: Gateway
+		switch:
+			else: ShowEmailManualVerificationStatus
+			conn: EmailManualVerificationResultGateway
+
+	EmailWrongCode_Validation: ScriptTask
+		next: ShowEmailVerificationDetails
+
+	isEmailVerificationValid?: Gateway
+		switch:
+			else: EmailVerifivationWithoutVerifyGateway
+			conn: EmailVerifivationWithVerifyGateway
+
+	RefreshEmailVerificationAttempts: ScriptTask
+		next: Twilio_EmailVerification_Cancel
+
+	EmailVerifivationWithVerifyGateway: Gateway
+		switch:
+			conn: EmailVerify
+			conn: EmailVerifivationWithoutVerifyGateway
+
+	ShowEmailVerified: ResponseTask
+		next: ShowEmailVerifiedGateway
+
+	PhoneNumberWrongCode_Validation: ScriptTask
+		next: IsMoreAttemptsLeftPhoneVericiation_GW?
+
+	EmailVerified: MessageEvent
+		next: OnEmailVerified_VerifyToken
+
+	DuplicateEmailAddressCheck: SubProcessTask
+		next: UpdatePrimaryApplicantDataInCustomerDb
+
+	ShowPrimaryApplicantKYC: ResponseTask
+		next: ShowPrimaryApplicantKYCGateway
+
+	SubmitScanReference: MessageEvent
+		next: OnSubmitScanReference_VerifyToken
+
+	OnSubmitScanReference: ScriptTask
+		next: ProvideScansToCustomerService
+
+	IsMoreThenOneDirector?: Gateway
+		switch:
+			else: ShowOtherApplicantsDetailsRequest
+			conn: PrepareDocumentUpload
+
+	OnSubmitOtherApplicantsDetails: ScriptTask
+		next: isOtherApplicantsDetailsValid?
+
+	SendOnboardingEmailAndSms: SubProcessStartTask
+		next: UpdateSharedContext_1
+
+	ShowUploadedDocumentsList: ResponseTask
+		next: UpdateSharedContext_2
+
+	DocumentNewUpload: MessageEvent
+		next: OnDocumentNewUpload_VerifyToken
+
+	ShowUploadedDocumentsListGateway: Gateway
+		switch:
+			conn: Documents
+			conn: DocumentNewUpload
+			conn: Cancel
+
+	Documents: MessageEvent
+		next: OnDocuments_VerifyToken
+
+	ShowUnreviewedAppDetails: ResponseTask
+		next: IsSubmitApplicationTimerStart?
+
+	PrepareDocumentUpload: SubProcessTask
+		next: ShowUploadedDocumentsList
+
+	IsDocumentsValid?: Gateway
+		switch:
+			conn: PrepareDocumentUpload
+			else: UpdateSharedContext_3
+
+	ProcessDocuments: SubProcessTask
+		next: IsDocumentsValid?
+
+	Review: MessageEvent
+		next: OnReview_VerifyToken
+
+	SkipContactDetails: MessageEvent
+		next: Status_Cancel
+
+	ShowFinancingCenterGateway: Gateway
+		switch:
+			conn: FirstLogin
+			conn: Cancel
+			conn: RetrieveSsmReport_Succeeded
+			conn: RetrieveSsmReport_Failed
+
+	Cancel: MessageEvent
+		next: OnCancel_VerifyToken
+
+	RetrieveSsmReport_Succeeded: SubProcessSucceededEvent
+		next: SaveToDb_SsmReport
+
+	isPhoneNumberVerificationSkipped?: Gateway
+		switch:
+			conn: CheckForExistingCustomerByPhoneNumber
+			else: Twilio_PhoneNumberVerification_Create
+
+	isEmailVerificationSkipped?: Gateway
+		switch:
+			conn: ShowEmailVerified
+			else: Twilio_EmailVerification_Create
+
+	GuarantorCheck: SubProcessTask
+		next: DW_BatchOrderUpsert_CreateClsCategories_Device
+
+	IsGuarantorCheckSuccessful?: Gateway
+		switch:
+			else: Status_Reject
+			conn: UBOChecks
+
+	OnReviewScript: ScriptTask
+		next: GetSmeAddresses_OnReview
+
+	RealtimeDecision: SubProcessStartTask
+		next: ShouldGoToSubmitScanReference_GW1?
+
+	ShowDecisionStatus: ResponseTask
+		next: UpdateSharedContext_4
+
+	RealtimeDecisionGateway: Gateway
+		switch:
+			conn: DecisionStatus
+			conn: RealtimeDecision_Succeeded
+			conn: RealtimeDecision_Failed
+
+	RealtimeDecision_Succeeded: SubProcessSucceededEvent
+		next: ShouldReTriggerEKYC_GW?
+
+	DecisionStatus: MessageEvent
+		next: OnDecisionStatus_VerifyToken
+
+	isRealtimeDecisionCompleted?: Gateway
+		switch:
+			conn: IsManualReview?
+			conn: SetStatus_InError
+			else: GetSharedContext_1
+
+	Decision_Downsell: ResponseTask
+		next: IsAcceptDownsellTimerStart?
+
+	DownsellChoiceGateway: Gateway
+		switch:
+			conn: UpdateFinancingTerms
+			else: DW_BatchOrderUpsert_DownsellFinancingTerms_UpdateValidTill
+
+	ManualReviewStatusChange: ScriptTask
+		next: RealtimeDecision
+
+	SetStatus_OnHold: SubProcessStartTask
+		next: ManualReviewStatusChange
+
+	UpdateFinancingTerms: ScriptTask
+		next: Decision_Approved
+
+	IsManualReview?: Gateway
+		switch:
+			else: RealtimeDecisionResultGateway
+			conn: SetStatus_OnHold
+
+	RealtimeDecisionResultGateway: Gateway
+		switch:
+			conn: Decision_Reject
+			conn: acceptDownsell_Reminder
+			conn: approveApplication_Reminder
+
+	Decision_Approved: ResponseTask
+		next: GetSharedContext_3
+
+	Decision_Reject: ResponseTask
+		next: DecisionReject
+
+	DecisionReject: MessageEvent
+		next: OnDecisionReject_VerifyToken
+
+	DefineDocumentTypes: SubProcessTask
+		next: DefineDocumentTemplates
+
+	ShowUploadedNonFinDocumentsList: ResponseTask
+		next: UpdateSharedContext_6
+
+	NonFinDocumentsNewUpload: MessageEvent
+		next: OnNonFinDocumentsNewUpload_VerifyToken
+
+	ShowUploadedNonFinDocumentsListGateway: Gateway
+		switch:
+			conn: NonFinDocuments
+			conn: NonFinDocumentsNewUpload
+			conn: Withdraw
+			conn: approveApplicationShowUploadedNonFinDocumentsListTimerFinished
+
+	NonFinDocuments: MessageEvent
+		next: OnNonFinDocuments_VerifyToken
+
+	ShowVirtualSiteVisitSchedule: ResponseTask
+		next: IsApproveApplicationShowVirtualSiteVisitScheduleTimerStart?
+
+	PrepareNonFinDocumentUpload: SubProcessTask
+		next: ShowUploadedNonFinDocumentsList
+
+	ProcessNonFinDocuments: SubProcessTask
+		next: SetNonFinDocCompletionIndicator
+
+	VirtualSiteVisitSchedule: MessageEvent
+		next: OnVirtualSiteVisitSchedule_VerifyToken
+
+	ApproveGateway: Gateway
+		switch:
+			conn: Approve
+			conn: Withdraw
+			conn: approveApplicationTimerFinished
+
+	Approve: MessageEvent
+		next: OnApprove_VerifyToken
+
+	Withdraw: MessageEvent
+		next: OnWithdraw_VerifyToken
+
+	Withdrawal: EndEvent
+
+	Status_Withdrawn: ResponseTask
+		next: IsOrderLineCreated_GW?
+
+	DW_BatchOrderUpsert_OnStartApplication: SubProcessAwaitFirstResponseTask
+		next: ShowEligibilityOptions
+
+	DW_SetOrder: SubProcessTask
+		next: DW_SetOrderLineForPrimaryApplicant
+
+	DW_BatchOrderUpsert_OnSubmitAppDetails: SubProcessAwaitFirstResponseTask
+		next: DW_BatchOrderUpsert_OnSubmitAppDetails_2
+
+	ShowBusinessSectorRequestGateway: Gateway
+		switch:
+			conn: SubmitBusinessSector
+			conn: Cancel
+
+	ShowAppDetailsRequestGateway: Gateway
+		switch:
+			conn: SubmitAppDetails
+			conn: Cancel
+
+	ShowGuarantorsGateway: Gateway
+		switch:
+			conn: DeclarePrimaryApplicant
+			conn: Cancel
+			conn: ReportOutdatedInfo
+
+	ReportOutdatedInfo: MessageEvent
+		next: OnReportOutdatedInfo_VerifyToken
+
+	ShowPrimaryApplicantDetailsRequest: ResponseTask
+		next: ShowPrimaryApplicantDetailsRequestGateway
+
+	SubmitPrimaryApplicantDetails: MessageEvent
+		next: OnSubmitPrimaryApplicantDetails_VerifyToken
+
+	OnSubmitPrimaryApplicantDetails: ScriptTask
+		next: GetPrimaryApplicantPostalAddress
+
+	ShowPrimaryApplicantDetailsRequestGateway: Gateway
+		switch:
+			conn: SubmitPrimaryApplicantDetails
+			conn: Cancel
+			conn: ReportOutdatedInfo
+
+	ShowEmailRequestGateway: Gateway
+		switch:
+			conn: Cancel
+			conn: SubmitEmail
+
+	EmailVerifivationWithoutVerifyGateway: Gateway
+		switch:
+			conn: BackNewEmail
+			conn: Cancel
+			conn: EmailRetry
+
+	BackNewEmail: MessageEvent
+		next: OnBackNewEmail_VerifyToken
+
+	ShowEmailVerifiedGateway: Gateway
+		switch:
+			conn: EmailVerified
+			conn: Cancel
+
+	ShowPrimaryApplicantKYCGateway: Gateway
+		switch:
+			conn: SubmitScanReference
+			conn: Cancel
+
+	ShowOtherApplicantsDetailsRequest: ResponseTask
+		next: ShowOtherApplicantsDetailsRequestGateway
+
+	SubmitOtherApplicantsDetails: MessageEvent
+		next: OnSubmitOtherApplicantsDetails_VerifyToken
+
+	ShowOtherApplicantsDetailsRequestGateway: Gateway
+		switch:
+			conn: SubmitOtherApplicantsDetails
+			conn: Cancel
+			conn: ReportOutdatedInfoOtherApplicants
+
+	ShowUnreviewedAppDetailsGateway: Gateway
+		switch:
+			conn: Review
+			conn: Cancel
+			conn: BackDocumentNewUpload
+			conn: submitApplicationTimerFinished
+
+	BackDocumentNewUpload: MessageEvent
+		next: OnBackDocumentNewUpload_VerifyToken
+
+	ShowVirtualSiteVisitScheduleGateway: Gateway
+		switch:
+			conn: VirtualSiteVisitSchedule
+			conn: Withdraw
+			conn: approveApplicationShowVirtualSiteVisitScheduleTimerFinished
+
+	IsInitialEligibilityChecksFailed?: Gateway
+		switch:
+			conn: PostKafkaStatus_EligibilityFailed
+			else: PostKafkaStatus_EligibilityPassed
+
+	ShowVirtualSiteVisitStart: ResponseTask
+		next: ShowVirtualSiteVisitStartGateway
+
+	VirtualSiteVisitStart: MessageEvent
+		next: OnVirtualSiteVisitStart_VerifyToken
+
+	ShowVirtualSiteVisitStartGateway: Gateway
+		switch:
+			conn: VirtualSiteVisitStart
+			conn: Withdraw
+			conn: VirtualSiteVisitRechedule
+
+	VirtualSiteVisitRechedule: MessageEvent
+		next: OnVirtualSiteVisitReschedule_VerifyToken
+
+	isReschedulingAllowed?: Gateway
+		switch:
+			conn: ShowVirtualSiteVisitStart
+			conn: ShowVirtualSiteVisitSchedule
+
+	VirtualSiteVisit: SubProcessStartTask
+		next: ShowVirtualSiteVisitStatus
+
+	ShowVirtualSiteVisitStatus: ResponseTask
+		next: UpdateSharedContext_8
+
+	VirtualSiteVisit_GW2: Gateway
+		switch:
+			conn: VirtualSiteVisitStatus
+			conn: VirtualSiteVisit_Succeeded
+			conn: Withdraw
+
+	VirtualSiteVisit_Succeeded: SubProcessSucceededEvent
+		next: VirtualSiteVisitResult_GW?
+
+	VirtualSiteVisitStatus: MessageEvent
+		next: OnVirtualSiteVisitStatus_VerifyToken
+
+	isVirtualSiteVisitCompleted?: Gateway
+		switch:
+			else: ShowVirtualSiteVisitStatus
+			conn: IsVirtualSiteVisitRejected_GW?
+
+	VirtualSiteVisitResult_GW?: Gateway
+		switch:
+			else: isVirtualSiteVisit_Succeeded_Push_Sent?
+			conn: SetStatus_Rejected_AfterVirtualSiteVisit
+
+	ShowVirtualSiteVisitResult_ManualSchedule: ResponseTask
+		next: UpdateSharedContext_9
+
+	VirtualSiteVisitManualSchedule: MessageEvent
+		next: OnVirtualSiteVisitManualSchedule_VerifyToken
+
+	ShowVirtualSiteVisitResult_ManualScheduleGateway: Gateway
+		switch:
+			conn: VirtualSiteVisitManualSchedule
+			conn: Withdraw
+
+	NewGateway: Gateway
+		switch:
+			conn: ShowVirtualSiteVisitResult_ManualSchedule
+			conn: ShowVirtualSiteVisitStart
+
+	ShowVirtualSiteVisitResult_Approved: ResponseTask
+		next: UpdateSharedContext_10
+
+	VirtualSiteVisitResultApprove: MessageEvent
+		next: OnVirtualSiteVisitResultApprove_VerifyToken
+
+	ShowVirtualSiteVisitResult_ApprovedGateway: Gateway
+		switch:
+			conn: VirtualSiteVisitResultApprove
+			conn: Withdraw
+
+	ShowContractSigning: ResponseTask
+		next: UpdateSharedContext_11
+
+	ContractSign: MessageEvent
+		next: OnContractSign_VerifyToken
+
+	ShowContractSigningGateway: Gateway
+		switch:
+			conn: ContractSign
+			conn: Withdraw
+			conn: signApplicationShowContractSigningTimerFinished
+
+	ShowSignatureVerificationDetails: ResponseTask
+		next: UpdateSharedContext_12
+
+	SignatureVerify: MessageEvent
+		next: OnSignatureVerify_VerifyToken
+
+	SignatureRetry: MessageEvent
+		next: OnSignatureRetry_VerifyToken
+
+	TooManySignatureVerificationRetries?: Gateway
+		switch:
+			else: SignatureVerification_ManualTask
+			conn: RefreshSignatureVerificationAttempts
+
+	ShowSignatureVerificationManualVerificationStatus: ResponseTask
+		next: IsSignApplicationShowSignatureVerificationManualTimerStart?
+
+	IsSignatureVerificationCodeValid?: Gateway
+		switch:
+			else: SignatureVerificationWrongCode_Validation
+			conn: GetPayloadForContractSigning
+
+	SignatureManualVerify: MessageEvent
+		next: OnSignatureManualVerify_VerifyToken
+
+	SignatureVerification_ManualTask: SubProcessStartTask
+		next: ShowSignatureVerificationManualVerificationStatus
+
+	ShowSignatureVerificationManualVerificationStatusGateway: Gateway
+		switch:
+			conn: Withdraw
+			conn: SignatureManualVerify
+			conn: SignatureVerification_ManualTask_Succeeded
+			conn: signApplicationShowSignatureVerificationManualTimerFinished
+
+	SignatureVerification_ManualTask_Succeeded: SubProcessSucceededEvent
+		next: isSignatureVerification_ManualTask_Succeeded_Push_Sent?
+
+	SignatureManualVerificationStatusGateway: Gateway
+		switch:
+			conn: GetPayloadForContractSigning
+			conn: UpdateSharedContext_13
+
+	SignatureVerificationWrongCode_Validation: ScriptTask
+		next: ShowSignatureVerificationDetails
+
+	isSignatureVerificationValid?: Gateway
+		switch:
+			else: SignatureVerificationWithoutVerifyGateway
+			conn: SignatureVerificationWithVerifyGateway
+
+	Signiflow_SignatureVerification_Send: SubProcessTask
+		next: isSignatureVerificationError
+
+	Signiflow_SignatureVerification_Validate: SubProcessTask
+		next: IsSignatureVerificationCodeValid?
+
+	RefreshSignatureVerificationAttempts: ScriptTask
+		next: Signiflow_SignatureVerification_Send
+
+	SignatureVerificationWithVerifyGateway: Gateway
+		switch:
+			conn: SignatureVerify
+			conn: SignatureVerificationWithoutVerifyGateway
+			conn: signApplicationSignatureVerificationTimerFinished
+
+	SignatureVerificationWithoutVerifyGateway: Gateway
+		switch:
+			conn: Withdraw
+			conn: SignatureRetry
+			conn: signApplicationSignatureVerificationTimerFinished
+
+	Completed: EndEvent
+
+	ShowCompletionStatusAction: ResponseTask
+		next: UpdateSharedContext_14
+
+	CompletionStatus: MessageEvent
+		next: OnCompletionStatus_VerifyToken
+
+	PostContractSigning_GW_1?: Gateway
+		switch:
+			conn: ContractSigningAndPostContractSigning_Succeeded
+			conn: CompletionStatus
+			conn: ContractSigningAndPostContractSigning_Failed
+
+	ContractSigningAndPostContractSigning_Succeeded: SubProcessSucceededEvent
+		next: IsPostContractSigningReportingCompleted_GW?
+
+	ContractSigningAndPostContractSigningStatus_GW?: Gateway
+		switch:
+			else: ShowCompletionStatusAction
+			conn: IsPostContractSigningReject?
+			conn: SetStatus_InError
+
+	Status_Completed: ResponseTask
+		next: UpdateSharedContext_16
+
+	GetTimeslots: ScriptTask
+		next: ShowVirtualSiteVisitSchedule
+
+	isSignatureVerificationSkiped?: Gateway
+		switch:
+			else: Signiflow_SignatureVerification_Send
+			conn: SignatureVerification_ManualTask
+			conn: GetPayloadForContractSigning
+
+	isPrimaryApplicantValid?: Gateway
+		switch:
+			conn: ShowGuarantors
+			else: DW_BatchOrderUpsert_OnSubmitAppDetails
+
+	CreateSMECustomerRecord: SubProcessTask
+		next: BusinessSectorCheck
+
+	PostKafkaStatus_EligibilityPassed: SubProcessTask
+		next: isEmailVerificationSkipped?
+
+	InitialEligibilityChecks: SubProcessTask
+		next: IsInitialEligibilityChecksFailed?
+
+	Downsell: MessageEvent
+		next: OnDownsell_VerifyToken
+
+	UpdatePrimaryApplicantDataInCustomerDb: SubProcessStartTask
+		next: ShowPrimaryApplicantKYC
+
+	OnSubmitContactDetails: ScriptTask
+		next: ReachOutIneligibleCustomer
+
+	DW_BatchOrderUpsert_NPA_order_lines: SubProcessAwaitFirstResponseTask
+		next: isSimulationSkipOnboardingEmailAndSms
+
+	CallInitialCalculator: SubProcessTask
+		next: ShowCheckRates
+
+	EmailManualVerificationResultGateway: Gateway
+		switch:
+			conn: isEmailVerificationSkipped?
+			conn: EmailManualVerificationRejected
+			else: DuplicateEmailAddressCheck
+
+	EmailManualVerificationRejected: ScriptTask
+		next: DecideCCRISRejReasonCode_AfterEmailManualVerif
+
+	GenerateSigningDocuments: SubProcessStartTask
+		next: ProcessSigningDocuments
+
+	ProcessSigningDocuments: SubProcessTask
+		next: ShowVirtualSiteVisitResult_Approved
+
+	isOtherApplicantsDetailsValid?: Gateway
+		switch:
+			conn: ShowOtherApplicantsDetailsRequest
+			else: AssignUniqueCodes
+
+	AssignUniqueCodes: ScriptTask
+		next: DW_BatchOrderUpsert_NPA_order_lines
+
+	isSimulationSkipOnboardingEmailAndSms: Gateway
+		switch:
+			else: SendOnboardingEmailAndSms
+			conn: UpdateSharedContext_1
+
+	ReviewNonFinancialDocuments_ManualTask_PostEvent: SubProcessTask
+		next: VirtualSiteVisit_ManualTask_PostEvent
+
+	shouldReviewNonFinancialDocuments?: Gateway
+		switch:
+			else: ReviewNonFinancialDocuments_ManualTask_PostEvent
+			conn: VirtualSiteVisit_ManualTask_PostEvent
+
+	VirtualSiteVisit_ManualTask_PostEvent: SubProcessTask
+		next: VirtualSiteVisit
+
+	isSubmitBusinessTypeValid?: Gateway
+		switch:
+			conn: ShowBusinessDetailsRequest
+			else: IsCustomerTypePrivateLimited_GW?
+
+	DW_SetOrderLineForPrimaryApplicant: SubProcessTask
+		next: InitDefaultRuleStatuses_AfterOrderCreate_Order
+
+	SetStatus_Rejected_General: SubProcessStartTask
+		next: SetAppStatusInGlobalVars_Rejected
+
+	Cancel_SetStatus_Incomplete: SubProcessStartTask
+		next: SetAppStatusInGlobalVars_Canceled
+
+	Withdraw_SetStatus_Incomplete: SubProcessStartTask
+		next: SetAppStatusInGlobalVars_Withdrawn
+
+	IsOrderLineCreated_GW?: Gateway
+		switch:
+			conn: Withdraw_SetStatus_Incomplete
+			else: SetAppStatusInGlobalVars_Withdrawn
+
+	IsOrderLineCreated_GW_2?: Gateway
+		switch:
+			conn: SetStatus_Rejected_General
+			else: SetAppStatusInGlobalVars_Rejected
+
+	IsOrderLineCreated_GW_3?: Gateway
+		switch:
+			conn: Cancel_SetStatus_Incomplete
+			else: SetAppStatusInGlobalVars_Canceled
+
+	isSimulationSkipSubmitOtherApplicantsDetails?: Gateway
+		switch:
+			else: OnSubmitOtherApplicantsDetails
+			conn: AssignUniqueCodes
+
+	EmailVerification_ManualTask_Succeeded_Push: SubProcessStartTask
+		next: EmailManualVerify
+
+	isEmailVerification_ManualTask_Succeded_Push_Sent?: Gateway
+		switch:
+			else: EmailVerification_ManualTask_Succeeded_Push
+			conn: EmailManualVerify
+
+	RealtimeDecision_Succeeded_Push: SubProcessStartTask
+		next: isInitialRealtimeDecisionProceedOrReject
+
+	isRealtimeDecision_Succeeded_Push_Sent?: Gateway
+		switch:
+			else: RealtimeDecision_Succeeded_Push
+			conn: isInitialRealtimeDecisionProceedOrReject
+
+	PostContractSigningProcess_Succeeded_Push: SubProcessStartTask
+		next: UpdateOrderStatus
+
+	IsPostContractSigningReportingCompleted_GW?: Gateway
+		switch:
+			else: CCRIS_PushUpdateStatus
+			conn: FinishApplicationTimer_GW?
+
+	acceptDownsell_Reminder: SubProcessStartTask
+		next: Decision_Downsell
+
+	approveApplication_Reminder: SubProcessStartTask
+		next: UpdateSharedContext_5
+
+	verifyWorkEmail_Reminder: SubProcessStartTask
+		next: ShowEmailRequest
+
+	UpdateRealtimeDecisionStatus: Gateway
+		switch:
+			conn: SetStatus_Rejected
+			conn: SetStatus_Approved
+			else: DW_BatchOrderUpsert_MainFinancingTerms
+
+	SetStatus_Rejected: SubProcessStartTask
+		next: IsCCRISReportingProcessStarted_GW?
+
+	CCRIS_PushUpdateStatus_R: SubProcessStartTask
+		next: DW_BatchOrderUpsert_MainFinancingTerms
+
+	SetStatus_Approved: SubProcessStartTask
+		next: DW_BatchOrderUpsert_MainFinancingTerms
+
+	DecideCCRISRejReasonCode: SubDecisionTask
+		next: CCRIS_PushUpdateStatus_R
+
+	DW_BatchOrderUpsert_MainFinancingTerms: SubProcessAwaitFirstResponseTask
+		next: isRealtimeDecision_Succeeded_Push_Sent?
+
+	submitApplication_Reminder: SubProcessStartTask
+		next: UpdateCustomerDeviceStatus
+
+	signApplication_Reminder: SubProcessStartTask
+		next: ShowContractSigning
+
+	SignatureVerification_ManualTask_Succeeded_Push: SubProcessStartTask
+		next: SignatureManualVerify
+
+	isSignatureVerification_ManualTask_Succeeded_Push_Sent?: Gateway
+		switch:
+			else: SignatureVerification_ManualTask_Succeeded_Push
+			conn: SignatureManualVerify
+
+	VirtualSiteVisit_Succeeded_Push: SubProcessStartTask
+		next: VirtualSiteVisitStatus
+
+	isVirtualSiteVisit_Succeeded_Push_Sent?: Gateway
+		switch:
+			else: VirtualSiteVisit_Succeeded_Push
+			conn: VirtualSiteVisitStatus
+
+	CCRIS_PushUpdateStatus: SubProcessStartTask
+		next: PostContractSigningProcess_Succeeded_Push
+
+	SetStatus_Draft: SubProcessStartTask
+		next: SaveToDbPartyTaxCountry
+
+	SetStatus_InReview: SubProcessStartTask
+		next: RealtimeDecision
+
+	UpdateOrderStatus: SubProcessStartTask
+		next: SetApplicationStatusInGlobalVars
+
+	DownsellGateway: Gateway
+		switch:
+			conn: Downsell
+			conn: acceptDownsellTimerFinished
+
+	DW_BatchOrderUpsert_DownsellFinancingTerms_UpdateValidTill: SubProcessAwaitFirstResponseTask
+		next: SetStatus_OnHold
+
+	UpdateSME_BusinessDetails: SubProcessStartTask
+		next: ShowGuarantorsGateway
+
+	DecideCCRISRejReasonCode_AfterEmailManualVerif: SubDecisionTask
+		next: CCRIS_PushUpdateStatus_Rejected
+
+	CCRIS_PushUpdateStatus_Rejected: SubProcessStartTask
+		next: Status_Reject
+
+	CCRIS_PushUpdateStatus_Withdrawn: SubProcessStartTask
+		next: Status_Withdrawn
+
+	isSsmReportValidationFailed_GW2?: Gateway
+		switch:
+			else: ShowBusinessSectorRequest
+			conn: Status_Reject
+
+	SaveToDb_SsmReport: SubProcessStartTask
+		next: isSsmReportValidationFailed_GW1?
+
+	ProvideScansToCustomerService: SubProcessStartTask
+		next: TriggerRetrieveJumioVerificationDetails
+
+	Resume: SpareMessageEvent
+		next: OnResume_VerifyToken
+
+	ResumeGateway: Gateway
+		switch:
+			conn: ShowFirstLoginRequest
+			conn: ShowBusinessSectorRequest
+			conn: ShowAppDetailsRequest
+			conn: ShowGuarantors
+			conn: ShowPrimaryApplicantDetailsRequest
+			conn: ShowEmailRequest
+			conn: ShowEmailVerificationDetails
+			conn: ShowEmailManualVerificationStatus
+			conn: ShowEmailVerified
+			conn: ShowPrimaryApplicantKYC
+			conn: ShowOtherApplicantsDetailsRequest
+			conn: ShowUnreviewedAppDetails
+			conn: Decision_Reject
+			conn: Decision_Downsell
+			conn: ShowUploadedNonFinDocumentsList
+			conn: Decision_Approved
+			conn: ShowVirtualSiteVisitSchedule
+			conn: ShowVirtualSiteVisitStatus
+			conn: ShowVirtualSiteVisitResult_ManualSchedule
+			conn: ShowVirtualSiteVisitResult_Approved
+			conn: ShowContractSigning
+			conn: ShowSignatureVerificationDetails
+			conn: ShowSignatureVerificationManualVerificationStatus
+			conn: ShowCompletionStatusAction
+			conn: ShowPleaseRetryShortly
+			conn: GetSharedContext_1
+			conn: GetPrimaryApplicantPartyIdAndSaveToGlobalVars
+			conn: ShowVirtualSiteVisitStart
+
+	GetLastEvent: ScriptTask
+		next: ResumeGateway
+
+	SetAppStatusInGlobalVars_Withdrawn: ScriptTask
+		next: UpdateSharedContext_AppWithdrawn
+
+	SetAppStatusInGlobalVars_Rejected: ScriptTask
+		next: UpdateSharedContext_AppRejected
+
+	SetAppStatusInGlobalVars_Canceled: ScriptTask
+		next: UpdateSharedContext_AppCanceled
+
+	IsPostContractSigningReject?: Gateway
+		switch:
+			else: Status_Completed
+			conn: Status_Reject
+
+	DW_BatchOrderUpsert_SetPlainOrder: SubProcessAwaitFirstResponseTask
+		next: ShowFirstLoginRequest
+
+	SetApplicationStatusInGlobalVars: ScriptTask
+		next: UpdateSharedContext_15
+
+	UBOChecks: SubProcessTask
+		next: ShowAppDetailsRequest
+
+	DeriveAdditionalFieldsFromSsmReport: SubProcessTask
+		next: CreateSMECustomerRecord
+
+	DetermineCustomerRoleForPrimaryApplicant: SubProcessTask
+		next: ShowPrimaryApplicantDetailsRequest
+
+	RealtimeDecision_Failed: SubProcessFailedEvent
+		next: DecisionStatus
+
+	Termination: EndEvent
+
+	SetStatus_InError: SubProcessStartTask
+		next: SetTagAppStatus_InError
+
+	AsyncTermination: ScriptTask
+		next: Termination
+
+	DW_BatchOrderUpsert_OnSubmitAppDetails_2: SubProcessAwaitFirstResponseTask
+		next: DetermineCustomerRoleForPrimaryApplicant
+
+	DW_BatchOrderUpsert_OnSubmitPrimaryApplicantDetails: SubProcessAwaitFirstResponseTask
+		next: InitialEligibilityChecks
+
+	ReportOutdatedInfoOtherApplicants: MessageEvent
+		next: OnReportOutdatedInfoOtherApplicants_VerifyToken
+
+	SetValidationMsgExistingSmeCheck: ScriptTask
+		next: Status_Reject
+
+	UpdateGuarantors: ScriptTask
+		next: UpdateShareholderTable
+
+	IfNeedUpdateCustomerRole: Gateway
+		switch:
+			conn: UpdateCustomerRoleForPrimaryApplicant
+			else: UpdateRealtimeDecisionStatus
+
+	UpdateCustomerRoleForPrimaryApplicant: SubProcessTask
+		next: UpdateRealtimeDecisionStatus
+
+	AddRoleForShareholders: SubProcessStartTask
+		next: IfNeedUpdateCustomerRole
+
+	GetPayloadForCCRIS: ScriptTask
+		next: DW_BatchOrderUpsert_OnReview
+
+	SaveToDb_Rule_BusinessSectorCheck_Rule5: SubProcessStartTask
+		next: isBusinessSectorPassed?
+
+	InitDefaultRuleStatuses_AfterOrderCreate_Order: SubProcessStartTask
+		next: InitSharedContext
+
+	DW_SetPartyPerson_UpdatedInfo: SubProcessStartTask
+		next: IsMoreThenOneDirector?
+
+	InitDefaultRuleStatuseses_Rule23_Order: SubProcessStartTask
+		next: InitDefaultRuleStatuseses_OrderLine
+
+	IsCustomerTypePrivateLimited_GW?: Gateway
+		switch:
+			conn: InitDefaultRuleStatuseses_Rule23_Order
+			else: CheckByBRN
+
+	InitDefaultRuleStatuseses_OrderLine: SubProcessStartTask
+		next: CheckByBRN
+
+	PrepareSigningDocuments: ScriptTask
+		next: GenerateSigningDocuments
+
+	DecideCCRISRejReasonCode_AfterVirtualSiteVisit: SubDecisionTask
+		next: CCRIS_PushUpdateStatus_Rejected_VirtualSiteVisit
+
+	CCRIS_PushUpdateStatus_Rejected_VirtualSiteVisit: SubProcessStartTask
+		next: SetApplicationStatusInGlobalVars_VirtualSiteVisit
+
+	isInitialRealtimeDecisionProceedOrReject: Gateway
+		switch:
+			conn: DecisionStatus
+			else: IsManualReview?
+
+	IsNonFinDocumentsCompleted_GW?: Gateway
+		switch:
+			else: Decision_Approved
+			conn: ShouldSkipCreationOfManualTasks_GW?
+
+	EventsRouter_GW?: Gateway
+		switch:
+			else: VirtualSiteVisit_GW2
+			conn: VirtualSiteVisit_GW3
+			conn: VirtualSiteVisit_GW1
+
+	nonFinDocCompletedIndicatorStatus_GW?: Gateway
+		switch:
+			conn: ShouldSkipCreationOfManualTasks_GW?
+			else: GetSharedContext_1
+
+	nonFinDocCompletedIndicatorStatus_GW2?: Gateway
+		switch:
+			else: ApproveGateway
+			conn: nonFinDocCompletedIndicatorApproveGateway
+
+	nonFinDocCompletedIndicatorApproveGateway: Gateway
+		switch:
+			conn: ApproveGateway
+			conn: RealtimeDecision_Succeeded
+
+	SetNonFinDocCompletionIndicator: ScriptTask
+		next: ShouldGoForSecondRunRealtimeDecision_GW?
+
+	ShouldGoForSecondRunRealtimeDecision_GW?: Gateway
+		switch:
+			conn: RealtimeDecision
+			else: ShouldSkipCreationOfManualTasks_GW?
+
+	ShouldSkipCreationOfManualTasks_GW?: Gateway
+		switch:
+			conn: ShowVirtualSiteVisitStatus
+			else: IsOnVirtualSiteVisitSimulation_GW?
+
+	IsOnVirtualSiteVisitSimulation_GW?: Gateway
+		switch:
+			else: shouldReviewNonFinancialDocuments?
+			conn: VirtualSiteVisit
+
+	VirtualSiteVisit_GW3: Gateway
+		switch:
+			conn: RealtimeDecision_Succeeded
+			conn: VirtualSiteVisitStatus
+			conn: Withdraw
+
+	VirtualSiteVisit_GW1: Gateway
+		switch:
+			conn: VirtualSiteVisit_GW2
+			conn: VirtualSiteVisit_GW3
+
+	SetStatus_Rejected_AfterVirtualSiteVisit: SubProcessStartTask
+		next: DecideCCRISRejReasonCode_AfterVirtualSiteVisit
+
+	SetApplicationStatusInGlobalVars_VirtualSiteVisit: ScriptTask
+		next: UpdateSharedContext_AfterVirtualSiteVisit
+
+	IsVirtualSiteVisitRejected_GW?: Gateway
+		switch:
+			conn: PrepareSigningDocuments
+			conn: Status_Reject
+			else: ShowVirtualSiteVisitResult_ManualSchedule
+
+	ContractSigningAndPostContractSigning: SubProcessStartTask
+		next: ShowCompletionStatusAction
+
+	GetPayloadForContractSigning: ScriptTask
+		next: GetPayloadForPostContractSigning
+
+	GetPayloadForPostContractSigning: ScriptTask
+		next: ContractSigningAndPostContractSigning
+
+	IsMoreAttemptsLeftPhoneVericiation_GW?: Gateway
+		switch:
+			else: ShowPhoneNumberRequest
+			conn: RefreshPhoneVerificationAttempts
+
+	RefreshPhoneVerificationAttempts: ScriptTask
+		next: Twilio_PhoneNumberVerification_Cancel
+
+	ShouldReTriggerEKYC_GW?: Gateway
+		switch:
+			conn: DecisionStatus
+			else: GetSharedContext_2
+
+	ShouldGoToRealtimeDecision_GW?: Gateway
+		switch:
+			else: DW_SetPartyPerson_UpdatedInfo
+			conn: UpdateFlagReTriggerEKYC
+
+	UpdateFlagReTriggerEKYC: ScriptTask
+		next: RealtimeDecision
+
+	ShouldGoToSubmitScanReference_GW2?: Gateway
+		switch:
+			else: isRealtimeDecisionCompleted?
+			conn: ShowPrimaryApplicantKYC
+
+	IsCCRISReportingProcessStarted_GW?: Gateway
+		switch:
+			conn: DecideCCRISRejReasonCode
+			else: DW_BatchOrderUpsert_MainFinancingTerms
+
+	SetStatus_Rejected_General_OnSsmReport: SubProcessStartTask
+		next: FirstLogin
+
+	isSsmReportValidationFailed_GW1?: Gateway
+		switch:
+			else: FirstLogin
+			conn: SetStatus_Rejected_General_OnSsmReport
+
+	RetrieveSsmReport_Failed: SubProcessFailedEvent
+		next: FirstLogin
+
+	IsRetrieveSsmReportFailed_GW?: Gateway
+		switch:
+			else: isSsmReportReady?
+			conn: SetStatus_InError
+
+	OnSubmitBusinessSector: ScriptTask
+		next: GuarantorCheck
+
+	Twilio_PhoneNumberVerification_Cancel_Validation: ScriptTask
+		next: ShowPhoneNumberRequest
+
+	InitSharedContext: SubProcessTask
+		next: DW_BatchOrderUpsert_OnStartApplication
+
+	UpdateSharedContext_1: SubProcessStartTask
+		next: PrepareDocumentUpload
+
+	UpdateSharedContext_2: SubProcessStartTask
+		next: ShowUploadedDocumentsListGateway
+
+	UpdateSharedContext_3: SubProcessStartTask
+		next: ShowUnreviewedAppDetails
+
+	UpdateSharedContext_4: SubProcessStartTask
+		next: RealtimeDecisionGateway
+
+	GetSharedContext_3: SubProcessTask
+		next: IsApproveApplicationTimerStart?
+
+	GetSharedContext_1: SubProcessTask
+		next: ShowDecisionStatus
+
+	GetSharedContext_2: SubProcessTask
+		next: UpdateGuarantors
+
+	UpdateSharedContext_5: SubProcessStartTask
+		next: IsNonFinDocumentsCompleted_GW?
+
+	UpdateSharedContext_6: SubProcessStartTask
+		next: IsApproveApplicationShowUploadedNonFinDocumentsListTimerStart?
+
+	UpdateSharedContext_7: SubProcessStartTask
+		next: ShowVirtualSiteVisitStart
+
+	UpdateSharedContext_8: SubProcessStartTask
+		next: EventsRouter_GW?
+
+	UpdateSharedContext_9: SubProcessStartTask
+		next: ShowVirtualSiteVisitResult_ManualScheduleGateway
+
+	UpdateSharedContext_10: SubProcessStartTask
+		next: ShowVirtualSiteVisitResult_ApprovedGateway
+
+	UpdateSharedContext_11: SubProcessStartTask
+		next: IsSignApplicationShowContractSigningTimerStart?
+
+	UpdateSharedContext_12: SubProcessStartTask
+		next: IsSignApplicationSignatureVerificationTimerStart?
+
+	UpdateSharedContext_13: SubProcessStartTask
+		next: ShowSignatureVerificationManualVerificationStatus
+
+	UpdateSharedContext_14: SubProcessStartTask
+		next: PostContractSigning_GW_1?
+
+	UpdateSharedContext_15: SubProcessStartTask
+		next: IsFinishApplicationTimerStarted?
+
+	UpdateSharedContext_16: SubProcessStartTask
+		next: SetTagAppStatus_Completed
+
+	UpdateSharedContext_AfterVirtualSiteVisit: SubProcessStartTask
+		next: isVirtualSiteVisit_Succeeded_Push_Sent?
+
+	UpdateSharedContext_AppCanceled: SubProcessStartTask
+		next: SetTagAppStatus_Canceled
+
+	UpdateSharedContext_AppRejected: SubProcessStartTask
+		next: SetTagAppStatus_Rejected
+
+	UpdateSharedContext_AppWithdrawn: SubProcessStartTask
+		next: SetTagAppStatus_Withdrawn
+
+	OnResume_VerifyToken: SubProcessTask
+		next: GetConfigurationUri_Resume
+
+	OnFirstLogin_VerifyToken: SubProcessTask
+		next: IsRetrieveSsmReportFailed_GW?
+
+	OnSubmitBusinessSector_VerifyToken: SubProcessTask
+		next: OnSubmitBusinessSector
+
+	OnSubmitAppDetails_VerifyToken: SubProcessTask
+		next: OnSubmitAppDetails
+
+	OnDeclarePrimaryApplicant_VerifyToken: SubProcessTask
+		next: OnDeclarePrimaryApplicant
+
+	OnSubmitPrimaryApplicantDetails_VerifyToken: SubProcessTask
+		next: OnSubmitPrimaryApplicantDetails
+
+	OnReportOutdatedInfo_VerifyToken: SubProcessTask
+		next: Status_Reject
+
+	OnCancel_VerifyToken: SubProcessTask
+		next: Status_Cancel
+
+	OnReportOutdatedInfoOtherApplicants_VerifyToken: SubProcessTask
+		next: Status_Reject
+
+	OnBackNewEmail_VerifyToken: SubProcessTask
+		next: ShowEmailRequest
+
+	OnSubmitEmail_VerifyToken: SubProcessTask
+		next: OnSubmitEmail
+
+	OnEmailRetry_VerifyToken: SubProcessTask
+		next: TooManyEmailRetries?
+
+	OnEmailManualVerify_VerifyToken: SubProcessTask
+		next: EmailManualVerificationStatusGateway
+
+	OnEmailVerify_VerifyToken: SubProcessTask
+		next: Twilio_EmailVerification_Check
+
+	OnEmailVerified_VerifyToken: SubProcessTask
+		next: DuplicateEmailAddressCheck
+
+	OnSubmitScanReference_VerifyToken: SubProcessTask
+		next: OnSubmitScanReference
+
+	OnSubmitOtherApplicantsDetails_VerifyToken: SubProcessTask
+		next: isSimulationSkipSubmitOtherApplicantsDetails?
+
+	OnDocumentNewUpload_VerifyToken: SubProcessTask
+		next: PrepareDocumentUpload
+
+	OnDocuments_VerifyToken: SubProcessTask
+		next: ProcessDocuments
+
+	OnBackDocumentNewUpload_VerifyToken: SubProcessTask
+		next: PrepareDocumentUpload
+
+	OnReview_VerifyToken: SubProcessTask
+		next: OnReviewScript
+
+	OnDecisionStatus_VerifyToken: SubProcessTask
+		next: ShouldGoToSubmitScanReference_GW2?
+
+	OnDecisionReject_VerifyToken: SubProcessTask
+		next: Status_Reject
+
+	OnDownsell_VerifyToken: SubProcessTask
+		next: DownsellChoiceGateway
+
+	OnApprove_VerifyToken: SubProcessTask
+		next: DefineDocumentTypes
+
+	OnNonFinDocumentsNewUpload_VerifyToken: SubProcessTask
+		next: PrepareNonFinDocumentUpload
+
+	OnNonFinDocuments_VerifyToken: SubProcessTask
+		next: ProcessNonFinDocuments
+
+	OnVirtualSiteVisitSchedule_VerifyToken: SubProcessTask
+		next: UpdateSharedContext_7
+
+	OnVirtualSiteVisitReschedule_VerifyToken: SubProcessTask
+		next: isReschedulingAllowed?
+
+	OnVirtualSiteVisitStart_VerifyToken: SubProcessTask
+		next: VirtualSiteVisit
+
+	OnVirtualSiteVisitStatus_VerifyToken: SubProcessTask
+		next: isVirtualSiteVisitCompleted?
+
+	OnVirtualSiteVisitManualSchedule_VerifyToken: SubProcessTask
+		next: NewGateway
+
+	OnVirtualSiteVisitResultApprove_VerifyToken: SubProcessTask
+		next: signApplication_Reminder
+
+	OnContractSign_VerifyToken: SubProcessTask
+		next: DW_BatchOrderUpsert_SetDocsResultsOfVerif_OnContractSign
+
+	OnSignatureRetry_VerifyToken: SubProcessTask
+		next: TooManySignatureVerificationRetries?
+
+	OnSignatureVerify_VerifyToken: SubProcessTask
+		next: Signiflow_SignatureVerification_Validate
+
+	OnSignatureManualVerify_VerifyToken: SubProcessTask
+		next: SignatureManualVerificationStatusGateway
+
+	OnCompletionStatus_VerifyToken: SubProcessTask
+		next: ContractSigningAndPostContractSigningStatus_GW?
+
+	OnWithdraw_VerifyToken: SubProcessTask
+		next: CCRIS_PushUpdateStatus_Withdrawn
+
+	SetTagAppStatus_Withdrawn: ScriptTask
+		next: Withdrawal
+
+	SetTagAppStatus_Rejected: ScriptTask
+		next: Rejection
+
+	SetTagAppStatus_Canceled: ScriptTask
+		next: Cancelation
+
+	SetTagAppStatus_InError: ScriptTask
+		next: AsyncTermination
+
+	SetTagAppStatus_Completed: ScriptTask
+		next: Completed
+
+	GetPrimaryApplicantPartyIdAndSaveToGlobalVars: SubProcessTask
+		next: ShowUploadedDocumentsList
+
+	DW_BatchOrderUpsert_CreateClsCategories_Device: SubProcessAwaitFirstResponseTask
+		next: IsGuarantorCheckSuccessful?
+
+	SaveToDbPartyTaxCountry: SubProcessStartTask
+		next: SaveToDbSupplierAndBusinessActivityCountries
+
+	SaveToDbSupplierAndBusinessActivityCountries: SubProcessStartTask
+		next: verifyWorkEmail_Reminder
+
+	TriggerRetrieveJumioVerificationDetails: SubProcessStartTask
+		next: ShouldGoToRealtimeDecision_GW?
+
+	ShouldGoToSubmitScanReference_GW1?: Gateway
+		switch:
+			else: nonFinDocCompletedIndicatorStatus_GW?
+			conn: ShowPrimaryApplicantKYC
+
+	UpdateCustomerDeviceStatus: SubProcessStartTask
+		next: UpdateCustomerMobPreferencesInCustService
+
+	DW_BatchOrderUpsert_SetDocsResultsOfVerif: SubProcessAwaitFirstResponseTask
+		next: ShowPhoneNumberRequest
+
+	DW_BatchOrderUpsert_SetDocsResultsOfVerif_OnContractSign: SubProcessAwaitFirstResponseTask
+		next: isSignatureVerificationSkiped?
+
+	UpdateShareholderTable: SubProcessTask
+		next: AddRoleForShareholders
+
+	GetSmeAddresses_OnSubmitAppDetails: ScriptTask
+		next: DeriveAdditionalFieldsFromSsmReport
+
+	GetPrimaryApplicantPostalAddress: ScriptTask
+		next: SetStatus_Draft
+
+	ConvertSmeAddress_IdToLabel: SubProcessTask
+		next: UpdateSME_BusinessDetails
+
+	ShouldGoToEventGateway_GW?: Gateway
+		switch:
+			else: ConvertSmeAddress_IdToLabel
+			conn: ShowGuarantorsGateway
+
+	ConvertPrimaryApplicantAddress_IdToLabel: SubProcessTask
+		next: ShowEmailRequestGateway
+
+	ShouldSkipConvertPrimaryApplicantAddress_GW?: Gateway
+		switch:
+			else: ConvertPrimaryApplicantAddress_IdToLabel
+			conn: ShowEmailRequestGateway
+
+	DW_BatchOrderUpsert_OnReview: SubProcessAwaitFirstResponseTask
+		next: SetStatus_InReview
+
+	DefineDocumentTemplates: SubProcessTask
+		next: PrepareNonFinDocumentUpload
+
+	GetSmeAddresses_OnReview: ScriptTask
+		next: ConvertSmeAddress_IdToLabel_OnReview
+
+	ConvertSmeAddress_IdToLabel_OnReview: SubProcessTask
+		next: SaveToDbSupplierAndBusinessActivityCountries_OnReview
+
+	SetGetConfigurationUri_StartOutput: ScriptTask
+		next: ShowCheckRates
+
+	GetConfigurationUri_Start: ComponentTask
+		next: SetGetConfigurationUri_StartOutput
+
+	SetGetConfigurationUri_ResumeOutput: ScriptTask
+		next: GetLastEvent
+
+	GetConfigurationUri_Resume: ComponentTask
+		next: SetGetConfigurationUri_ResumeOutput
+
+	SaveToDbSupplierAndBusinessActivityCountries_OnReview: SubProcessStartTask
+		next: GetPayloadForCCRIS
+
+	Twilio_PhoneNumberVerification_CancelError: BoundaryErrorEvent
+		next: Twilio_PhoneNumberVerification_CancelError?
+
+	Twilio_PhoneNumberVerification_Cancel: ComponentTask
+		switch:
+			next: Twilio_PhoneNumberVerification_CancelError
+			next: Twilio_PhoneNumberVerification_CancelError?
+
+	Twilio_PhoneNumberVerification_CheckError: BoundaryErrorEvent
+		next: Twilio_PhoneNumberVerification_CheckError?
+
+	Twilio_PhoneNumberVerification_Check: ComponentTask
+		switch:
+			next: Twilio_PhoneNumberVerification_CheckError
+			next: Twilio_PhoneNumberVerification_CheckError?
+
+	Twilio_PhoneNumberVerification_CreateError?: Gateway
+		switch:
+			conn: Twilio_PhoneNumberVerification_Cancel
+			else: SetTwilio_PhoneNumberVerification_CreateOutput
+
+	SetTwilio_PhoneNumberVerification_CreateOutput: ScriptTask
+		next: ShowPhoneNumberRequest
+
+	Twilio_PhoneNumberVerification_CancelError?: Gateway
+		switch:
+			conn: Twilio_PhoneNumberVerification_Cancel_Validation
+			else: SetTwilio_PhoneNumberVerification_CancelOutput
+
+	SetTwilio_PhoneNumberVerification_CancelOutput: ScriptTask
+		next: ShowPhoneNumberRequest
+
+	Twilio_PhoneNumberVerification_CheckError?: Gateway
+		switch:
+			else: isPhoneCodeValid?
+			conn: PhoneNumber_Validation
+
+	Twilio_PhoneNumberVerification_CreateError: BoundaryErrorEvent
+		next: Twilio_PhoneNumberVerification_CreateError?
+
+	Twilio_PhoneNumberVerification_Create: ComponentTask
+		switch:
+			next: Twilio_PhoneNumberVerification_CreateError
+			next: Twilio_PhoneNumberVerification_CreateError?
+
+	Twilio_EmailVerification_CreateError: BoundaryErrorEvent
+		next: isTwilioEmailVerificationCreateError
+
+	Twilio_EmailVerification_Create: ComponentTask
+		switch:
+			next: Twilio_EmailVerification_CreateError
+			next: isTwilioEmailVerificationCreateError
+
+	Twilio_EmailVerification_CheckError: BoundaryErrorEvent
+		next: Twilio_EmailVerification_CheckError?
+
+	Twilio_EmailVerification_Check: ComponentTask
+		switch:
+			next: Twilio_EmailVerification_CheckError
+			next: Twilio_EmailVerification_CheckError?
+
+	Twilio_EmailVerification_CancelError: BoundaryErrorEvent
+		next: Twilio_EmailVerification_CancelError?
+
+	Twilio_EmailVerification_Cancel: ComponentTask
+		switch:
+			next: Twilio_EmailVerification_CancelError
+			next: Twilio_EmailVerification_CancelError?
+
+	SetTwilio_EmailVerification_CreateOutput: ScriptTask
+		next: ShowEmailVerificationDetails
+
+	SetTwilio_EmailVerification_CancelOutput: ScriptTask
+		next: Twilio_EmailVerification_Create
+
+	Twilio_EmailVerification_CancelError?: Gateway
+		switch:
+			else: SetTwilio_EmailVerification_CancelOutput
+			conn: Twilio_EmailVerification_Create
+
+	Twilio_EmailVerification_CheckError?: Gateway
+		switch:
+			conn: Twilio_EmailVerification_Cancel
+			else: IsEmailCodeValid?
+
+	ValidationHTTPError: ScriptTask
+
+	IsErrorHTTPTask: Gateway
+		conn: ValidationHTTPError
+
+	isTwilioEmailVerificationCreateError: Gateway
+		switch:
+			else: SetTwilio_EmailVerification_CreateOutput
+			conn: ValidationTwilioEmailVerificationError
+
+	ValidationTwilioEmailVerificationError: ScriptTask
+		next: ShowEmailRequest
+
+	ContractSigningAndPostContractSigning_Failed: SubProcessFailedEvent
+		next: IsFinishApplicationTimerStarted?
+
+	FinishApplicationTimer_GW?: Gateway
+		switch:
+			conn: CompletionStatus
+			conn: finishApplicationTimerFinished
+
+	ValidationSignatureVerificationError: ScriptTask
+		next: ShowContractSigning
+
+	isSignatureVerificationError: Gateway
+		switch:
+			else: ShowSignatureVerificationDetails
+			conn: ValidationSignatureVerificationError
+
+	submitApplicationTimerStart: SubProcessStartTask
+		next: ShowUnreviewedAppDetailsGateway
+
+	IsSubmitApplicationTimerStart?: Gateway
+		switch:
+			else: submitApplicationTimerStart
+			conn: ShowUnreviewedAppDetailsGateway
+
+	submitApplicationTimerFinished: SubProcessSucceededEvent
+		next: IsOrderLineCreated_GW_3?
+
+	acceptDownsellTimerFinished: SubProcessSucceededEvent
+		next: DW_BatchOrderUpsert_DownsellFinancingTerms_UpdateValidTill
+
+	IsAcceptDownsellTimerStart?: Gateway
+		switch:
+			else: acceptDownsellTimerStart
+			conn: DownsellGateway
+
+	acceptDownsellTimerStart: SubProcessStartTask
+		next: DownsellGateway
+
+	finishApplicationTimerFinished: SubProcessSucceededEvent
+		next: Completed
+
+	finishApplicationTimerStart: SubProcessStartTask
+		next: FinishApplicationTimer_GW?
+
+	approveApplicationTimerStart: SubProcessStartTask
+		next: nonFinDocCompletedIndicatorStatus_GW2?
+
+	approveApplicationTimerFinished: SubProcessSucceededEvent
+		next: IsOrderLineCreated_GW?
+
+	IsApproveApplicationTimerStart?: Gateway
+		switch:
+			else: approveApplicationTimerStart
+			conn: nonFinDocCompletedIndicatorStatus_GW2?
+
+	IsApproveApplicationShowUploadedNonFinDocumentsListTimerStart?: Gateway
+		switch:
+			else: approveApplicationShowUploadedNonFinDocumentsListTimerStart
+			conn: ShowUploadedNonFinDocumentsListGateway
+
+	approveApplicationShowUploadedNonFinDocumentsListTimerStart: SubProcessStartTask
+		next: ShowUploadedNonFinDocumentsListGateway
+
+	approveApplicationShowUploadedNonFinDocumentsListTimerFinished: SubProcessSucceededEvent
+		next: IsOrderLineCreated_GW?
+
+	approveApplicationShowVirtualSiteVisitScheduleTimerStart: SubProcessStartTask
+		next: ShowVirtualSiteVisitScheduleGateway
+
+	IsApproveApplicationShowVirtualSiteVisitScheduleTimerStart?: Gateway
+		switch:
+			else: approveApplicationShowVirtualSiteVisitScheduleTimerStart
+			conn: ShowVirtualSiteVisitScheduleGateway
+
+	approveApplicationShowVirtualSiteVisitScheduleTimerFinished: SubProcessSucceededEvent
+		next: IsOrderLineCreated_GW?
+
+	signApplicationShowContractSigningTimerStart: SubProcessStartTask
+		next: ShowContractSigningGateway
+
+	IsSignApplicationShowContractSigningTimerStart?: Gateway
+		switch:
+			else: signApplicationShowContractSigningTimerStart
+			conn: ShowContractSigningGateway
+
+	signApplicationShowContractSigningTimerFinished: SubProcessSucceededEvent
+		next: IsOrderLineCreated_GW?
+
+	IsSignApplicationShowSignatureVerificationManualTimerStart?: Gateway
+		switch:
+			else: signApplicationShowSignatureVerificationManualTimerStart
+			conn: ShowSignatureVerificationManualVerificationStatusGateway
+
+	signApplicationShowSignatureVerificationManualTimerStart: SubProcessStartTask
+		next: ShowSignatureVerificationManualVerificationStatusGateway
+
+	signApplicationShowSignatureVerificationManualTimerFinished: SubProcessSucceededEvent
+		next: IsOrderLineCreated_GW?
+
+	IsSignApplicationSignatureVerificationTimerStart?: Gateway
+		switch:
+			else: signApplicationSignatureVerificationTimerStart
+			conn: isSignatureVerificationValid?
+
+	signApplicationSignatureVerificationTimerStart: SubProcessStartTask
+		next: isSignatureVerificationValid?
+
+	signApplicationSignatureVerificationTimerFinished: SubProcessSucceededEvent
+		next: IsOrderLineCreated_GW?
+
+	IsFinishApplicationTimerStarted?: Gateway
+		switch:
+			else: finishApplicationTimerStart
+			conn: FinishApplicationTimer_GW?
+
+	ReachOutIneligibleCustomer: SubProcessStartTask
+		next: ShowThankYouPage
+

@@ -1,0 +1,24 @@
+Worflow: ARBM_SME_GetDaysSincePrevWithdrawalOrRejectionOfApp
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	IsDataMocked?: Gateway
+		switch:
+			conn: ReturnMockOrSimulation
+			else: DW_FindRejectedAndWithdrawnOrdersByBRN
+
+	ReturnMockOrSimulation: ScriptTask
+		next: End
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: IsDataMocked?
+
+	DW_FindRejectedAndWithdrawnOrdersByBRN: ComponentTask
+		next: SaveOutput
+

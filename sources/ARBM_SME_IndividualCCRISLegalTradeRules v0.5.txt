@@ -1,0 +1,40 @@
+Worflow: ARBM_SME_IndividualCCRISLegalTradeRules
+
+	f819516a-7d39-4584-bd79-3d2bb8f31888: FlowVerification
+		next: 
+
+	c193be94-d4a9-469a-9a78-3b8e1fd847a5: FlowVerification
+		next: 
+
+	6b047498-c51a-464a-a868-941ea1b8fbf6: FlowVerification
+		next: 
+
+	0f68235f-cfc9-493a-b412-4e465a41096e: FlowVerification
+		next: 
+
+	0313d718-3095-4b64-9f4f-379afbdbc26c: FlowVerification
+		next: 
+
+	0c3b6341-3d34-44d2-b519-c4f79bf9e2dd: FlowVerification
+		next: 
+
+	5d2fc972-2031-4333-b5c5-b61e6164660a: FlowVerification
+		next: 
+
+	8ad82104-ea83-4f73-bc78-584c7f2bde96: FlowVerification
+		next: 
+
+	3e0e0ea9-3f13-424e-80bf-fc908de6258d: FlowVerification
+		next: 
+
+	83f3d9cd-8e62-485a-ba22-ab4434ac4110: FlowVerification
+		next: 
+
+	0de3025e-01af-4379-be66-0733549eb17e: FlowVerification
+		next: 
+
+	55499432-2755-4f95-8dff-fc4404d64492: FlowVerification
+		next: 
+
+	7f78c4da-521b-4dca-a683-b3e39cc447dc: FlowVerification
+

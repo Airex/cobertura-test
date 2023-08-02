@@ -1,0 +1,7 @@
+Worflow: MutexTryEnter
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

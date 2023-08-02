@@ -1,0 +1,30 @@
+Worflow: ARBM_Retail_MaximumUnsecuredExposureDeviationCheck
+
+	StartEvent: MessageStartEvent
+		next: GetTransformedExperianReport
+
+	End: EndEvent
+
+	DetermineMUM: SubDecisionTask
+		next: PreparePayload
+
+	DecideMaximumUnsecuredExposureDeviation: ScriptTask
+		next: End
+
+	PreparePayload: ScriptTask
+		next: GetMUMApprovedUnsecuredLimits
+
+	GetMUMApprovedUnsecuredLimits: SubProcessTask
+		next: isError?
+
+	MumCalculationError_ManualTask: SubProcessTask
+		next: DecideMaximumUnsecuredExposureDeviation
+
+	isError?: Gateway
+		switch:
+			conn: MumCalculationError_ManualTask
+			else: DecideMaximumUnsecuredExposureDeviation
+
+	GetTransformedExperianReport: ScriptTask
+		next: DetermineMUM
+

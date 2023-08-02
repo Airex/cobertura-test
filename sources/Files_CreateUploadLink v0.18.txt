@@ -1,0 +1,16 @@
+Worflow: Files_CreateUploadLink
+
+	StartEvent: MessageStartEvent
+		next: BuildFileServiceLink
+
+	End: EndEvent
+
+	BuildFileServiceLink: ScriptTask
+		next: GetUploadLink
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	GetUploadLink: ComponentTask
+		next: PrepareOutput
+

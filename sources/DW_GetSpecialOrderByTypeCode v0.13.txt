@@ -1,0 +1,24 @@
+Worflow: DW_GetSpecialOrderByTypeCode
+
+	StartEvent: MessageStartEvent
+		next: PrepareGetOrderQuery
+
+	End: EndEvent
+
+	PrepareGetOrderQuery: ScriptTask
+		next: GetOrder
+
+	GetOrder: ComponentTask
+		next: CheckHasOrder
+
+	CheckHasOrder: Gateway
+		switch:
+			conn: PrepareOutput
+			else: SaveOrder
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	SaveOrder: ComponentTask
+		next: PrepareOutput
+

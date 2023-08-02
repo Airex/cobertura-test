@@ -1,0 +1,75 @@
+Worflow: ARBM_Retail_RiskBasedPricingCalculationsAndChecks
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	DecideNewDSRCheck: SubDecisionTask
+		next: DecideMaximumUnsecuredExposureDeviation
+
+	DecideMaximumUnsecuredExposureDeviation: SubProcessTask
+		next: GetRuleResults
+
+	DSRCalculationsError: BoundaryErrorEvent
+		next: isError?
+
+	DSRCalculations: SubProcessTask
+		switch:
+			next: DSRCalculationsError
+			next: isError?
+
+	SetOutput: ScriptTask
+		next: End
+
+	PrepareInputError: BoundaryErrorEvent
+		next: DsrCalculatorError_ManualTask
+
+	PrepareInput: ScriptTask
+		switch:
+			next: PrepareInputError
+			next: DSRCalculations
+
+	isError?: Gateway
+		switch:
+			conn: DsrCalculatorError_ManualTask
+			else: ShouldSimulateCreateManualTask_GW?
+
+	DsrCalculatorError_ManualTask: SubProcessTask
+		next: NextStepAfterManualTask_GW?
+
+	NextStepAfterManualTask_GW?: Gateway
+		switch:
+			conn: PrepareCalculationParams
+			conn: DSRCalculations
+			else: SaveOutputReject_ManualTask
+
+	PrepareCalculationParams: ScriptTask
+		next: DecideNewDSRCheck
+
+	SaveOutputReject_ManualTask: ScriptTask
+		next: SaveToDb_Rule14_NewDsrCheck_Reject
+
+	ShouldSimulateCreateManualTask_GW?: Gateway
+		switch:
+			else: PrepareCalculationParams
+			conn: DsrCalculatorError_ManualTask
+
+	SaveToDb_Rules_RiskBasedPricingCheckResult: ComponentTask
+		next: PushOrderSnapshotToKafka_1
+
+	GetRuleResults: ScriptTask
+		next: SaveToDb_Rules_RiskBasedPricingCheckResult
+
+	SaveToDb_Rule14_NewDsrCheck_Reject: ComponentTask
+		next: PushOrderSnapshotToKafka_2
+
+	PushOrderSnapshotToKafka_2: SignalTask
+		next: End
+
+	PushOrderSnapshotToKafka_1: SignalTask
+		next: SetOutput
+
+	SetTags: ScriptTask
+		next: PrepareInput
+

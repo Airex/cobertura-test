@@ -1,0 +1,46 @@
+Worflow: BO_StandardWorkflowBofUserTask
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	Prepare_Output: ScriptTask
+		next: Cleanup
+
+	Init: ScriptTask
+		next: IsActionStartedOrSubmitted?
+
+	IsActionStartedOrSubmitted?: Gateway
+		switch:
+			conn: Validate_SubmittedData
+			conn: Prepare_InitialResponsePayload
+
+	Prepare_InitialResponsePayload: ScriptTask
+		next: Prepare_Output
+
+	Validate_SubmittedData: ScriptTask
+		next: ShouldSaveCommentToOrder?
+
+	Cleanup: ScriptTask
+		next: End
+
+	Set_Tags: ScriptTask
+		next: Init
+
+	ShouldSaveCommentToOrder?: Gateway
+		switch:
+			else: Prepare_Output
+			conn: Save_OrderComment
+
+	Save_OrderCommentError: BoundaryErrorEvent
+		next: Set_Error
+
+	Save_OrderComment: SubProcessTask
+		switch:
+			next: Save_OrderCommentError
+			next: Prepare_Output
+
+	Set_Error: ScriptTask
+		next: Prepare_Output
+

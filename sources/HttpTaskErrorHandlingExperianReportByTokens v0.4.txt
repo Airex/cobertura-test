@@ -1,0 +1,21 @@
+Worflow: HttpTaskErrorHandlingExperianReportByTokens
+
+	StartEvent: MessageStartEvent
+		next: CreateManualTask_ExperianReportRetrievalError
+
+	End: EndEvent
+
+	CreateManualTask_ExperianReportRetrievalError: SubProcessTask
+		next: CheckConditionResolution
+
+	CheckConditionResolution: Gateway
+		switch:
+			else: ReturnComplete
+			conn: ReturnRetryAfterManualTask
+
+	ReturnComplete: ScriptTask
+		next: End
+
+	ReturnRetryAfterManualTask: ScriptTask
+		next: End
+

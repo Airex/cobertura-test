@@ -1,0 +1,4 @@
+Worflow: ARBM_SME_BankStatementManualFraudDecision
+
+	ffb90e84-a060-4419-a91f-a4a4f1c7a1d9: FlowVerification
+

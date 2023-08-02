@@ -1,0 +1,121 @@
+Worflow: ARBM_SME_PostContractSigningProcess
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetEntityCustomerCRR_AfterContractSigning: SubProcessTask
+		next: IsEntityCustomerCRRRejected_GW?
+
+	CommodityTrading: SubProcessTask
+		next: ShouldSkipCreateFinancingAccount?
+
+	CreateFinancingAccountAndDisburseFunds: SubProcessTask
+		next: UpdateStatusInCustomerService_CBS_PASSED
+
+	PostDisbursement: ScriptTask
+		next: ShouldSkipDocumentStamping_GW?
+
+	DecideCustomerRiskRatingCheck: SubDecisionTask
+		next: IsCRRCheckResultReject?
+
+	IsCRRCheckResultReject?: Gateway
+		switch:
+			else: UpdateSmeStatus_Onboarded_Kafka
+			conn: UpdateStatusInCustomerService_CRR_FAILED_2
+
+	SaveOutputStatusReject_CRR: ScriptTask
+		next: End
+
+	SaveCRRCheckResultIfProceed: ScriptTask
+		next: GetIdsOfAuthorizedCustomers
+
+	ShouldSkipCommodityTrading?: Gateway
+		switch:
+			else: CommodityTrading
+			conn: ShouldSkipCreateFinancingAccount?
+
+	ShouldSkipCreateFinancingAccount?: Gateway
+		switch:
+			else: CreateFinancingAccountAndDisburseFunds
+			conn: PostDisbursement
+
+	SetTags: ScriptTask
+		next: GetIdsOfAllApplicants
+
+	CreateThoughtMachineCustomerAccountsForAuthorizedSignatories: SubProcessTask
+		next: CreateDepositAccountThoughtMachine
+
+	PerformDocumentStamping: SubProcessTask
+		next: End
+
+	GetIdsOfAuthorizedCustomers: ScriptTask
+		next: CreateThoughtMachineCustomerAccountsForAuthorizedSignatories
+
+	IsSimulateAllGrntrsSignedLetterOfGuarantee?: Gateway
+		switch:
+			conn: GetEntityCustomerCRR_AfterContractSigning
+			else: WaitUntilDocumentsAreSignedByNPAs
+
+	SaveCRRCheckResultIfReject_2: ScriptTask
+		next: End
+
+	CreateDepositAccountThoughtMachine: SubProcessTask
+		next: IsCreateDepositAccountReject?
+
+	IsCreateDepositAccountReject?: Gateway
+		switch:
+			else: ShouldSkipCommodityTrading?
+			conn: SaveOutputStatusReject_DepositAccount
+
+	SaveOutputStatusReject_DepositAccount: ScriptTask
+		next: End
+
+	IsSoleProprietor?: Gateway
+		switch:
+			else: IsSimulateAllGrntrsSignedLetterOfGuarantee?
+			conn: GetEntityCustomerCRR_AfterContractSigning
+
+	SaveOutputStatusReject_CRR_AfterManualTask: ScriptTask
+		next: End
+
+	IsEntityCustomerCRRRejected_GW?: Gateway
+		switch:
+			else: DecideCustomerRiskRatingCheck
+			conn: UpdateStatusInCustomerService_CRR_FAILED_1
+
+	UpdateSmeStatus_Onboarded_Kafka: SubProcessTask
+		next: SaveCRRCheckResultIfProceed
+
+	ActivateIndividualSmeCustomers: SubProcessTask
+		next: PostDisbursement
+
+	WaitUntilDocumentsAreSignedByNPAs: SubProcessTask
+		next: AreDocumentsSignedByAllNPAs_GW?
+
+	AreDocumentsSignedByAllNPAs_GW?: Gateway
+		switch:
+			conn: GetEntityCustomerCRR_AfterContractSigning
+			else: SaveCRRCheckResultIfReject_2
+
+	GetIdsOfAllApplicants: ScriptTask
+		next: IsSoleProprietor?
+
+	UpdateStatusInCustomerService_CRR_FAILED_1: SubProcessTask
+		next: SaveOutputStatusReject_CRR_AfterManualTask
+
+	UpdateStatusInCustomerService_CRR_FAILED_2: SubProcessTask
+		next: SaveOutputStatusReject_CRR
+
+	ShouldSkipDocumentStamping_GW?: Gateway
+		switch:
+			else: PerformDocumentStamping
+			conn: End
+
+	UpdateStatusInCustomerService_CBS_PASSED: SubProcessTask
+		next: Timer_WaitForCbsStatusToBeUpdated
+
+	Timer_WaitForCbsStatusToBeUpdated: TimerEvent
+		next: ActivateIndividualSmeCustomers
+

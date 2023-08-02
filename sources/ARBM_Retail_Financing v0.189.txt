@@ -1,0 +1,54 @@
+Worflow: ARBM_Retail_Financing
+
+	StartEvent: MessageStartEvent
+		next: DW_FindOrderByCustomerId
+
+	End: EndEvent
+
+	IsFoundWorkflowId_GW?: Gateway
+		switch:
+			else: StartNewWorkflow
+			conn: DE_GetProcessStatus
+
+	StartNewWorkflow: SubProcessAwaitFirstResponseTask
+		next: End
+
+	GetHeaders: ScriptTask
+		next: SendResumeMessage
+
+	GetExistingWorkflowId: ScriptTask
+		next: IsFoundWorkflowId_GW?
+
+	DW_FindOrderByCustomerId: ComponentTask
+		next: GetExistingWorkflowId
+
+	SendResumeMessageError: BoundaryErrorEvent
+		next: ThrowError
+
+	SendResumeMessage: ComponentTask
+		switch:
+			next: SendResumeMessageError
+			next: IsErrorResumeApplication_GW?
+
+	SetOutput: ScriptTask
+		next: End
+
+	DW_FindOrderPartyByOrderId: ComponentTask
+		next: GetHeaders
+
+	IsErrorResumeApplication_GW?: Gateway
+		switch:
+			else: SetOutput
+			conn: ThrowError
+
+	DE_GetProcessStatus: SubProcessTask
+		next: IsWorkflowCompleted_GW?
+
+	IsWorkflowCompleted_GW?: Gateway
+		switch:
+			else: DW_FindOrderPartyByOrderId
+			conn: StartNewWorkflow
+
+	ThrowError: ScriptTask
+		next: End
+

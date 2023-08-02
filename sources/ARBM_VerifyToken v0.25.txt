@@ -1,0 +1,61 @@
+Worflow: ARBM_VerifyToken
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	VerifyTokenError: BoundaryErrorEvent
+		next: SaveOutputVerificationFailed
+
+	VerifyToken: ScriptTask
+		switch:
+			next: VerifyTokenError
+			next: IsTokenVerificationError_GW?
+
+	SetStatus_Rejected: SubProcessStartTask
+		next: IsCcrisPayloadPresent_GW?
+
+	IsTokenVerificationError_GW?: Gateway
+		switch:
+			conn: SetStatus_Rejected
+			else: End
+
+	ShoudSkipTokenVerification_GW?: Gateway
+		switch:
+			else: VerifyToken
+			conn: SaveMessageToOutput
+
+	SaveMessageToOutput: ScriptTask
+		next: End
+
+	Init: ScriptTask
+		next: ShoudSkipTokenVerification_GW?
+
+	SetTags: ScriptTask
+		next: Init
+
+	SaveOutputVerificationFailed: ScriptTask
+		next: SetStatus_Rejected
+
+	CCRIS_PushUpdateStatus_R: SubProcessStartTask
+		next: IsProcessRunInRetailContext_GW?
+
+	IsCcrisPayloadPresent_GW?: Gateway
+		switch:
+			conn: CCRIS_PushUpdateStatus_R
+			else: IsProcessRunInRetailContext_GW?
+
+	UpdateSharedContext: SubProcessStartTask
+		next: End
+
+	IsWorkflowRunFromNpaProcess_GW?: Gateway
+		switch:
+			conn: UpdateSharedContext
+			else: End
+
+	IsProcessRunInRetailContext_GW?: Gateway
+		switch:
+			else: IsWorkflowRunFromNpaProcess_GW?
+			conn: End
+

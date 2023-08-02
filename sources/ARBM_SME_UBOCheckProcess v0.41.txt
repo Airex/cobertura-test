@@ -1,0 +1,52 @@
+Worflow: ARBM_SME_UBOCheckProcess
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: UBOCheckDecision
+
+	IsLegalEntityTypeSoleProp?: Gateway
+		switch:
+			conn: SaveOutputSoleProp
+			else: IsUBOCheckDecisionIsProceed?
+
+	SaveOutputSoleProp: ScriptTask
+		next: SendOutputData
+
+	SetValue_party_cap_beneficiary_owner_indicator: ScriptTask
+		next: SendOutputData
+
+	ShouldSimulateUBOCheckSkip?: Gateway
+		switch:
+			conn: SaveOutputProceed
+			else: Init
+
+	SaveOutputProceed: ScriptTask
+		next: SendOutputData
+
+	IsUBOCheckDecisionIsProceed?: Gateway
+		switch:
+			conn: SetValue_party_cap_beneficiary_owner_indicator
+			else: SaveToS3ExperianPdf
+
+	UBOCheckDecision: SubDecisionTask
+		next: SaveRuleResultToDB
+
+	SaveToDb_XMLExperianUboReport: SubProcessStartTask
+		next: SendOutputData
+
+	SaveToS3ExperianPdf: ComponentTask
+		next: SaveToDb_XMLExperianUboReport
+
+	SendOutputData: ScriptTask
+		next: End
+
+	SaveRuleResultToDB: ComponentTask
+		next: IsLegalEntityTypeSoleProp?
+
+	SetTags: ScriptTask
+		next: ShouldSimulateUBOCheckSkip?
+

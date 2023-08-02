@@ -1,0 +1,46 @@
+Worflow: ARBM_SME_BoardResolutionReviewResult_PostProcessing
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	IsMoreGuarantors_GW?: Gateway
+		switch:
+			else: End
+			conn: GetGuarantor
+
+	Init: ScriptTask
+		next: GetIsPrimaryApplicantAuthorizedSignatory
+
+	GetGuarantor: ScriptTask
+		next: IsAuthorizedSignatory_GW?
+
+	IsAuthorizedSignatory_GW?: Gateway
+		switch:
+			else: IsMoreGuarantors_GW?
+			conn: AddRoleForSmeCustomer
+
+	AddRoleForSmeCustomer: ComponentTask
+		next: IsMoreGuarantors_GW?
+
+	SetTags: ScriptTask
+		next: Init
+
+	GetIsPrimaryApplicantAuthorizedSignatory: ScriptTask
+		next: DW_BatchOrderUpsert_UpdateShareholderTable
+
+	IsPrimaryApplicantAuthorizedSignatory_GW?: Gateway
+		switch:
+			conn: IsMoreGuarantors_GW?
+			else: DeleteRoleForSmeCustomer
+
+	DeleteRoleForSmeCustomer: ComponentTask
+		next: IsMoreGuarantors_GW?
+
+	AddCapabilityAuthorizedSignatoryForGuarantors: SubProcessTask
+		next: IsPrimaryApplicantAuthorizedSignatory_GW?
+
+	DW_BatchOrderUpsert_UpdateShareholderTable: SubProcessStartTask
+		next: AddCapabilityAuthorizedSignatoryForGuarantors
+

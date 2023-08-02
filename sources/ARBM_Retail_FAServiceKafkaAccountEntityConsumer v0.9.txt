@@ -1,0 +1,13 @@
+Worflow: ARBM_Retail_FAServiceKafkaAccountEntityConsumer
+
+	StartEvent: MessageStartEvent
+		next: FAAccountEntity
+
+	End: EndEvent
+
+	FAAccountEntity: SignalTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+

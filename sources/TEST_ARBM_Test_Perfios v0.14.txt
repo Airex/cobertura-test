@@ -1,0 +1,13 @@
+Worflow: TEST_ARBM_Test_Perfios
+
+	StartEvent: MessageStartEvent
+		next: GetFinancingData
+
+	End: EndEvent
+
+	GetFinancingData: ComponentTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+

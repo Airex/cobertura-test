@@ -1,0 +1,32 @@
+Worflow: ZCRE_SetupEventsConfuguration
+
+	StartEvent: MessageStartEvent
+		next: ChecNeedSaveEvents
+
+	End: EndEvent
+
+	PrepareEventsQuery: ScriptTask
+		next: SaveEvents
+
+	SaveEvents: ComponentTask
+		next: End
+
+	ChecNeedSaveEvents: Gateway
+		switch:
+			else: CheckNeedSaveConditions
+			conn: NewScript
+
+	SaveConditionTypes: ComponentTask
+		next: End
+
+	PrepareConditionTypesQuery: ScriptTask
+		next: SaveConditionTypes
+
+	CheckNeedSaveConditions: Gateway
+		switch:
+			conn: PrepareConditionTypesQuery
+			conn: End
+
+	NewScript: ScriptTask
+		next: PrepareEventsQuery
+

@@ -1,0 +1,88 @@
+Worflow: TwilioPrepareVideoRoom
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	Create_AccessToken: ScriptTask
+		next: AreThereIdentitiesToProcess?
+
+	AreThereIdentitiesToProcess?: Gateway
+		switch:
+			else: Prepare_Output
+			conn: Add_ChatParticipant
+
+	Prepare_Output: ScriptTask
+		next: Cleanup
+
+	Cleanup: ScriptTask
+		next: End
+
+	Init: ScriptTask
+		next: Get_ConditionAction
+
+	IsRoomExists?: Gateway
+		switch:
+			else: Set_Error
+			conn: Get_VideoRoom
+
+	Set_Error: ScriptTask
+		next: Prepare_Output
+
+	Check_CallerType: ScriptTask
+		next: IsJoinOnly?
+
+	IsJoinOnly?: Gateway
+		switch:
+			else: Create_VideoRoom
+			conn: Get_VideoRoom
+
+	Get_ConditionAction: SubProcessTask
+		next: IsActiveAction?
+
+	IsActiveAction?: Gateway
+		switch:
+			conn: Check_CallerType
+			else: Set_Error
+
+	Create_ChatError: BoundaryErrorEvent
+		next: AreThereIdentitiesToProcess?
+
+	Create_Chat: SubProcessTask
+		switch:
+			next: Create_ChatError
+			next: AreThereIdentitiesToProcess?
+
+	Add_ChatParticipantError: BoundaryErrorEvent
+		next: Create_AccessToken
+
+	Add_ChatParticipant: SubProcessTask
+		switch:
+			next: Add_ChatParticipantError
+			next: Create_AccessToken
+
+	Get_ChatError: BoundaryErrorEvent
+		next: AreThereIdentitiesToProcess?
+
+	Get_Chat: SubProcessTask
+		switch:
+			next: Get_ChatError
+			next: AreThereIdentitiesToProcess?
+
+	Create_VideoRoom: ComponentTask
+		next: Create_VideoRoomError?
+
+	Get_VideoRoom: ComponentTask
+		next: Get_VideoRoomError?
+
+	Create_VideoRoomError?: Gateway
+		switch:
+			conn: IsRoomExists?
+			else: Create_Chat
+
+	Get_VideoRoomError?: Gateway
+		switch:
+			conn: Set_Error
+			else: Get_Chat
+

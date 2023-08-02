@@ -1,0 +1,245 @@
+Worflow: ARBM_Retail_IncomeCalcAndChecksForSalariedEmployee
+
+	StartEvent: MessageStartEvent
+		next: SetTagsAndInit
+
+	End: EndEvent
+
+	EPFStatementIncomeCalculationError: BoundaryErrorEvent
+		next: GetDataManualReviewIncomeCalculation_ManualTask
+
+	EPFStatementIncomeCalculation: SubProcessTask
+		switch:
+			next: EPFStatementIncomeCalculationError
+			next: IsIncomeCalculationResponseEmpty_GW?
+
+	IsManualFraudDecisionReject_GW?: Gateway
+		switch:
+			conn: SetFrontEndApplicationStatusReject
+			else: EPFStatementIncomeOfflineCalculation
+
+	GetPerfiosDataEPFError: BoundaryErrorEvent
+		next: UpdateFrontEndApplicationStatus
+
+	GetPerfiosDataEPF: SubProcessTask
+		switch:
+			next: GetPerfiosDataEPFError
+			next: IsNoStatementsAnalysed_GW?
+
+	UpdateFrontEndApplicationStatus: ResponseTask
+		next: PerfiosEPF_ManualTask
+
+	SetFrontEndApplicationStatusReject: ResponseTask
+		next: GetRulesToBeAddedToBlacklist
+
+	DecideEPFStatementIncomeAndVerificationChecks: SubDecisionTask
+		next: isReuploadNewEpfStatements_GW?
+
+	CompanyCategory_GW?: Gateway
+		switch:
+			else: SendOutputData
+			conn: GetPerfiosPersonalBankStatement
+
+	SendOutputData: ScriptTask
+		next: End
+
+	DecideOtherEPFStmtIncomePolicyParameters: SubDecisionTask
+		next: GetPerfiosDataEPF
+
+	EPFStatementIncomeOfflineCalculationError: BoundaryErrorEvent
+		next: GetDataManualReviewIncomeCalculation_ManualTask
+
+	EPFStatementIncomeOfflineCalculation: SubProcessTask
+		switch:
+			next: EPFStatementIncomeOfflineCalculationError
+			next: IsIncomeCalculationOfflineResponseEmpty_GW?
+
+	GetMonthlySalaryCreditAmountError: BoundaryErrorEvent
+		next: GetDataManualReviewSalaryCalculation_ManualTask
+
+	GetMonthlySalaryCreditAmount: SubProcessTask
+		switch:
+			next: GetMonthlySalaryCreditAmountError
+			next: IsSalaryCalculationResponseEmpty_GW?
+
+	GetPerfiosPersonalBankStatementError: BoundaryErrorEvent
+		next: UpdateFrontEndApplicationStatus2
+
+	GetPerfiosPersonalBankStatement: SubProcessTask
+		switch:
+			next: GetPerfiosPersonalBankStatementError
+			next: IsNoStatementsBankStAnalysed_GW?
+
+	UpdateFrontEndApplicationStatus2: ResponseTask
+		next: GetDataManualReviewPerfiosPersBankSt_ManualTask
+
+	IsFraudDecisionReject_GW?: Gateway
+		switch:
+			else: GetPersonalBankStmntCreditSalaryExtractionOffline
+			conn: SetFrontEndApplicationStatusReject
+
+	GetPersonalBankStmntCreditSalaryExtractionOfflineError: BoundaryErrorEvent
+		next: GetDataManualReviewSalaryCalculation_ManualTask
+
+	GetPersonalBankStmntCreditSalaryExtractionOffline: SubProcessTask
+		switch:
+			next: GetPersonalBankStmntCreditSalaryExtractionOfflineError
+			next: IsSalaryCalculationOfflineResponseEmpty_GW?
+
+	SaveDataOnOutput: ScriptTask
+		next: DecideSalariedEmployeeIncomeCheckStatus
+
+	ManualFraudDecisionEPF: SubDecisionTask
+		next: SaveFraudDecisionEPFRuleCheckToDB
+
+	ManualFraudDecisionPersonal: SubDecisionTask
+		next: SaveFraudDecisionIndStmntRuleCheckToDB
+
+	DecideSalariedEmployeeIncomeCheckStatus: SubDecisionTask
+		next: SaveSalariedEmployeeIncomeChecksToDB
+
+	IsEPFStmtIncAndVerChecksReject_GW?: Gateway
+		switch:
+			else: CompanyCategory_GW?
+			conn: SetFrontEndApplicationStatusReject
+
+	IsSalariedEmplIncCheckStatusReject_GW?: Gateway
+		switch:
+			else: SendOutputData
+			conn: SetFrontEndApplicationStatusReject
+
+	SaveEPFStmtIncomeAndVerificationChecksToDB: ComponentTask
+		next: IsEPFStmtIncAndVerChecksReject_GW?
+
+	SaveSalariedEmployeeIncomeChecksToDB: ComponentTask
+		next: IsSalariedEmplIncCheckStatusReject_GW?
+
+	SaveFraudDecisionEPFRuleCheckToDB: ComponentTask
+		next: IsManualFraudDecisionReject_GW?
+
+	SaveFraudDecisionIndStmntRuleCheckToDB: ComponentTask
+		next: IsFraudDecisionReject_GW?
+
+	SaveToDb_PerfiosReport: ComponentTask
+		next: EPFStatementIncomeCalculation
+
+	SaveToDb_PerfiosReportGovermentGlc: ComponentTask
+		next: PreProcessBankStatementFraudTriggersData
+
+	IsNoStatementsAnalysed_GW?: Gateway
+		switch:
+			conn: SaveToDb_PerfiosReport
+			else: UpdateFrontEndApplicationStatus
+
+	GetRulesToBeAddedToBlacklist: ScriptTask
+		next: AreRulesPresentToBeAddedToDB_GW?
+
+	AreRulesPresentToBeAddedToDB_GW?: Gateway
+		switch:
+			else: SendOutputData
+			conn: GetPreparedClsCategoriesToBeSavedToDb
+
+	AddEmailAndNricToBlacklist: ComponentTask
+		next: DW_SetClassifications
+
+	GetPreparedClsCategoriesToBeSavedToDb: ScriptTask
+		next: AddEmailAndNricToBlacklist
+
+	DW_SetClassifications: ComponentTask
+		next: SendOutputData
+
+	IsNoStatementsBankStAnalysed_GW?: Gateway
+		switch:
+			else: SaveToDb_PerfiosReportGovermentGlc
+			conn: UpdateFrontEndApplicationStatus2
+
+	PreProcessBankStatementFraudTriggersData: SubProcessTask
+		next: BankStatementFraudTriggersRulesCheck
+
+	BankStatementFraudTriggersRulesCheck: SubDecisionTask
+		next: SaveToDb_Rule_FraudTriggersRuleCheck
+
+	IsFraudTriggersReject_GW?: Gateway
+		switch:
+			conn: SetFrontEndApplicationStatusReject
+			else: GetMonthlySalaryCreditAmount
+
+	PerfiosEPF_ManualTask: SubProcessTask
+		next: IsPerfiosEPFMTRetry_GW?
+
+	GetDataManualReviewIncomeCalculation_ManualTask: SubProcessTask
+		next: IsManualTaskIncomeCalcRetry_GW?
+
+	IsIncomeCalculationResponseEmpty_GW?: Gateway
+		switch:
+			else: GetDataManualReviewIncomeCalculation_ManualTask
+			conn: DecideEPFStatementIncomeAndVerificationChecks
+
+	GetDataManualReviewPerfiosPersBankSt_ManualTask: SubProcessTask
+		next: IsManualTaskPerfiosIndividualRetry_GW?
+
+	GetDataManualReviewSalaryCalculation_ManualTask: SubProcessTask
+		next: IsManualTaskSalaryCalcRetry_GW?
+
+	IsIncomeCalculationOfflineResponseEmpty_GW?: Gateway
+		switch:
+			else: GetDataManualReviewIncomeCalculation_ManualTask
+			conn: DecideEPFStatementIncomeAndVerificationChecks
+
+	IsSalaryCalculationResponseEmpty_GW?: Gateway
+		switch:
+			conn: SaveDataOnOutput
+			else: GetDataManualReviewSalaryCalculation_ManualTask
+
+	IsSalaryCalculationOfflineResponseEmpty_GW?: Gateway
+		switch:
+			conn: SaveDataOnOutput
+			else: GetDataManualReviewSalaryCalculation_ManualTask
+
+	SaveToDb_Rule_FraudTriggersRuleCheck: ComponentTask
+		next: IsFraudTriggersReject_GW?
+
+	IsManualTaskIncomeCalcRetry_GW?: Gateway
+		switch:
+			else: DecideEPFStatementIncomeAndVerificationChecks
+			conn: EPFStatementIncomeCalculation
+			conn: EPFStatementIncomeOfflineCalculation
+
+	IsManualTaskPerfiosIndividualRetry_GW?: Gateway
+		switch:
+			else: ManualFraudDecisionPersonal
+			conn: GetPerfiosPersonalBankStatement
+
+	IsManualTaskSalaryCalcRetry_GW?: Gateway
+		switch:
+			conn: GetPersonalBankStmntCreditSalaryExtractionOffline
+			conn: GetMonthlySalaryCreditAmount
+			else: SaveDataOnOutput
+
+	IsPerfiosEPFMTRetry_GW?: Gateway
+		switch:
+			conn: IsAddDoc_GW?
+			else: ManualFraudDecisionEPF
+
+	SetTagsAndInit: ScriptTask
+		next: DecideOtherEPFStmtIncomePolicyParameters
+
+	RejectPreviosEPFStatements: SubProcessTask
+		next: ProcessEPFDocuments
+
+	ProcessEPFDocuments: SubProcessTask
+		next: GetPerfiosDataEPF
+
+	isReuploadNewEpfStatements_GW?: Gateway
+		switch:
+			else: SaveEPFStmtIncomeAndVerificationChecksToDB
+			conn: EpfStatementCalculationReview_ManualTask
+
+	EpfStatementCalculationReview_ManualTask: SubProcessTask
+		next: SaveEPFStmtIncomeAndVerificationChecksToDB
+
+	IsAddDoc_GW?: Gateway
+		switch:
+			else: GetPerfiosDataEPF
+			conn: RejectPreviosEPFStatements
+

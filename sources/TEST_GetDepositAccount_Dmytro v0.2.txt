@@ -1,0 +1,10 @@
+Worflow: TEST_GetDepositAccount_Dmytro
+
+	StartEvent: MessageStartEvent
+		next: GetDepositAccount
+
+	End: EndEvent
+
+	GetDepositAccount: ComponentTask
+		next: End
+

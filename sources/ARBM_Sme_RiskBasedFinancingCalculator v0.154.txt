@@ -1,0 +1,76 @@
+Worflow: ARBM_Sme_RiskBasedFinancingCalculator
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	PerformCalculations: ComponentTask
+		next: SetOutput
+
+	SetOutput: ScriptTask
+		next: End
+
+	GetDataFromParameterTables: SubDecisionTask
+		next: ShouldSimulateDefaultBaseRate_GW?
+
+	GetPreparedPayload: ScriptTask
+		next: PerformCalculations
+
+	IsHttpCallError?: Gateway
+		switch:
+			conn: IsManualTaskOn?
+			else: ShouldSimulateRiskBasedFinCalcManualTaskIsOn?
+
+	ThrowError503: ScriptTask
+		next: End
+
+	GetCurrentBaseRateError: BoundaryErrorEvent
+		next: IsManualTaskOn?
+
+	GetCurrentBaseRate: SubProcessTask
+		switch:
+			next: GetCurrentBaseRateError
+			next: IsHttpCallError?
+
+	RiskBasedFinancingCalculationError_ManualTask: SubProcessTask
+		next: IsManualTaskSuccessful?
+
+	IsManualTaskOn?: Gateway
+		switch:
+			else: ThrowError503
+			conn: RiskBasedFinancingCalculationError_ManualTask
+
+	IsManualTaskSuccessful?: Gateway
+		switch:
+			conn: ShouldProceedOrRetry?
+			else: RiskBasedFinancingCalculationError_ManualTask
+
+	ShouldProceedOrRetry?: Gateway
+		switch:
+			else: SaveOutputAfterManualTask
+			conn: GetCurrentBaseRate
+			conn: SaveBaseRateToGlobalVars
+
+	SaveOutputAfterManualTask: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: GetDataFromParameterTables
+
+	ShouldSimulateRiskBasedFinCalcManualTaskIsOn?: Gateway
+		switch:
+			conn: RiskBasedFinancingCalculationError_ManualTask
+			else: GetPreparedPayload
+
+	SaveBaseRateToGlobalVars: ScriptTask
+		next: GetPreparedPayload
+
+	ShouldSimulateDefaultBaseRate_GW?: Gateway
+		switch:
+			else: GetCurrentBaseRate
+			conn: SetSimulatedDefaultBaseRate
+
+	SetSimulatedDefaultBaseRate: ScriptTask
+		next: ShouldSimulateRiskBasedFinCalcManualTaskIsOn?
+

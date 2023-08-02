@@ -1,0 +1,19 @@
+Worflow: BO_GetPermissions
+
+	StartEvent: MessageStartEvent
+		next: ListGroups
+
+	End: EndEvent
+
+	GetMappedGroups: ScriptTask
+		next: End
+
+	ListGroups: ComponentTask
+		next: ListUsers
+
+	ListUsers: ComponentTask
+		next: GetOrgChartHierarchy
+
+	GetOrgChartHierarchy: ComponentTask
+		next: GetMappedGroups
+

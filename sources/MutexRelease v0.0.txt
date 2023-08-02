@@ -1,0 +1,7 @@
+Worflow: MutexRelease
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

@@ -1,0 +1,16 @@
+Worflow: DW_UpdateStatus
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	AdwQuery: ComponentTask
+		next: PushOrderSnapshotToKafka
+
+	PushOrderSnapshotToKafka: SignalTask
+		next: End
+
+	SetTags: ScriptTask
+		next: AdwQuery
+

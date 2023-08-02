@@ -1,0 +1,88 @@
+Worflow: BO_UpdateAccountStatus
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	Prepare_Output: ScriptTask
+		next: Cleanup
+
+	Init: ScriptTask
+		next: IsActionStartedOrSubmitted?
+
+	IsActionStartedOrSubmitted?: Gateway
+		switch:
+			conn: IsApprove?
+			else: Prepare_InitialResponsePayload
+
+	Prepare_InitialResponsePayload: ScriptTask
+		next: Prepare_Output
+
+	Validate_SubmittedData: ScriptTask
+		next: IsValid?
+
+	Cleanup: ScriptTask
+		next: End
+
+	Set_Tags: ScriptTask
+		next: Init
+
+	ShouldSaveCommentToOrder?: Gateway
+		switch:
+			else: Prepare_Output
+			conn: Save_OrderComment
+
+	Save_OrderCommentError: BoundaryErrorEvent
+		next: Set_Error
+
+	Save_OrderComment: SubProcessTask
+		switch:
+			next: Save_OrderCommentError
+			next: Prepare_Output
+
+	Do_FinAccUpdateStatusError: BoundaryErrorEvent
+		next: Set_Error
+
+	Do_FinAccUpdateStatus: SubProcessTask
+		switch:
+			next: Do_FinAccUpdateStatusError
+			next: ShouldSaveCommentToOrder?
+
+	Set_Error: ScriptTask
+		next: Prepare_Output
+
+	IsValid?: Gateway
+		switch:
+			else: Prepare_Output
+			conn: Check_SimulateFinAccUpdateStatus
+
+	IsApprove?: Gateway
+		switch:
+			else: Set_TransactionCancelled
+			conn: Validate_SubmittedData
+
+	Set_TransactionCancelled: ScriptTask
+		next: ShouldSaveCommentToOrder?
+
+	Should_Do_FinAccUpdateStatus?: Gateway
+		switch:
+			conn: ShouldSaveCommentToOrder?
+			else: Get_LoanCBSAccountId
+
+	Check_SimulateFinAccUpdateStatusError: BoundaryErrorEvent
+		next: Set_Error
+
+	Check_SimulateFinAccUpdateStatus: ScriptTask
+		switch:
+			next: Check_SimulateFinAccUpdateStatusError
+			next: Should_Do_FinAccUpdateStatus?
+
+	Get_LoanCBSAccountIdError: BoundaryErrorEvent
+		next: Set_Error
+
+	Get_LoanCBSAccountId: SubProcessTask
+		switch:
+			next: Get_LoanCBSAccountIdError
+			next: Do_FinAccUpdateStatus
+

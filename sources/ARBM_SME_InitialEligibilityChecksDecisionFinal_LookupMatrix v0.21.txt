@@ -1,0 +1,14 @@
+Worflow: ARBM_SME_InitialEligibilityChecksDecisionFinal_LookupMatrix
+
+	1c7a4bfb-7153-41cc-9120-df9bd37c1d98: FlowVerification
+		next: 
+
+	IsLegalEntityTypeSoleProp?: FlowDecision
+
+	e8842329-3aed-4e50-acfd-1503f434670c: FlowVerification
+		next: 
+
+	1b0d4625-440e-4280-847d-bc099b4d1801: FlowVerification
+
+	6aa1866d-cfb9-49e6-89fd-50e7db3a3b70: FlowVerification
+

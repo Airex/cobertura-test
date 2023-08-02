@@ -1,0 +1,16 @@
+Worflow: ARBM_SME_SetStatusesOfNPAInCustomerService
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	UpdateNPAStatusInCustomerDb_CBS: SubProcessTask
+		next: UpdateNPAStatusInCustomerDb_ELIGIBILITY
+
+	UpdateNPAStatusInCustomerDb_ELIGIBILITY: SubProcessTask
+		next: End
+
+	SetTags: ScriptTask
+		next: UpdateNPAStatusInCustomerDb_CBS
+

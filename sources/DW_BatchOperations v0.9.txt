@@ -1,0 +1,70 @@
+Worflow: DW_BatchOperations
+
+	StartEvent: MessageStartEvent
+		next: MutexEnter
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: Identification
+
+	IsOperations?: Gateway
+		switch:
+			conn: GetValidOperations
+			else: End
+
+	GetValidOperationsError: BoundaryErrorEvent
+		next: OverrideOperations
+
+	GetValidOperations: ScriptTask
+		switch:
+			next: GetValidOperationsError
+			next: IsValidOperation?
+
+	IsValidOperation?: Gateway
+		switch:
+			else: IsOperations?
+			conn: ExecuteOperation
+
+	OverrideOperations: MessageEvent
+		next: UpdateOperations
+
+	FilterOperations: ScriptTask
+		next: IsValidOperation?
+
+	ExctractIdsError: BoundaryErrorEvent
+		next: OverrideOperations
+
+	ExctractIds: ScriptTask
+		switch:
+			next: ExctractIdsError
+			next: FilterOperations
+
+	UpdateOperations: ScriptTask
+		next: Identification
+
+	Identification: ScriptTask
+		next: IsOperations?
+
+	MutexEnter: ComponentTask
+		next: Init
+
+	ExecuteOperationError: BoundaryErrorEvent
+		next: isAttempts?
+
+	ExecuteOperation: SubProcessTask
+		switch:
+			next: ExecuteOperationError
+			next: ExctractIds
+
+	isAttempts?: Gateway
+		switch:
+			conn: countDelay
+			else: OverrideOperations
+
+	retryTimer: TimerEvent
+		next: ExecuteOperation
+
+	countDelay: ScriptTask
+		next: retryTimer
+

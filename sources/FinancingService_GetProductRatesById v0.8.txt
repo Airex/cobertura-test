@@ -1,0 +1,13 @@
+Worflow: FinancingService_GetProductRatesById
+
+	StartEvent: MessageStartEvent
+		next: GetProductRates
+
+	End: EndEvent
+
+	GetProductRates: ComponentTask
+		next: PrepareOutput
+
+	PrepareOutput: ScriptTask
+		next: End
+

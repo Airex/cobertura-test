@@ -1,0 +1,18 @@
+Worflow: BO_MA_TwilioVideoSession
+
+	StartEvent: MessageStartEvent
+		next: Prepare_VideoRoom
+
+	End: EndEvent
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	Prepare_VideoRoomError: BoundaryErrorEvent
+		next: PrepareOutput
+
+	Prepare_VideoRoom: SubProcessTask
+		switch:
+			next: Prepare_VideoRoomError
+			next: PrepareOutput
+

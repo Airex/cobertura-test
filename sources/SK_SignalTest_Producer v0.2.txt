@@ -1,0 +1,10 @@
+Worflow: SK_SignalTest_Producer
+
+	StartEvent: MessageStartEvent
+		next: NewMessageResponse
+
+	End: EndEvent
+
+	NewMessageResponse: SignalTask
+		next: End
+

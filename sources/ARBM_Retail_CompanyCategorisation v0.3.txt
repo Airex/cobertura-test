@@ -1,0 +1,7 @@
+Worflow: ARBM_Retail_CompanyCategorisation
+
+	59b4a45d-727b-49c7-8271-6fb9a3338be8: FlowVerification
+		next: 
+
+	5dcf82a5-42ed-4a8c-9e32-50e7132a1c15: FlowVerification
+

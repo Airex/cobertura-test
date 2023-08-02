@@ -1,0 +1,13 @@
+Worflow: CreateCalendarEvent
+
+	StartEvent: MessageStartEvent
+		next: CreateCalendarEvent
+
+	End: EndEvent
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	CreateCalendarEvent: ComponentTask
+		next: PrepareOutput
+

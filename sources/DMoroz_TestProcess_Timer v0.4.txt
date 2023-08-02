@@ -1,0 +1,16 @@
+Worflow: DMoroz_TestProcess_Timer
+
+	StartEvent: MessageStartEvent
+		next: NewMessageResponse
+
+	End: EndEvent
+
+	Timer: TimerEvent
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	NewMessageResponse: ScriptTask
+		next: Timer
+

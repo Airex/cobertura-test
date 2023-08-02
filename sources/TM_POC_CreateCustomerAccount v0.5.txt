@@ -1,0 +1,10 @@
+Worflow: TM_POC_CreateCustomerAccount
+
+	StartEvent: MessageStartEvent
+		next: CreateCustomerAccount
+
+	End: EndEvent
+
+	CreateCustomerAccount: HttpMessageTask
+		next: End
+

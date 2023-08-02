@@ -1,0 +1,29 @@
+Worflow: ARBM_GetCustomerDataById_FromCustomerService_test
+
+	StartEvent: MessageStartEvent
+		next: DW_GetBankAccountDetails
+
+	End: EndEvent
+
+	GetCustomerDataFromCustomerServiceByCustId: ComponentTask
+		next: End
+
+	TwillioEmailVerificationError: BoundaryErrorEvent
+		next: IsErrorTwillioEmailVerification_GW?
+
+	TwillioEmailVerification: ComponentTask
+		switch:
+			next: TwillioEmailVerificationError
+			next: IsErrorTwillioEmailVerification_GW?
+
+	IsErrorTwillioEmailVerification_GW?: Gateway
+		switch:
+			else: GetCustomerDataFromCustomerServiceByCustId
+			conn: Error_Twillio
+
+	Error_Twillio: ScriptTask
+		next: End
+
+	DW_GetBankAccountDetails: ComponentTask
+		next: TwillioEmailVerification
+

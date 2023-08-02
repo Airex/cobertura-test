@@ -1,0 +1,30 @@
+Worflow: ARBM_Retail_Financing_Init
+
+	StartEvent: MessageStartEvent
+		next: GetMasterJsonConfigKey
+
+	End: EndEvent
+
+	ARBM_GetConfiguration: SubProcessTask
+		next: DW_SetCatalogue
+
+	SaveOutput: ScriptTask
+		next: End
+
+	DW_SetCatalogue: ComponentTask
+		next: SaveOutput
+
+	ShouldSaveListOfBanksForBt_GW?: Gateway
+		switch:
+			else: CreateBtClsCategories
+			conn: ARBM_GetConfiguration
+
+	CreateBtClsCategories: SubProcessTask
+		next: ARBM_GetConfiguration
+
+	GetMasterJsonConfigKey: ScriptTask
+		next: CheckFileExists
+
+	CheckFileExists: ComponentTask
+		next: ShouldSaveListOfBanksForBt_GW?
+

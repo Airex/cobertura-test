@@ -1,0 +1,44 @@
+Worflow: ARBM_Retail_GetCustomerData
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetCustomerFinancingData: ComponentTask
+		next: DW_FindEmploymentCompanyIdByPartySenderId
+
+	isSimulation?: Gateway
+		switch:
+			else: GetCustomerFinancingData
+			conn: GetMockedCustomerFinancingData
+
+	GetMockedCustomerFinancingData: ScriptTask
+		next: DW_FindEmploymentCompanyIdByPartySenderId_ForMock
+
+	SaveOutput: ScriptTask
+		next: ShouldPerformCountryIdLookup_GW?
+
+	SaveOutputDerivedFromMock: ScriptTask
+		next: ShouldPerformCountryIdLookup_GW?
+
+	DW_FindEmploymentCompanyIdByPartySenderId: ComponentTask
+		next: SaveOutput
+
+	DW_FindEmploymentCompanyIdByPartySenderId_ForMock: ComponentTask
+		next: SaveOutputDerivedFromMock
+
+	SetTags: ScriptTask
+		next: isSimulation?
+
+	ShouldPerformCountryIdLookup_GW?: Gateway
+		switch:
+			else: End
+			conn: GetCountryIdsMap
+
+	GetCountryIdsMap: SubProcessTask
+		next: UpdateAddressesOnOutput
+
+	UpdateAddressesOnOutput: ScriptTask
+		next: End
+

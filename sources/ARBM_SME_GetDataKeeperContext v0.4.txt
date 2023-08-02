@@ -1,0 +1,46 @@
+Worflow: ARBM_SME_GetDataKeeperContext
+
+	StartEvent: MessageStartEvent
+		next: GetResponseFromDataKeeper
+
+	End: EndEvent
+
+	GetContextSignal: SignalTask
+		next: isContextReceived?
+
+	SaveOutput: ScriptTask
+		next: End
+
+	isContextReceived?: Gateway
+		switch:
+			conn: shouldRetry?
+			else: ResponseFromDataKeeper_GW
+
+	shouldRetry?: Gateway
+		switch:
+			conn: Delay
+			else: ThrowError_MaxRetries
+
+	Delay: TimerEvent
+		next: GetContextSignal
+
+	ThrowError_MaxRetries: ScriptTask
+		next: End
+
+	GetResponseFromDataKeeper: SubProcessAwaitFirstResponseTask
+		next: GetContextSignal
+
+	ResponseFromDataKeeper_GW: Gateway
+		switch:
+			conn: GetResponseFromDataKeeperSucceeded
+			conn: GetResponseFromDataKeeperFailed
+
+	GetResponseFromDataKeeperSucceeded: SubProcessSucceededEvent
+		next: SaveOutput
+
+	GetResponseFromDataKeeperFailed: SubProcessFailedEvent
+		next: ThrowError_DataKeeperFailed
+
+	ThrowError_DataKeeperFailed: ScriptTask
+		next: End
+

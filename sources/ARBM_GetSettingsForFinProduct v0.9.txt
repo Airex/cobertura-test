@@ -1,0 +1,10 @@
+Worflow: ARBM_GetSettingsForFinProduct
+
+	StartEvent: MessageStartEvent
+		next: GetSettings
+
+	End: EndEvent
+
+	GetSettings: ScriptTask
+		next: End
+

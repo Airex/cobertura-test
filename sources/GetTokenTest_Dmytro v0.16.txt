@@ -1,0 +1,10 @@
+Worflow: GetTokenTest_Dmytro
+
+	StartEvent: MessageStartEvent
+		next: Copy_GetToken
+
+	End: EndEvent
+
+	Copy_GetToken: ComponentTask
+		next: End
+

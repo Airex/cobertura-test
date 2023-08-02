@@ -1,0 +1,31 @@
+Worflow: ARBM_Retail_BusinessRegistrationNumberCheck
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SaveRuleResultToDB: ComponentTask
+		next: SaveOutput
+
+	GetFraudBlacklistsCheck: SubProcessTask
+		next: GetNonFraudBlacklistsCheck
+
+	GetNonFraudBlacklistsCheck: SubProcessTask
+		next: DecideBRNCheckResult
+
+	DW_FindAllBlacklistsByBrn: ComponentTask
+		next: GetFraudBlacklistsCheck
+
+	SaveBRNToGlobalVars: ScriptTask
+		next: DW_FindAllBlacklistsByBrn
+
+	DecideBRNCheckResult: SubDecisionTask
+		next: SaveRuleResultToDB
+
+	SetTags: ScriptTask
+		next: SaveBRNToGlobalVars
+

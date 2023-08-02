@@ -1,0 +1,426 @@
+Worflow: ARBM_Retail_RealtimeDecisioningProcess
+
+	StartEvent: MessageStartEvent
+		next: SetTagsAndInitBT
+
+	End: EndEvent
+
+	GetExperianReportError: BoundaryErrorEvent
+		next: SetIsExperianErrorInGlobalVars
+
+	GetExperianReport: SubProcessTask
+		switch:
+			next: GetExperianReportError
+			next: CheckExperianReport
+
+	CollectResultsOfPreviousRules: ScriptTask
+		next: Copy_3_PushOrderSnapshotToKafka
+
+	DecideExperianCreditRiskGradeCheck: SubDecisionTask
+		next: SaveToDb_Rule_ExperianCreditRiskGradeCheck
+
+	IsCreditRiskGradeCheckPassed?: Gateway
+		switch:
+			conn: Update_FE_APP_STATUS_TO_REJECT
+			else: GetFeedzaiFraudScore
+
+	Update_FE_APP_STATUS_TO_REJECT: ScriptTask
+		next: End
+
+	InitMocksAndChecks: ScriptTask
+		next: GetCountryCode
+
+	GetFeedzaiFraudScore: SubProcessTask
+		next: SaveToDb_Rule_FeedzaiFraudScoreCheckResult
+
+	IsFraudScoreCheckPassed?: Gateway
+		switch:
+			conn: GetPreparedClsCategoriesToBeSavedToDb_Blacklist
+			else: GetFinancingCRRDuringDecisioning
+
+	GetFinancingCRRDuringDecisioning: SubProcessStartTask
+		next: EmployeeType?
+
+	DecideCustomerRiskRatingCheck: SubDecisionTask
+		next: SaveToDb_Rule_CustomerRiskRatingCheckResult
+
+	IncomeCalculationSelfEmployed: SubProcessStartTask
+		next: SelfEmployedEvents
+
+	IncomeCalculationSelfEmployedSucceeded: SubProcessSucceededEvent
+		next: IsIncomeCalculationRejected?
+
+	GetFinancingCRRDuringDecisioningSucceeded: SubProcessSucceededEvent
+		next: DecideCustomerRiskRatingCheck
+
+	RealTimeDecision: ScriptTask
+		next: IsCreditPolicyRules
+
+	DecideCCRISLegalTradeCheck: SubDecisionTask
+		next: SaveToDb_Rule_CCRISLegalTradeCheckResult
+
+	SaveToDb_Rule_CustomerRiskRatingCheckResult: ComponentTask
+		next: IsCustomerRiskRatingCheckReject?
+
+	SaveToDb_Rule_ExperianCreditRiskGradeCheck: ComponentTask
+		next: PushOrderSnapshotToKafka
+
+	SaveToDb_Rule_FeedzaiFraudScoreCheckResult: ComponentTask
+		next: IsFraudScoreCheckPassed?
+
+	SaveToDb_Rule_CCRISLegalTradeCheckResult: ComponentTask
+		next: IsCCRISLegalTradeCheckRejected?
+
+	SaveToDb_Rule4_ExperianReport_Proceed: ComponentTask
+		next: SaveToS3ExperianPdf
+
+	SaveToDb_Rule4_ExperianReport_Manual_Review: ComponentTask
+		next: GetFeedzaiFraudScore
+
+	IncomeCalculationSalariedEmployee: SubProcessStartTask
+		next: SalariedEmployeeEvents
+
+	EmployeeType?: Gateway
+		switch:
+			else: IncomeCalculationSelfEmployed
+			conn: IncomeCalculationSalariedEmployee
+
+	IncomeCalculationSalariedEmployeeSucceeded: SubProcessSucceededEvent
+		next: IsIncomeCalculationRejected?
+
+	SelfEmployedEvents: Gateway
+		switch:
+			conn: IncomeCalculationSelfEmployedSucceeded
+			conn: IncomeCalculationSelfEmployedFailed
+
+	SalariedEmployeeEvents: Gateway
+		switch:
+			conn: IncomeCalculationSalariedEmployeeSucceeded
+			conn: IncomeCalculationSalariedEmployeeFailed
+
+	IncomeCalculationSalariedEmployeeFailed: SubProcessFailedEvent
+		next: IsIncomeCalculationRejected?
+
+	IncomeCalculationSelfEmployedFailed: SubProcessFailedEvent
+		next: IsIncomeCalculationRejected?
+
+	SaveToDb_ExperianReport: ComponentTask
+		next: PushExperianReportToKafka
+
+	RiskBasedPricingCalculationsAndChecksError: BoundaryErrorEvent
+		next: IsReject_RiskBasedPricingCalculationsAndChecks_GW?
+
+	RiskBasedPricingCalculationsAndChecks: SubProcessTask
+		switch:
+			next: RiskBasedPricingCalculationsAndChecksError
+			next: IsReject_RiskBasedPricingCalculationsAndChecks_GW?
+
+	DownsellOptionsCalculationsError: BoundaryErrorEvent
+		next: IsReject_DownsellOptionsCalculations_GW?
+
+	DownsellOptionsCalculations: SubProcessTask
+		switch:
+			next: DownsellOptionsCalculationsError
+			next: IsReject_DownsellOptionsCalculations_GW?
+
+	SaveToDb_Rule_DownsellOptionsCheckResult: ComponentTask
+		next: RealTimeDecision
+
+	IsCCRISLegalTradeCheckRejected?: Gateway
+		switch:
+			conn: GetPreparedClsCategoriesToBeSavedToDb
+			else: RiskBasedPricingCalculationsAndChecks
+
+	GetPreparedClsCategoriesToBeSavedToDb: ScriptTask
+		next: AddEmailNricAndOptionallyBrnToBlacklist
+
+	AddEmailNricAndOptionallyBrnToBlacklist: ComponentTask
+		next: GetPreparedClsToBeSavedToDb
+
+	GetPreparedClsToBeSavedToDb: ScriptTask
+		next: DW_SetClassifications
+
+	DW_SetClassifications: ComponentTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	IsExperianReportReceived?: Gateway
+		switch:
+			conn: CollectResultsOfPreviousRules
+			else: FinancingCalculator
+
+	CheckExperianReport: Gateway
+		switch:
+			conn: SaveToDb_Rule4_ExperianReport_Proceed
+			else: SetIsExperianErrorInGlobalVars
+			conn: SetExperianReportRejectionReason
+
+	ShouldTryDownsell?: Gateway
+		switch:
+			conn: DownsellOptionsCalculations
+			else: RealTimeDecision
+
+	IsIncomeCalculationRejected?: Gateway
+		switch:
+			conn: Update_FE_APP_STATUS_TO_REJECT
+			else: Copy_PushOrderSnapshotToKafka
+
+	ShouldSaveDownsell?: Gateway
+		switch:
+			conn: SaveToDb_Rule_DownsellOptionsCheckResult
+			else: RealTimeDecision
+
+	isManualReview?: Gateway
+		switch:
+			else: InitMocksAndChecks
+			conn: isManualTaskSimulation?
+
+	CCRISLegalTradeCheck: SubProcessTask
+		next: IsCCRISLegalTradeCheckFailed?
+
+	IsCCRISLegalTradeCheckFailed?: Gateway
+		switch:
+			else: DecideCCRISLegalTradeCheck
+			conn: SaveToDb_Rule_CCRISLegalTradeCheckError
+
+	SaveToDb_Rule_CCRISLegalTradeCheckError: ComponentTask
+		next: RiskBasedPricingCalculationsAndChecks
+
+	FinancingCalculator: SubProcessTask
+		next: DecideAutomatedCalcReadinessCheck
+
+	DecideIndustrialSectorCheck: SubDecisionTask
+		next: SaveToDb_Rule_IndustrialSectorCheck
+
+	SaveToDb_Rule_IndustrialSectorCheck: ComponentTask
+		next: PushOrderSnapshotToKafka_IndustrialSectorCheck
+
+	IsIndustrialSectorCheckReject?: Gateway
+		switch:
+			conn: Update_FE_APP_STATUS_TO_REJECT
+			else: DecideOccupationCheck
+
+	DecideOccupationCheck: SubDecisionTask
+		next: SaveToDb_Rule_OccupationCheck
+
+	SaveToDb_Rule_OccupationCheck: ComponentTask
+		next: IsOccupationCheckReject?
+
+	IsOccupationCheckReject?: Gateway
+		switch:
+			else: CollectResultsOfPreviousRules
+			conn: Update_FE_APP_STATUS_TO_REJECT
+
+	DecideAutomatedCalcReadinessCheck: ScriptTask
+		next: SaveToDb_Rule_DecideAutomatedCalcReadinessCheck
+
+	SaveToDb_Rule_DecideAutomatedCalcReadinessCheck: ComponentTask
+		next: Copy_2_PushOrderSnapshotToKafka
+
+	IsManualUnderwriting?: Gateway
+		switch:
+			else: CCRISLegalTradeCheck
+			conn: Update_FE_APP_STATUS_TO_MANUAL_UNDERWRITING
+
+	Update_FE_APP_STATUS_TO_MANUAL_UNDERWRITING: ScriptTask
+		next: IsCreditPolicyRules
+
+	PushOrderSnapshotToKafka: SignalTask
+		next: IsCreditRiskGradeCheckPassed?
+
+	Copy_PushOrderSnapshotToKafka: SignalTask
+		next: GW_GetFinancingCRRDuringDecisioning
+
+	Copy_2_PushOrderSnapshotToKafka: SignalTask
+		next: IsManualUnderwriting?
+
+	Copy_3_PushOrderSnapshotToKafka: SignalTask
+		next: ShouldTryDownsell?
+
+	SaveToS3ExperianPdfError: BoundaryErrorEvent
+		next: SaveToDb_ExperianReport
+
+	SaveToS3ExperianPdf: ComponentTask
+		switch:
+			next: SaveToS3ExperianPdfError
+			next: SaveToDb_ExperianReport
+
+	IsCustomerRiskRatingCheckReject?: Gateway
+		switch:
+			conn: SaveRejectReasonCodeToGlobalVars_2
+			else: IsExperianReportReceived?
+
+	SetTagsAndInitBT: ScriptTask
+		next: isManualReview?
+
+	SetManualResultToOutput: ScriptTask
+		next: isManualUnderwritingAndProceed
+
+	GetCountryCode: ComponentTask
+		next: GetExperianReport
+
+	GetDuplicatedWorkEmailCheck: SubProcessTask
+		next: DecideIndustrialSectorCheck
+
+	SaveRejectReasonCodeToGlobalVars_2: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	ShouldPrepareManualTaskParams_GW?: Gateway
+		switch:
+			else: End
+			conn: GetClsApplicationFeature
+
+	PostManualCheck_ManualTask: SubProcessTask
+		next: End
+
+	GetManualResult_ManualTask: SubProcessTask
+		next: SetManualResultToOutput
+
+	SaveRejectReasonCodeToGlobalVars_1: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	PrepareManualTaskParams: ScriptTask
+		next: ShouldCreateManualTask?
+
+	GW_GetFinancingCRRDuringDecisioning: Gateway
+		switch:
+			conn: GetFinancingCRRDuringDecisioningSucceeded
+			conn: GetFinancingCRRDuringDecisioningFailed
+
+	GetFinancingCRRDuringDecisioningFailed: SubProcessFailedEvent
+		next: ThrowError_GetFinancingCRRDuringDecisioning
+
+	ThrowError_GetFinancingCRRDuringDecisioning: ScriptTask
+		next: DecideCustomerRiskRatingCheck
+
+	SetIsExperianErrorInGlobalVars: ScriptTask
+		next: SaveToDb_Rule4_ExperianReport_Manual_Review
+
+	GetNewFinancingCalculations: SubProcessTask
+		next: UpdateFinancingCalculations
+
+	isManualUnderwritingAndProceed: Gateway
+		switch:
+			else: End
+			conn: IsBalanceTransferApproval?
+
+	UpdateFinancingCalculations: ScriptTask
+		next: IsCreditPolicyRules
+
+	AddEmailAndNricToBlacklist: ComponentTask
+		next: DW_SetClassifications_Blacklist
+
+	GetPreparedClsCategoriesToBeSavedToDb_Blacklist: ScriptTask
+		next: AddEmailAndNricToBlacklist
+
+	DW_SetClassifications_Blacklist: ComponentTask
+		next: SaveRejectReasonCodeToGlobalVars_1
+
+	PushExperianReportToKafka: SignalTask
+		next: SaveDocumentIdToOutput
+
+	SaveDocumentIdToOutput: ScriptTask
+		next: DecideExperianCreditRiskGradeCheck
+
+	ShouldCreateManualTask?: Gateway
+		switch:
+			conn: PostManualCheck_ManualTask
+			else: End
+
+	WasManualTaskCreated?: Gateway
+		switch:
+			else: Create_ManualTask
+			conn: GetManualResult_ManualTask
+
+	Create_ManualTask: SubProcessTask
+		next: SetManualResultToOutput
+
+	IsReject_RiskBasedPricingCalculationsAndChecks_GW?: Gateway
+		switch:
+			conn: SaveRejectReasonCodeToGlobalVars_3
+			else: GetDuplicatedWorkEmailCheck
+
+	SaveRejectReasonCodeToGlobalVars_3: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	IsReject_DownsellOptionsCalculations_GW?: Gateway
+		switch:
+			else: ShouldSaveDownsell?
+			conn: SaveRejectReasonCodeToGlobalVars_4
+
+	SaveRejectReasonCodeToGlobalVars_4: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	SetExperianReportRejectionReason: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	isManualTaskSimulation?: Gateway
+		switch:
+			else: WasManualTaskCreated?
+			conn: ManualTaskSimulationResult
+
+	ManualTaskSimulationResult: ScriptTask
+		next: SetManualResultToOutput
+
+	IsBalanceTransferApproval?: Gateway
+		switch:
+			else: GetNewFinancingCalculations
+			conn: IsBalanceTransferAccountsApproved?
+
+	BalanceTransferAccountsValidationPassed: ScriptTask
+		next: ARBM_BalanceTransfer_StoreDetails
+
+	BalanceTransferAccountsValidationFailed: ScriptTask
+		next: DW_BatchOrderUpsert_BalanceTransferApproval
+
+	IsBalanceTransferAccountsApproved?: Gateway
+		switch:
+			conn: ValidateBalanceTransferAccounts
+			else: BalanceTransferAccountsRejected
+
+	BalanceTransferAccountsRejected: ScriptTask
+		next: DW_BatchOrderUpsert_BalanceTransferApproval
+
+	IsBalanceTransferAccountsValidationPassed?: Gateway
+		switch:
+			conn: BalanceTransferAccountsValidationPassed
+			else: BalanceTransferAccountsValidationFailed
+
+	ValidateBalanceTransferAccounts: ScriptTask
+		next: IsBalanceTransferAccountsValidationPassed?
+
+	DW_BatchOrderUpsert_BalanceTransferApproval: SubProcessTask
+		next: DW_GetApplicationFeatures
+
+	ARBM_BalanceTransfer_StoreDetails: SubProcessTask
+		next: DW_BatchOrderUpsert_BalanceTransferApproval
+
+	PushOrderSnapshotToKafka_IndustrialSectorCheck: SignalTask
+		next: IsIndustrialSectorCheckReject?
+
+	DW_GetApplicationFeatures: ComponentTask
+		next: BalanceTransferApproval_SetResult
+
+	BalanceTransferApproval_SetResult: ScriptTask
+		next: GetNewFinancingCalculations
+
+	GetBalanceTransferFromDB: SubProcessTask
+		next: PrepareManualTaskParams
+
+	UpdatetBalanceTransferFromDB: SubProcessTask
+
+	isBalanseTransfer: Gateway
+		switch:
+			conn: GetBalanceTransferFromDB
+			else: PrepareManualTaskParams
+
+	GetClsApplicationFeature: SubProcessTask
+		next: isBalanseTransfer
+
+	CreditPolicyRulesDecision: SubProcessTask
+		next: ShouldPrepareManualTaskParams_GW?
+
+	IsCreditPolicyRules: Gateway
+		switch:
+			conn: CreditPolicyRulesDecision
+			else: ShouldPrepareManualTaskParams_GW?
+

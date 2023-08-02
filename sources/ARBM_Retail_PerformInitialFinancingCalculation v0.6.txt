@@ -1,0 +1,47 @@
+Worflow: ARBM_Retail_PerformInitialFinancingCalculation
+
+	StartEvent: MessageStartEvent
+		next: ShouldSimulateRiskBasedFinancingManualTask?
+
+	End: EndEvent
+
+	SaveOutput: ScriptTask
+		next: End
+
+	IsOnManualTask?: Gateway
+		switch:
+			else: ThrowError
+			conn: RiskBasedFinancingError_ManualTask
+
+	ThrowError: ScriptTask
+		next: End
+
+	RiskBasedFinancingError_ManualTask: SubProcessTask
+		next: IsManualTaskSuccessful?
+
+	SaveOutputAfterManualTask: ScriptTask
+		next: End
+
+	IsManualTaskSuccessful?: Gateway
+		switch:
+			else: RiskBasedFinancingError_ManualTask
+			conn: ShouldProceedOrRetry?
+
+	ShouldProceedOrRetry?: Gateway
+		switch:
+			conn: SaveOutputAfterManualTask
+			else: RiskBasedFinacingCalculation
+
+	ShouldSimulateRiskBasedFinancingManualTask?: Gateway
+		switch:
+			conn: RiskBasedFinancingError_ManualTask
+			else: RiskBasedFinacingCalculation
+
+	RiskBasedFinacingCalculationError: BoundaryErrorEvent
+		next: IsOnManualTask?
+
+	RiskBasedFinacingCalculation: SubProcessTask
+		switch:
+			next: RiskBasedFinacingCalculationError
+			next: SaveOutput
+

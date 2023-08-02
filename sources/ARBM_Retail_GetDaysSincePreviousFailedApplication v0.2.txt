@@ -1,0 +1,18 @@
+Worflow: ARBM_Retail_GetDaysSincePreviousFailedApplication
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	GetDaysSincePreviousFailedApplication: ComponentTask
+		next: End
+
+	IsDataMocked?: Gateway
+		switch:
+			else: GetDaysSincePreviousFailedApplication
+			conn: ReturnMockData
+
+	ReturnMockData: ScriptTask
+		next: End
+

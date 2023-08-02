@@ -1,0 +1,122 @@
+Worflow: ARBM_SME_Financing
+
+	StartEvent: MessageStartEvent
+		next: SaveRequestToGlobalVars
+
+	End: EndEvent
+
+	ShowOffer: ResponseTask
+		next: OptionsGateway
+
+	OptionsGateway: Gateway
+		switch:
+			conn: InputUniqueCode
+			conn: CheckRates
+
+	Init: ScriptTask
+		next: GetConfigurationUri_Start
+
+	CheckRates: MessageEvent
+		next: ARBM_SME_Financing_Main
+
+	InputUniqueCode: MessageEvent
+		next: GetOrderLineByInputData
+
+	ARBM_SME_NonPrimaryApplicantProcess: SubProcessAwaitFirstResponseTask
+		next: End
+
+	ARBM_SME_Financing_Main: SubProcessAwaitFirstResponseTask
+		next: End
+
+	isPartySenderId?: Gateway
+		switch:
+			else: Init
+			conn: DW_FindOrderAndOrderLineByPartySenderId
+
+	DW_FindOrderAndOrderLineByPartySenderId: ComponentTask
+		next: GetOrderLine
+
+	isOrderLine: Gateway
+		switch:
+			else: GetWorkflowId
+			conn: DW_FindEntityExternalIdentification
+
+	GetWorkflowId: ScriptTask
+		next: isFoundWorkflowByPartySenderId_GW?
+
+	isFoundWorkflowByPartySenderId_GW?: Gateway
+		switch:
+			conn: GetHeaders
+			else: Init
+
+	GetOrderLine: ScriptTask
+		next: isOrderLine
+
+	GetHeaders: ScriptTask
+		next: SendResumeMessage
+
+	DW_FindEntityExternalIdentification: ComponentTask
+		next: GetWorkflowId
+
+	GetOrderLineByInputData: SubProcessTask
+		next: isUniqueCodeMatch?
+
+	isUniqueCodeMatch?: Gateway
+		switch:
+			conn: PrepareValidationMessage
+			else: DW_FindEntityExternalIdentification_NPA
+
+	PrepareValidationMessage: ScriptTask
+		next: ShowOffer
+
+	ThrowError: ScriptTask
+		next: Init
+
+	GetWorkflowId_NPA: ScriptTask
+		next: GetHeaders_NPA
+
+	DW_FindEntityExternalIdentification_NPA: ComponentTask
+		next: IsEntityExternalIdentificationFound_GW?
+
+	IsEntityExternalIdentificationFound_GW?: Gateway
+		switch:
+			else: ARBM_SME_NonPrimaryApplicantProcess
+			conn: GetWorkflowId_NPA
+
+	GetHeaders_NPA: ScriptTask
+		next: SendResumeMessage_NPA
+
+	SaveRequestToGlobalVars: ScriptTask
+		next: isPartySenderId?
+
+	Copy_ThrowError: ScriptTask
+		next: End
+
+	SendResumeMessage: ComponentTask
+		next: SendResumeMessageError?
+
+	SendResumeMessageError?: Gateway
+		switch:
+			conn: ThrowError
+			else: SetSendResumeMessageOutput
+
+	SetSendResumeMessageOutput: ScriptTask
+		next: End
+
+	SendResumeMessage_NPA: ComponentTask
+		next: SendResumeMessage_NPAError?
+
+	SetSendResumeMessage_NPAOutput: ScriptTask
+		next: End
+
+	SendResumeMessage_NPAError?: Gateway
+		switch:
+			else: SetSendResumeMessage_NPAOutput
+			conn: Copy_ThrowError
+
+	SetGetConfigurationUri_StartOutput: ScriptTask
+		next: ShowOffer
+
+	GetConfigurationUri_Start: ComponentTask
+		next: SetGetConfigurationUri_StartOutput
+

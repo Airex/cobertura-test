@@ -1,0 +1,60 @@
+Worflow: ARBM_SME_InitialEligibilityChecksProcess
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	InitialEligibilityChecks: SubDecisionTask
+		next: SaveRuleResultToDB
+
+	GetNumberOfDaysInBusiness: ScriptTask
+		next: GetNricsOfAllGuarantorsAreMalaysian
+
+	Init: ScriptTask
+		next: GetFinancingTenure
+
+	GetNricsOfAllGuarantorsAreMalaysian: ScriptTask
+		next: GetIsBusinessNamePresentInExperianReport
+
+	GetIsBusinessNamePresentInExperianReport: ScriptTask
+		next: GetDaysSincePrevWithdrawalOrRejectionOfApp
+
+	GetDaysSincePrevWithdrawalOrRejectionOfApp: SubProcessTask
+		next: DW_FindAllBlacklistsByNricEmailBrn
+
+	DW_FindAllBlacklistsByNricEmailBrn: ComponentTask
+		next: GetFraudBlacklistsCheck
+
+	GetNonFraudBlacklistsCheck: SubProcessTask
+		next: NumberOfEmployeesCheck
+
+	SaveOutput: ScriptTask
+		next: End
+
+	GetFraudBlacklistsCheck: SubProcessTask
+		next: GetNonFraudBlacklistsCheck
+
+	GetFinancingTenure: ScriptTask
+		next: GetNumberOfDaysInBusiness
+
+	ShouldSimulateInitialEligibilityChecks?: Gateway
+		switch:
+			else: Init
+			conn: SaveSimulationOutput
+
+	SaveSimulationOutput: ScriptTask
+		next: SaveRuleResultToDB_PROCEED
+
+	SetTags: ScriptTask
+		next: ShouldSimulateInitialEligibilityChecks?
+
+	SaveRuleResultToDB: ComponentTask
+		next: SaveOutput
+
+	NumberOfEmployeesCheck: SubDecisionTask
+		next: InitialEligibilityChecks
+
+	SaveRuleResultToDB_PROCEED: ComponentTask
+		next: End
+

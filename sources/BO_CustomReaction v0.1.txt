@@ -1,0 +1,7 @@
+Worflow: BO_CustomReaction
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

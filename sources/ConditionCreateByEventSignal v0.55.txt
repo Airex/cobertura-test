@@ -1,0 +1,52 @@
+Worflow: ConditionCreateByEventSignal
+
+	StartEvent: MessageStartEvent
+		next: GetOrder
+
+	End: EndEvent
+
+	GetOrderError: BoundaryErrorEvent
+		next: End
+
+	GetOrder: SubProcessTask
+		switch:
+			next: GetOrderError
+			next: TriggerConditions
+
+	GetConditionResolution: SubProcessTask
+		next: FindNewConditions
+
+	FindNewConditions: ScriptTask
+		next: CheckHasConditionsToSave
+
+	SaveConditions: SubProcessTask
+		next: SaveConditionResolution
+
+	SaveConditionResolution: SubProcessTask
+		next: SendConditionsCreated
+
+	TriggerConditions: ComponentTask
+		next: GetConditionResolution
+
+	SendConditionsCreated: SignalTask
+		next: End
+
+	VerifyConditions: SubProcessTask
+		next: SaveConditions
+
+	GetPerformingRole: SubProcessTask
+		next: SetConditionActionRole
+
+	CheckHasConditionsToSave: Gateway
+		switch:
+			else: End
+			conn: CheckAllConditionsProcessed
+
+	CheckAllConditionsProcessed: Gateway
+		switch:
+			else: VerifyConditions
+			conn: GetPerformingRole
+
+	SetConditionActionRole: ScriptTask
+		next: CheckAllConditionsProcessed
+

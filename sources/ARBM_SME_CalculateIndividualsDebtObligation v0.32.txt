@@ -1,0 +1,62 @@
+Worflow: ARBM_SME_CalculateIndividualsDebtObligation
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	CalculateIndividualDebtObligationError: BoundaryErrorEvent
+		next: IsDSRReturnErrorOrSimulation_GW?
+
+	CalculateIndividualDebtObligation: SubProcessTask
+		switch:
+			next: CalculateIndividualDebtObligationError
+			next: IsDSRReturnErrorOrSimulation_GW?
+
+	Init: ScriptTask
+		next: IsMoreApplicantsToProcess_GW?
+
+	IsMoreApplicantsToProcess_GW?: Gateway
+		switch:
+			else: SaveCalculationsOnOutput
+			conn: GetPayloadForCalculateIndividualDebtObligation
+
+	SaveCalculationsOnOutput: ScriptTask
+		next: End
+
+	SaveResult_CalculateIndividualDebtObligation: ScriptTask
+		next: SwitchToNextApplicant
+
+	IsDSRReturnErrorOrSimulation_GW?: Gateway
+		switch:
+			else: SaveResult_CalculateIndividualDebtObligation
+			conn: GetDataDsrCalculatorManualEntry_ManualTask
+
+	GetDataDsrCalculatorManualEntry_ManualTask: SubProcessTask
+		next: IsManualTaskStatusApprove_GW?
+
+	IsManualTaskStatusRetryOrReject_GW?: Gateway
+		switch:
+			conn: CalculateIndividualDebtObligation
+			else: SaveOutputOnManualTaskReject
+
+	SaveOutputOnManualTaskReject: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: Init
+
+	IsManualTaskStatusApprove_GW?: Gateway
+		switch:
+			else: IsManualTaskStatusRetryOrReject_GW?
+			conn: SaveResultFromManualTask
+
+	SaveResultFromManualTask: ScriptTask
+		next: SwitchToNextApplicant
+
+	SwitchToNextApplicant: ScriptTask
+		next: IsMoreApplicantsToProcess_GW?
+
+	GetPayloadForCalculateIndividualDebtObligation: ScriptTask
+		next: CalculateIndividualDebtObligation
+

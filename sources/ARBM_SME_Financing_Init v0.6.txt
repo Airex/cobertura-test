@@ -1,0 +1,16 @@
+Worflow: ARBM_SME_Financing_Init
+
+	StartEvent: MessageStartEvent
+		next: ARBM_GetConfiguration
+
+	End: EndEvent
+
+	ARBM_GetConfiguration: SubProcessTask
+		next: DW_SetCatalogue
+
+	SaveOutput: ScriptTask
+		next: End
+
+	DW_SetCatalogue: ComponentTask
+		next: SaveOutput
+

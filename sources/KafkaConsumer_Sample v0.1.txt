@@ -1,0 +1,7 @@
+Worflow: KafkaConsumer_Sample
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

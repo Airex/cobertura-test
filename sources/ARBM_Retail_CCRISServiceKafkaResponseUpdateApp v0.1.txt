@@ -1,0 +1,7 @@
+Worflow: ARBM_Retail_CCRISServiceKafkaResponseUpdateApp
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

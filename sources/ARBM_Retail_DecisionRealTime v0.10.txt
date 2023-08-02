@@ -1,0 +1,40 @@
+Worflow: ARBM_Retail_DecisionRealTime
+
+	edebcdb6-f9a0-47f4-adeb-cf2def3a94f5: FlowVerification
+		next: 
+
+	e25f763a-b57b-4ec0-a5d2-9d47bf724e2f: FlowVerification
+		next: 
+
+	6aa45a52-3602-4db3-9439-be5de29975e8: FlowVerification
+		next: 
+
+	57983cde-8526-44f8-a953-316c47358cd5: FlowVerification
+		next: 
+
+	3e31a25f-b595-4578-bf56-9f5462a0c3f0: FlowVerification
+		next: 
+
+	83b9e236-53a4-4164-8dbb-2b3a2a5fba37: FlowVerification
+		next: 
+
+	8545b287-b298-45ce-824d-7a33f809a17b: FlowVerification
+		next: 
+
+	c45c62d2-49aa-4415-a892-f93d1cb7684f: FlowVerification
+		next: 
+
+	4d142737-35ba-4e36-a021-f86d6c3f9cd9: FlowVerification
+		next: 
+
+	313ab993-2d44-48f1-b154-c0d434833e4d: FlowVerification
+		next: 
+
+	c1bef9c4-3fcb-4d6b-b21d-70525f61d759: FlowVerification
+
+	a97504b7-693e-4853-a644-22a332d65f63: FlowVerification
+		next: 
+
+	cdf3a35f-cc34-4981-a84a-fe13fa5592d8: FlowVerification
+		next: 
+

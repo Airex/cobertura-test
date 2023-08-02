@@ -1,0 +1,88 @@
+Worflow: ARBM_Retail_FAServiceKafkaDepositAccountConsumer
+
+	StartEvent: MessageStartEvent
+		next: MutexLockFinancialAccout
+
+	DW_SetPartyFinAccount_DepositError: BoundaryErrorEvent
+		next: ThrowErrorIfNotFoundFinAccount
+
+	DW_SetPartyFinAccount_Deposit: ComponentTask
+		switch:
+			next: DW_SetPartyFinAccount_DepositError
+			next: DW_SetPaymentMeans_Deposit
+
+	DW_SetPaymentMeans_Deposit: ComponentTask
+		next: DW_SetOrderPaymentMeans_Deposit
+
+	DW_SetOrderPaymentMeans_Deposit: ComponentTask
+		next: End
+
+	FADepositAccount: SignalTask
+
+	End: EndEvent
+
+	DW_FindFinancialAccount: ComponentTask
+		next: CheckHasFinancialAccount
+
+	DW_FindOrder: ComponentTask
+		next: CheckHasOrder
+
+	DW_FindParty: ComponentTask
+		next: CheckIfMandatoryDataFound
+
+	InitProcess: ScriptTask
+		next: DW_FindFinancialAccount
+
+	GetDepositAccount: ComponentTask
+		next: IsDepositAccountFound_GW?
+
+	CheckWereToGo: Gateway
+		switch:
+			conn: DW_FindOrder
+			else: DW_FindParty
+			conn: DW_FindFinancialAccount
+
+	WaitFinancingAccountCreated: SignalEvent
+		next: CheckWereToGo
+
+	CheckIfMandatoryDataFound: Gateway
+		switch:
+			else: ThrowErrorIfNotFound
+			conn: WaitFinancingAccountCreated
+			conn: DW_GetOrderByFinancialAccountId
+
+	ThrowErrorIfNotFound: ScriptTask
+		next: End
+
+	CheckHasFinancialAccount: Gateway
+		switch:
+			conn: DW_FindOrder
+			else: CheckIfMandatoryDataFound
+
+	CheckHasOrder: Gateway
+		switch:
+			conn: DW_FindParty
+			else: CheckIfMandatoryDataFound
+
+	MutexLockFinancialAccout: ComponentTask
+		next: InitProcess
+
+	DW_FindDepositFinancialAccount: ComponentTask
+
+	IsDepositAccountFound_GW?: Gateway
+		switch:
+			conn: DW_SetPartyFinAccount_Deposit
+			else: GetDepositAccountSME
+
+	ThrowErrorIfNotFoundFinAccount: ScriptTask
+		next: End
+
+	GetDepositAccountSME: ComponentTask
+		next: DW_SetPartyFinAccount_Deposit
+
+	SetTags: ScriptTask
+		next: GetDepositAccount
+
+	DW_GetOrderByFinancialAccountId: ComponentTask
+		next: SetTags
+

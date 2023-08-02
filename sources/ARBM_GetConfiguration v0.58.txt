@@ -1,0 +1,27 @@
+Worflow: ARBM_GetConfiguration
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	IsFileExists?: Gateway
+		switch:
+			else: GetClassifications
+			conn: End
+
+	GetClassifications: ComponentTask
+		next: GetUploadUrl
+
+	Init: ScriptTask
+		next: CheckFileExists
+
+	CheckFileExists: ComponentTask
+		next: IsFileExists?
+
+	GetUploadUrl: ComponentTask
+		next: UploadFile
+
+	UploadFile: ComponentTask
+		next: End
+

@@ -1,0 +1,21 @@
+Worflow: ARBM_PushNotificationReminder
+
+	StartEvent: MessageStartEvent
+		next: Delay
+
+	End: EndEvent
+
+	Delay: TimerEvent
+		next: DE_GetProcessStatus
+
+	DE_GetProcessStatus: SubProcessTask
+		next: isWaitingForConditionEvent?
+
+	isWaitingForConditionEvent?: Gateway
+		switch:
+			else: End
+			conn: ARBM_CreateMobilePushNotification
+
+	ARBM_CreateMobilePushNotification: SubProcessTask
+		next: End
+

@@ -1,0 +1,78 @@
+Worflow: ARBM_Important_Documents
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	GetPreliminaryPayloadForOutput: ScriptTask
+		next: GeneratePresignedUrlsForDocuments
+
+	ShowResult: ResponseTask
+		next: End
+
+	Init: ScriptTask
+		next: ShouldSimulateTokenVerificationSkip?
+
+	DW_FindAllOrderLinesByPartySenderId: ComponentTask
+		next: AreOrderLinesFound_GW?
+
+	AreOrderLinesFound_GW?: Gateway
+		switch:
+			else: DW_FindOrderIdsByOrderLineIds
+			conn: ShowResult
+
+	DW_FindOrderIdsByOrderLineIds: ComponentTask
+		next: GetComparisonDate
+
+	DW_FindValidOrderIds_ImportantDocuments: ComponentTask
+		next: GetFinalOrderLinesIds
+
+	GetComparisonDate: ScriptTask
+		next: DW_FindValidOrderIds_ImportantDocuments
+
+	GetFinalOrderLinesIds: ScriptTask
+		next: DW_FindOrderLineDocuments_ImportantDocuments
+
+	DW_FindOrderLineDocuments_ImportantDocuments: ComponentTask
+		next: GetPreliminaryOutputWithMappedDocs
+
+	GetPreliminaryOutputWithMappedDocs: ScriptTask
+		next: GetAllDocumentTypesInUse
+
+	GetAllDocumentTypesInUse: ScriptTask
+		next: DW_FindUiGroupByDocumentTypeCode_ImportantDocuments
+
+	DW_FindUiGroupByDocumentTypeCode_ImportantDocuments: ComponentTask
+		next: GetPreliminaryPayloadForOutput
+
+	SaveOutput: ScriptTask
+		next: ShowResult
+
+	VerifyTokenError: BoundaryErrorEvent
+		next: ThrowError
+
+	VerifyToken: ScriptTask
+		switch:
+			next: VerifyTokenError
+			next: IsTokenVerified?
+
+	IsTokenVerified?: Gateway
+		switch:
+			conn: DW_FindAllOrderLinesByPartySenderId
+			else: ThrowError
+
+	ShouldSimulateTokenVerificationSkip?: Gateway
+		switch:
+			else: VerifyToken
+			conn: DW_FindAllOrderLinesByPartySenderId
+
+	ThrowError: ScriptTask
+		next: End
+
+	GeneratePresignedUrlsForDocuments: SubProcessTask
+		next: GetFinalPayloadForOutput
+
+	GetFinalPayloadForOutput: ScriptTask
+		next: SaveOutput
+

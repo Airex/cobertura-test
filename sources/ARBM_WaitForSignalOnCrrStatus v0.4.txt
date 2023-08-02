@@ -1,0 +1,19 @@
+Worflow: ARBM_WaitForSignalOnCrrStatus
+
+	StartEvent: MessageStartEvent
+		next: SetTagCaseNumber
+
+	End: EndEvent
+
+	ARBM_OnCRRStatus: SignalEvent
+		next: SetTagCIC
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SetTagCaseNumber: ScriptTask
+		next: ARBM_OnCRRStatus
+
+	SetTagCIC: ScriptTask
+		next: SaveOutput
+

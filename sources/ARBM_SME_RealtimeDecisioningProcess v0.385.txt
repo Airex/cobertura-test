@@ -1,0 +1,342 @@
+Worflow: ARBM_SME_RealtimeDecisioningProcess
+
+	StartEvent: MessageStartEvent
+		next: SetTagsAndMocks
+
+	End: EndEvent
+
+	CollectResultsOfPreviousRules: ScriptTask
+		next: Copy_3_PushOrderSnapshotToKafka
+
+	DecideEntityCreditRiskGradeCheck_Rule9: SubDecisionTask
+		next: SaveToDb_Rule_EntityCreditRiskGradeCheck
+
+	IsCreditRiskGradeCheckPassed?: Gateway
+		switch:
+			conn: Update_FE_APP_STATUS_TO_REJECT
+			else: GW_RetrieveIndividualCreditReports
+
+	Update_FE_APP_STATUS_TO_REJECT: ScriptTask
+		next: End
+
+	IsFraudScoreCheckPassed?: Gateway
+		switch:
+			else: IsExperianReportReceived?
+			conn: SaveRejectReasonCodeToGlobalVars_Feedzai
+
+	IncomeCalculation: SubProcessStartTask
+		next: SelfEmployedEvents
+
+	IncomeCalculationSucceeded: SubProcessSucceededEvent
+		next: IsIncomeCalculationRejected?
+
+	RealTimeDecision: ScriptTask
+		next: ShouldPrepareManualTask?
+
+	SaveToDb_Rule_EntityCreditRiskGradeCheck: ComponentTask
+		next: PushOrderSnapshotToKafka
+
+	SelfEmployedEvents: Gateway
+		switch:
+			conn: IncomeCalculationSucceeded
+			conn: IncomeCalculationFailed
+
+	IncomeCalculationFailed: SubProcessFailedEvent
+		next: ThrowError_IncomeCalculation
+
+	DownsellOptionsCalculations_Rule21: SubProcessTask
+		next: IsFinancingCalculatorRejectInDownsell?
+
+	SaveToDb_Rule_DownsellOptionsCheckResult: ComponentTask
+		next: RealTimeDecision
+
+	IsExperianReportReceived?: Gateway
+		switch:
+			conn: CollectResultsOfPreviousRules
+			else: IncomeCalculation
+
+	ShouldTryDownsell?: Gateway
+		switch:
+			conn: DownsellOptionsCalculations_Rule21
+			else: RealTimeDecision
+
+	IsIncomeCalculationRejected?: Gateway
+		switch:
+			else: DecideAutomatedCalcReadinessCheck_Rule17
+			conn: Update_FE_APP_STATUS_TO_REJECT
+
+	ShouldSaveDownsell?: Gateway
+		switch:
+			conn: SaveToDb_Rule_DownsellOptionsCheckResult
+			else: RealTimeDecision
+
+	EntityCCRISLegalTradeCheck_Rule18: SubProcessTask
+		next: IndividualCCRISlegalTradeCheck_Rule19
+
+	FinancingCalculator: SubProcessTask
+		next: IsManualUnderwriting?
+
+	DecideAutomatedCalcReadinessCheck_Rule17: ScriptTask
+		next: SaveToDb_Rule_DecideAutomatedCalcReadinessCheck
+
+	SaveToDb_Rule_DecideAutomatedCalcReadinessCheck: ComponentTask
+		next: Copy_2_PushOrderSnapshotToKafka
+
+	IsManualUnderwriting?: Gateway
+		switch:
+			conn: Update_FE_APP_STATUS_TO_MANUAL_UNDERWRITING
+			else: IsFinancingCalculatorReject_GW?
+
+	Update_FE_APP_STATUS_TO_MANUAL_UNDERWRITING: ScriptTask
+		next: PrepareManualTaskParams
+
+	PushOrderSnapshotToKafka: SignalTask
+		next: IsCreditRiskGradeCheckPassed?
+
+	Copy_2_PushOrderSnapshotToKafka: SignalTask
+		next: FinancingCalculator
+
+	Copy_3_PushOrderSnapshotToKafka: SignalTask
+		next: ShouldTryDownsell?
+
+	SetTagsAndMocks: ScriptTask
+		next: isManualReview?
+
+	SaveRejectReasonCodeToGlobalVars_Feedzai: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	ThrowError_IncomeCalculation: ScriptTask
+		next: IsIncomeCalculationRejected?
+
+	Feedzai_Rule10: SubProcessTask
+		next: SaveToDb_Rule_Feedzai_Rule10
+
+	RetrieveEntityCreditReport: SubProcessStartTask
+		next: RetrieveIndividualCreditReports
+
+	RetrieveIndividualCreditReports: SubProcessStartTask
+		next: GW_RetrieveEntityCreditReport
+
+	EntityDSRCheck_Rule20: SubProcessTask
+		next: IsRejected_EntityDsrCheck_GW?
+
+	GetEntityCustomerCRR: SubProcessTask
+		next: DecideEntityCustomerRiskRatingCheck_Rule8
+
+	IndividualCCRISlegalTradeCheck_Rule19: SubProcessTask
+		next: isCompanyCategoryPLC_GW
+
+	GW_RetrieveEntityCreditReport: Gateway
+		switch:
+			conn: RetrieveEntityCreditReportSucceeded
+			conn: RetrieveEntityCreditReportFailed
+
+	RetrieveEntityCreditReportSucceeded: SubProcessSucceededEvent
+		next: CanPerformEntityCreditRiskGradeCheck_GW?
+
+	RetrieveEntityCreditReportFailed: SubProcessFailedEvent
+		next: Update_FE_APP_STATUS_TO_MANUAL_UNDERWRITING
+
+	GW_RetrieveIndividualCreditReports: Gateway
+		switch:
+			conn: RetrieveIndividualCreditReportFailed
+			conn: RetrieveIndividualCreditReportSucceeded
+
+	RetrieveIndividualCreditReportSucceeded: SubProcessSucceededEvent
+		next: Feedzai_Rule10
+
+	RetrieveIndividualCreditReportFailed: SubProcessFailedEvent
+		next: Feedzai_Rule10
+
+	CanPerformEntityCreditRiskGradeCheck_GW?: Gateway
+		switch:
+			conn: DecideEntityCreditRiskGradeCheck_Rule9
+			else: GW_RetrieveIndividualCreditReports
+
+	DecideEntityCustomerRiskRatingCheck_Rule8: SubDecisionTask
+		next: SaveToDb_Rule_EntityCRRCheck
+
+	CalculateIndividualDebtObligation: SubProcessTask
+		next: IsRejected_CalculateIndividualDebtObligation_GW?
+
+	SaveToDb_Rule_EntityCRRCheck: ComponentTask
+		next: UpdateStatusInCustomerService_CRR
+
+	IsEntityCRRCheckReject?: Gateway
+		switch:
+			else: RetrieveEntityCreditReport
+			conn: SaveRejectReasonCodeToGlobalVars_CRR
+
+	IsSoleProprietor?: Gateway
+		switch:
+			else: WaitForFinancingApprovalByNPA
+			conn: GetSharedContext
+
+	SaveRejectReasonCodeToGlobalVars_CRR: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	ShouldPrepareManualTask?: Gateway
+		switch:
+			conn: PrepareManualTaskParams
+			else: ifUBOStatusisManualVerification
+
+	PrepareManualTaskParams: ScriptTask
+		next: ShouldCreateManualTask?
+
+	PostManualCheck_ManualTask: SubProcessTask
+		next: ifUBOStatusisManualVerification
+
+	ShouldCreateManualTask?: Gateway
+		switch:
+			else: ifUBOStatusisManualVerification
+			conn: PostManualCheck_ManualTask
+
+	isManualReview?: Gateway
+		switch:
+			conn: WasManualTaskCreated?
+			else: eKYCParties
+
+	WasManualTaskCreated?: Gateway
+		switch:
+			else: Create_ManualTask
+			conn: GetManualResult_ManualTask
+
+	Create_ManualTask: SubProcessTask
+		next: SetManualResultToOutput
+
+	GetManualResult_ManualTask: SubProcessTask
+		next: SetManualResultToOutput
+
+	SetManualResultToOutput: ScriptTask
+		next: isManualUnderwritingAndProceed
+
+	isManualUnderwritingAndProceed: Gateway
+		switch:
+			else: End
+			conn: GetUpdatedFinCalculations
+
+	UpdateFinancingCalculations: ScriptTask
+		next: End
+
+	IsFinancingCalculatorReject_GW?: Gateway
+		switch:
+			else: EntityCCRISLegalTradeCheck_Rule18
+			conn: SaveRejectReasonCodeToGlobalVars_FinCalc
+
+	SaveRejectReasonCodeToGlobalVars_FinCalc: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	IsFinancingCalculatorRejectInDownsell?: Gateway
+		switch:
+			else: ShouldSaveDownsell?
+			conn: SaveRejectReasonCodeToGlobalVars_FinCalcInDownsell
+
+	SaveRejectReasonCodeToGlobalVars_FinCalcInDownsell: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	UBO_ManualTask: SubProcessTask
+		next: SetUBOManualTaskToOutput
+
+	SetUBOManualTaskToOutput: ScriptTask
+		next: SaveRuleResultToDB
+
+	ifUBOStatusisManualVerification: Gateway
+		switch:
+			else: End
+			conn: SetStatus_Approved
+
+	ARBM_CCRIS_App: SubProcessStartTask
+		next: SetIsCCRISReportingProcessStarted
+
+	SaveToDb_Rule_Feedzai_Rule10: ComponentTask
+		next: IsFraudScoreCheckPassed?
+
+	SaveRuleResultToDB: ComponentTask
+		next: End
+
+	SetStatus_Approved: SubProcessStartTask
+		next: UBO_ManualTask
+
+	SetRejectReasonCode: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	isCompanyCategoryPLC_GW: Gateway
+		switch:
+			conn: CalculateIndividualDebtObligation
+			else: EntityDSRCheck_Rule20
+
+	eKYCPartiesError: BoundaryErrorEvent
+		next: SaveRejectReasonCodeEKYC
+
+	eKYCParties: SubProcessTask
+		switch:
+			next: eKYCPartiesError
+			next: IsEKYCReTriggerOrReject_GW?
+
+	IsEKYCReTriggerOrReject_GW?: Gateway
+		switch:
+			conn: SaveOutputEKYC
+			conn: SaveRejectReasonCodeEKYC
+			else: DW_BatchOrderUpsert_SetShareholder_AuthorizedAt
+
+	SaveOutputEKYC: ScriptTask
+		next: End
+
+	SaveRejectReasonCodeEKYC: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	DW_BatchOrderUpsert_SetShareholder_AuthorizedAt: SubProcessStartTask
+		next: IsSoleProprietor?
+
+	SetIsCCRISReportingProcessStarted: ScriptTask
+		next: UpdateSharedContext_SaveCCRISProcessId
+
+	WaitForFinancingApprovalByNPA: SubProcessTask
+		next: IsFinancingApprovedByNPAs_GW?
+
+	IsFinancingApprovedByNPAs_GW?: Gateway
+		switch:
+			conn: SetRejectReasonCode
+			else: GetSharedContext
+
+	GetSharedContext: SubProcessTask
+		next: ARBM_CCRIS_App
+
+	UpdateSharedContext_SaveCCRISProcessId: SubProcessStartTask
+		next: GetEntityCustomerCRR
+
+	GetUpdatedFinCalculationsError: BoundaryErrorEvent
+		next: IsReject_GetUpdatedFinCalculations_GW?
+
+	GetUpdatedFinCalculations: SubProcessTask
+		switch:
+			next: GetUpdatedFinCalculationsError
+			next: IsReject_GetUpdatedFinCalculations_GW?
+
+	UpdateStatusInCustomerService_CRR: SubProcessTask
+		next: IsEntityCRRCheckReject?
+
+	IsRejected_CalculateIndividualDebtObligation_GW?: Gateway
+		switch:
+			else: EntityDSRCheck_Rule20
+			conn: SaveRejectReasonCodeToGlobalVars_IndividualDebtObligation
+
+	SaveRejectReasonCodeToGlobalVars_IndividualDebtObligation: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	IsRejected_EntityDsrCheck_GW?: Gateway
+		switch:
+			else: CollectResultsOfPreviousRules
+			conn: SaveRejectReasonCodeToGlobalVars_EntityDsrCheck
+
+	SaveRejectReasonCodeToGlobalVars_EntityDsrCheck: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+
+	IsReject_GetUpdatedFinCalculations_GW?: Gateway
+		switch:
+			else: UpdateFinancingCalculations
+			conn: SaveRejectReasonCodeToGlobalVars_GetUpdatedFinCalculations
+
+	SaveRejectReasonCodeToGlobalVars_GetUpdatedFinCalculations: ScriptTask
+		next: Update_FE_APP_STATUS_TO_REJECT
+

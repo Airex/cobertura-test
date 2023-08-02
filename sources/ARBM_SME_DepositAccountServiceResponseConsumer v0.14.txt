@@ -1,0 +1,32 @@
+Worflow: ARBM_SME_DepositAccountServiceResponseConsumer
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	NotifySignalDepositAccountStatus: SignalTask
+		next: DW_GetOrderByFinancialAccountId
+
+	Init: ScriptTask
+		next: SetTags
+
+	IsAccountStatusFinal?: Gateway
+		switch:
+			conn: NotifySignalDepositAccountStatus
+			else: DW_GetOrderByFinancialAccountId
+
+	SetTags: ScriptTask
+		next: IsAccountStatusFinal?
+
+	SetAdditionalTags: ScriptTask
+		next: End
+
+	DW_GetOrderByFinancialAccountIdError: BoundaryErrorEvent
+		next: SetAdditionalTags
+
+	DW_GetOrderByFinancialAccountId: ComponentTask
+		switch:
+			next: DW_GetOrderByFinancialAccountIdError
+			next: SetAdditionalTags
+

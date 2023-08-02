@@ -1,0 +1,40 @@
+Worflow: ARBM_SME_DuplicateEmailCheck
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	PrepareOutputProceed: ScriptTask
+		next: SaveToDb_Rule_DuplicateEmailCheck
+
+	IsDuplicatedWorkEmailFound?: Gateway
+		switch:
+			else: PrepareOutputProceed
+			conn: DW_FindOrdersByPartyIds
+
+	ShouldSimulateDuplicatedEmailCheckSkip?: Gateway
+		switch:
+			conn: PrepareOutputProceed
+			else: DW_FindContactsWithSameEmail
+
+	PrepareOutputManualReview: ScriptTask
+		next: SaveToDb_Rule_DuplicateEmailCheck
+
+	SaveToDb_Rule_DuplicateEmailCheck: ComponentTask
+		next: End
+
+	DW_FindOrdersByPartyIds: ComponentTask
+		next: PrepareOutputManualReview
+
+	DW_FindContactsWithSameEmailError: BoundaryErrorEvent
+		next: PrepareOutputManualReview
+
+	DW_FindContactsWithSameEmail: ComponentTask
+		switch:
+			next: DW_FindContactsWithSameEmailError
+			next: IsDuplicatedWorkEmailFound?
+
+	SetTags: ScriptTask
+		next: ShouldSimulateDuplicatedEmailCheckSkip?
+

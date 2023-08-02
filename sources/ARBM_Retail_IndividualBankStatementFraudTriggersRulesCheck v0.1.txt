@@ -1,0 +1,4 @@
+Worflow: ARBM_Retail_IndividualBankStatementFraudTriggersRulesCheck
+
+	746bf814-25c7-4d3d-a73e-ec55a09574e3: FlowVerification
+

@@ -1,0 +1,10 @@
+Worflow: TwilioRequestMeetingRecordingComposition
+
+	StartEvent: MessageStartEvent
+		next: Start_CompositionPreparation
+
+	End: EndEvent
+
+	Start_CompositionPreparation: SubProcessStartTask
+		next: End
+

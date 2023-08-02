@@ -1,0 +1,7 @@
+Worflow: ARBM_SME_InitialEligibilityChecksProcessPreliminary
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

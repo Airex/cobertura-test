@@ -1,0 +1,13 @@
+Worflow: ARBM_WaitForSignalOnAppFraudDecisionStatus_Feedzai
+
+	StartEvent: MessageStartEvent
+		next: ARBM_OnAppFraudDecisionStatus
+
+	End: EndEvent
+
+	ARBM_OnAppFraudDecisionStatus: SignalEvent
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+

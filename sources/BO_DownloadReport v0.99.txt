@@ -1,0 +1,78 @@
+Worflow: BO_DownloadReport
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	Prepare_Output: ScriptTask
+		next: Cleanup
+
+	Set_Tags: ScriptTask
+		next: Init
+
+	Set_Error: ScriptTask
+		next: Start_NextReport
+
+	Create_DownloadLinkError: BoundaryErrorEvent
+		next: Set_Error
+
+	Create_DownloadLink: ComponentTask
+		switch:
+			next: Create_DownloadLinkError
+			next: Start_NextReport
+
+	Get_ReportKey: ScriptTask
+		next: CheckReportConfigured
+
+	IsActionStartedOrSubmitted?: Gateway
+		switch:
+			conn: Validate_SubmittedData
+			else: Prepare_InitialResponsePayload
+
+	Prepare_InitialResponsePayload: ScriptTask
+		next: Prepare_Output
+
+	Validate_SubmittedData: ScriptTask
+		next: IsValid?
+
+	IsValid?: Gateway
+		switch:
+			else: Prepare_Output
+			conn: CheckReportsNotProcessed
+
+	Check_IfFileExistsError: BoundaryErrorEvent
+		next: Set_Error
+
+	Check_IfFileExists: ComponentTask
+		switch:
+			next: Check_IfFileExistsError
+			next: IsReportFileFound?
+
+	IsReportFileFound?: Gateway
+		switch:
+			conn: Create_DownloadLink
+			else: Set_Error
+
+	CheckReportConfigured: Gateway
+		switch:
+			conn: Check_IfFileExists
+			else: Push_Notification
+
+	CheckReportsNotProcessed: Gateway
+		switch:
+			conn: Get_ReportKey
+			else: Prepare_Output
+
+	Start_NextReport: ScriptTask
+		next: CheckReportsNotProcessed
+
+	Init: ScriptTask
+		next: IsActionStartedOrSubmitted?
+
+	Push_Notification: ScriptTask
+		next: Start_NextReport
+
+	Cleanup: ScriptTask
+		next: End
+

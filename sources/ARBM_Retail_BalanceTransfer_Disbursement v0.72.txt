@@ -1,0 +1,116 @@
+Worflow: ARBM_Retail_BalanceTransfer_Disbursement
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	SetTags: ScriptTask
+		next: AnythingToProcess?
+
+	BalanceTransferDataToProcessing?: Gateway
+		switch:
+			else: ConditionEventsToProcess?
+			conn: PostManualDisbursement_ManualTask
+
+	EndProcessing: ScriptTask
+		next: End
+
+	PostManualDisbursement_ManualTask: SubProcessTask
+		next: BalanceTransferDataToProcessing?
+
+	DW_GetBankAccountDetails: ComponentTask
+		next: PrepareData
+
+	AnythingToProcess?: Gateway
+		switch:
+			else: End
+			conn: DW_GetBankAccountDetails
+
+	PrepareData: ScriptTask
+		next: BalanceTransferDataToProcessing?
+
+	ConditionEventsToProcess?: Gateway
+		switch:
+			conn: IsManualTaskSimulation?
+			else: ValidateDisbursementResult
+
+	GetManualDisbursementResult_ManualTask: SubProcessTask
+		next: IsManualDisbursementPending?
+
+	IsManualTaskSimulation?: Gateway
+		switch:
+			else: GetManualDisbursementResult_ManualTask
+			conn: ManualTaskSimulationResult
+
+	ManualTaskSimulationResult: ScriptTask
+		next: IsManualDisbursementPending?
+
+	ValidateDisbursementResult: ScriptTask
+		next: IsDisbursementValidationPassed?
+
+	IsDisbursementValidationPassed?: Gateway
+		switch:
+			else: DisbursementValidationFailed
+			conn: DisbursementValidationPassed
+
+	DisbursementValidationFailed: ResponseTask
+		next: EndProcessing
+
+	DisbursementValidationPassed: ResponseTask
+		next: DW_BatchOrderUpsert_ManualDisbursement
+
+	DW_BatchOrderUpsert_ManualDisbursement: SubProcessTask
+		next: IsRemainingFinancingAmount?
+
+	IsRemainingFinancingAmount?: Gateway
+		switch:
+			else: EndProcessing
+			conn: PostSavingsAccountRequest_ManualTask
+
+	PostSavingsAccountRequest_ManualTask: SubProcessTask
+		next: IsSavingsAccountManualTaskSimulation?
+
+	IsSavingsAccountManualTaskSimulation?: Gateway
+		switch:
+			conn: SavingsAccountManualTaskSimulationResult
+			else: GetSavingsAccountResult_ManualTask
+
+	SavingsAccountManualTaskSimulationResult: ScriptTask
+		next: IsSavingsAccountRequestSuccessful?
+
+	ValidateSavingsAccountTaskResult: ScriptTask
+		next: SavingsAccountRequestSucceeded?
+
+	GetSavingsAccountResult_ManualTask: SubProcessTask
+		next: IsSavingsAccountRequestSuccessful?
+
+	IsSavingsAccountRequestSuccessful?: Gateway
+		switch:
+			conn: ValidateSavingsAccountTaskResult
+			else: IsSavingsAccountRequestPending?
+
+	DW_BatchOrderUpsert_SavingsAccount: SubProcessTask
+		next: EndProcessing
+
+	SavingsAccountRequestSucceeded?: Gateway
+		switch:
+			conn: DW_BatchOrderUpsert_SavingsAccount
+			else: EndProcessing
+
+	IsManualDisbursementPending?: Gateway
+		switch:
+			conn: AddManualDisbursementPendingTask
+			else: ConditionEventsToProcess?
+
+	AddManualDisbursementPendingTask: ScriptTask
+		next: PostManualDisbursement_ManualTask
+
+	IsSavingsAccountRequestPending?: Gateway
+		switch:
+			else: EndProcessing
+			conn: AddSavingsAccountRequestPendingTask
+
+	AddSavingsAccountRequestPendingTask: ScriptTask
+		next: PostSavingsAccountRequest_ManualTask
+

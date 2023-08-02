@@ -1,0 +1,29 @@
+Worflow: MutexEnter
+
+	StartEvent: MessageStartEvent
+		next: IfSuppressResponse
+
+	End: EndEvent
+
+	MutexTryEnter: ComponentTask
+		next: IsLockTaken
+
+	IsLockTaken: Gateway
+		switch:
+			conn: SetOutput
+			else: MutexWait
+
+	MutexWait: SignalEvent
+		next: MutexTryEnter
+
+	SetOutput: ScriptTask
+		next: End
+
+	MutexEnterResponse: ResponseTask
+		next: MutexTryEnter
+
+	IfSuppressResponse: Gateway
+		switch:
+			else: MutexEnterResponse
+			conn: MutexTryEnter
+

@@ -1,0 +1,44 @@
+Worflow: TEST_ConditionConsumer
+
+	StartEvent: MessageStartEvent
+		next: CheckEventCreated
+
+	End: EndEvent
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	CheckConditionCompleted: Gateway
+		switch:
+			conn: PrepareOutput
+			else: WaitConditionCompleted
+
+	DW_GetConditionsByEventId: ComponentTask
+		next: CheckConditionCompleted
+
+	CheckEventCreated: Gateway
+		switch:
+			else: SaveEvent
+			conn: PrepareEvent
+
+	SaveEvent: SubProcessTask
+		next: WaitConditionsCreated
+
+	PrepareEvent: ScriptTask
+		next: DW_GetConditionsByEventId
+
+	DW_GetConditionResolutionByEventId: ComponentTask
+		next: CheckConditionsCreated
+
+	CheckConditionsCreated: Gateway
+		conn: PrepareEvent
+
+	WaitConditionsCreated: ScriptTask
+		next: DW_GetConditionResolutionByEventId
+
+	DW_GetConditionsByEventId1: ComponentTask
+		next: CheckConditionCompleted
+
+	WaitConditionCompleted: SignalEvent
+		next: DW_GetConditionsByEventId1
+

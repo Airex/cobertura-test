@@ -1,0 +1,19 @@
+Worflow: ARBM_SME_DeriveAdditionalFieldsFromSsmReport
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetBnmCcc: SubDecisionTask
+		next: GetAppDetailsFields_FromSsmReport
+
+	GetAppDetailsFields_FromSsmReport: ScriptTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: GetBnmCcc
+

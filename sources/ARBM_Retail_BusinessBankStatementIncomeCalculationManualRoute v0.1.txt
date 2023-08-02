@@ -1,0 +1,18 @@
+Worflow: ARBM_Retail_BusinessBankStatementIncomeCalculationManualRoute
+
+	StartEvent: MessageStartEvent
+		next: NewGateway
+
+	End: EndEvent
+
+	GetBusinessBankStatementIncome: ComponentTask
+		next: End
+
+	NewGateway: Gateway
+		switch:
+			else: GetBusinessBankStatementIncome
+			conn: ReturnMockData
+
+	ReturnMockData: ScriptTask
+		next: End
+

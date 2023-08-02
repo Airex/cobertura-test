@@ -1,0 +1,30 @@
+Worflow: TwilioVideoRoomWebhookHandler
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	Respond: ResponseTask
+		next: IsRoomCompleted?
+
+	Check_ExternalId: ScriptTask
+		next: Respond
+
+	IsRoomCompleted?: Gateway
+		switch:
+			conn: Start_CompositionPreparation
+			else: Cleanup
+
+	Start_CompositionPreparation: SubProcessTask
+		next: Cleanup
+
+	Init: ScriptTask
+		next: Check_ExternalId
+
+	Cleanup: ScriptTask
+		next: End
+
+	Set_Tags: ScriptTask
+		next: Init
+

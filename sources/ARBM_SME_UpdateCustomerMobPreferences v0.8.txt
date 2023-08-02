@@ -1,0 +1,29 @@
+Worflow: ARBM_SME_UpdateCustomerMobPreferences
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	UpdateCustomerMobPreferencesInProfileError: BoundaryErrorEvent
+		next: ThrowError
+
+	UpdateCustomerMobPreferencesInProfile: ComponentTask
+		switch:
+			next: UpdateCustomerMobPreferencesInProfileError
+			next: IsHttpCallError?
+
+	SetTags: ScriptTask
+		next: UpdateCustomerMobPreferencesInProfile
+
+	SaveOutput: ScriptTask
+		next: End
+
+	ThrowError: ScriptTask
+		next: End
+
+	IsHttpCallError?: Gateway
+		switch:
+			else: SaveOutput
+			conn: ThrowError
+

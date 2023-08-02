@@ -1,0 +1,13 @@
+Worflow: Test_SK_Files
+
+	StartEvent: MessageStartEvent
+		next: BuildFileServiceLink
+
+	End: EndEvent
+
+	BuildFileServiceLink: ScriptTask
+		next: UploadFile
+
+	UploadFile: HttpMessageTask
+		next: End
+

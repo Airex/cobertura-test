@@ -1,0 +1,32 @@
+Worflow: ARBM_SME_ProcessConsentDocuments
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: IsDocument?
+
+	IsDocument?: Gateway
+		switch:
+			else: End
+			conn: IsS3Key?
+
+	PrepareDocumentDownload: ScriptTask
+		next: GetDownloadUrl
+
+	OutputDocument: ScriptTask
+		next: IsDocument?
+
+	IsS3Key?: Gateway
+		switch:
+			conn: PrepareDocumentDownload
+			else: DW_SetOrderLineDocument
+
+	DW_SetOrderLineDocument: ComponentTask
+		next: OutputDocument
+
+	GetDownloadUrl: ComponentTask
+		next: DW_SetOrderLineDocument
+

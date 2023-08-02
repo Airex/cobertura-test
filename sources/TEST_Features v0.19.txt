@@ -1,0 +1,28 @@
+Worflow: TEST_Features
+
+	StartEvent: MessageStartEvent
+		next: NewScript_1
+
+	End: EndEvent
+
+	NewMessageResponse: ScriptTask
+		next: NewScript
+
+	NewScript: ScriptTask
+		next: Copy_NewMessageResponse
+
+	Copy_NewMessageResponse: ScriptTask
+		next: End
+
+	GetHierarchy: HttpMessageTask
+		next: ListGroups
+
+	ListGroups: HttpMessageTask
+		next: ListUsers
+
+	ListUsers: HttpMessageTask
+		next: End
+
+	NewScript_1: ScriptTask
+		next: End
+

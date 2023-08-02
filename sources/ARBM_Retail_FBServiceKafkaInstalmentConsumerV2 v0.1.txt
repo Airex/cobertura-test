@@ -1,0 +1,10 @@
+Worflow: ARBM_Retail_FBServiceKafkaInstalmentConsumerV2
+
+	StartEvent: MessageStartEvent
+		next: FBServiceKafkaInstalmentConsumer
+
+	End: EndEvent
+
+	FBServiceKafkaInstalmentConsumer: SignalTask
+		next: End
+

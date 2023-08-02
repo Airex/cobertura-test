@@ -1,0 +1,56 @@
+Worflow: ARBM_Retail_FAServiceKafkaAccountDetailsConsumer
+
+	StartEvent: MessageStartEvent
+		next: MutexLockFinancialAccout
+
+	End: EndEvent
+
+	FAAccountDetilsResponse: SignalTask
+
+	DW_FindFinaccount: ComponentTask
+		next: IsFinAccountFound_GW
+
+	DW_SetOrderFinancingTermsError: BoundaryErrorEvent
+		next: GetPreparedCategoriesToBeSavedToDb
+
+	DW_SetOrderFinancingTerms: ComponentTask
+		switch:
+			next: DW_SetOrderFinancingTermsError
+			next: GetPreparedCategoriesToBeSavedToDb
+
+	DW_FindOrder: ComponentTask
+		next: DW_GetOrderByFinancialAccountId
+
+	DW_SetClassifications: ComponentTask
+		next: End
+
+	SetClassificationCategories: ComponentTask
+		next: DW_SetClassifications
+
+	GetPreparedCategoriesToBeSavedToDb: ScriptTask
+		next: SetClassificationCategories
+
+	InitProcess: ScriptTask
+		next: DW_FindFinaccount
+
+	MutexLockFinancialAccout: ComponentTask
+		next: InitProcess
+
+	WaitFinancingAccountCreated: SignalEvent
+		next: DW_FindFinaccount
+
+	IsFinAccountFound_GW: Gateway
+		switch:
+			conn: WaitFinancingAccountCreated
+			conn: DW_FindOrder
+			else: ThrowErrorIfNotFound
+
+	ThrowErrorIfNotFound: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: DW_SetOrderFinancingTerms
+
+	DW_GetOrderByFinancialAccountId: ComponentTask
+		next: SetTags
+

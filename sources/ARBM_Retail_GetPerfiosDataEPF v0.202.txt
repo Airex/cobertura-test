@@ -1,0 +1,94 @@
+Worflow: ARBM_Retail_GetPerfiosDataEPF
+
+	StartEvent: MessageStartEvent
+		next: GetSimulationData
+
+	End: EndEvent
+
+	UploadEPFStatementToPerfiosError: BoundaryErrorEvent
+		next: GetDownloadUrl
+
+	UploadEPFStatementToPerfios: ComponentTask
+		switch:
+			next: UploadEPFStatementToPerfiosError
+			next: IfHttpCallError
+
+	RetrieveEPFStatementReportError: BoundaryErrorEvent
+		next: IfNotRetrieveReport
+
+	RetrieveEPFStatementReport: ComponentTask
+		switch:
+			next: RetrieveEPFStatementReportError
+			next: IfNotRetrieveReport
+
+	SaveOutputObject: ScriptTask
+		next: End
+
+	ProcessEPFStatementError: BoundaryErrorEvent
+		next: Error
+
+	ProcessEPFStatement: ComponentTask
+		switch:
+			next: ProcessEPFStatementError
+			next: isProcessError_GW
+
+	RetryTimer: TimerEvent
+		next: RetrieveEPFStatementReport
+
+	IfNotRetrieveReport: Gateway
+		switch:
+			conn: IncrTimer
+			else: IfSimulation
+
+	ReturnSimulationData: ScriptTask
+		next: End
+
+	GetDownloadUrlError: BoundaryErrorEvent
+		next: IfErrorAndSimulation
+
+	GetDownloadUrl: ComponentTask
+		switch:
+			next: GetDownloadUrlError
+			next: IfErrorAndSimulation
+
+	IfHttpCallError: Gateway
+		switch:
+			conn: GetDownloadUrl
+			else: isUploadError_GW
+			conn: ReturnSimulationData
+
+	IncrTimer: ScriptTask
+		next: RetryTimer
+
+	IfErrorAndSimulation: Gateway
+		switch:
+			conn: UploadEPFStatementToPerfios
+			conn: ReturnSimulationData
+			else: Error
+
+	Error: ScriptTask
+		next: End
+
+	isUploadError_GW: Gateway
+		switch:
+			else: ProcessEPFStatement
+			conn: Error
+
+	IfSimulation: Gateway
+		switch:
+			conn: ReturnSimulationData
+			else: isRetrieveError_GW
+
+	GetSimulationData: ScriptTask
+		next: UploadEPFStatementToPerfios
+
+	isRetrieveError_GW: Gateway
+		switch:
+			else: SaveOutputObject
+			conn: Error
+
+	isProcessError_GW: Gateway
+		switch:
+			else: RetrieveEPFStatementReport
+			conn: Error
+

@@ -1,0 +1,10 @@
+Worflow: ARBM_SME_SaveRuleToDb_TEST
+
+	StartEvent: MessageStartEvent
+		next: SaveRuleResultToDB
+
+	End: EndEvent
+
+	SaveRuleResultToDB: ComponentTask
+		next: End
+

@@ -1,0 +1,35 @@
+Worflow: TwilioCompositionWebhookHandler
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	Save_MeetingRecordings: SubProcessStartTask
+		next: Cleanup
+
+	Check_ExternalId: ScriptTask
+		next: IsExternalIdValid?
+
+	IsExternalIdValid?: Gateway
+		switch:
+			conn: IsCompositionReady?
+			else: Cleanup
+
+	IsCompositionReady?: Gateway
+		switch:
+			conn: Save_MeetingRecordings
+			else: Cleanup
+
+	Init: ScriptTask
+		next: Check_ExternalId
+
+	Respond: ResponseTask
+		next: End
+
+	Cleanup: ScriptTask
+		next: Respond
+
+	Set_Tags: ScriptTask
+		next: Init
+

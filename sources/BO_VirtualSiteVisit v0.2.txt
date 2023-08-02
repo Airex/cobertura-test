@@ -1,0 +1,21 @@
+Worflow: BO_VirtualSiteVisit
+
+	StartEvent: MessageStartEvent
+		next: CheckRoomCreated
+
+	End: EndEvent
+
+	CheckRoomCreated: Gateway
+		switch:
+			conn: CreateTwilioRoom
+			conn: CompleteAction
+
+	CreateTwilioRoom: ScriptTask
+		next: NotifyRoomCreated
+
+	NotifyRoomCreated: ScriptTask
+		next: End
+
+	CompleteAction: ScriptTask
+		next: End
+

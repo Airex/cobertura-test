@@ -1,0 +1,10 @@
+Worflow: Test_AsyncPriority
+
+	StartEvent: MessageStartEvent
+		next: NewMessageResponse
+
+	End: EndEvent
+
+	NewMessageResponse: ResponseTask
+		next: End
+

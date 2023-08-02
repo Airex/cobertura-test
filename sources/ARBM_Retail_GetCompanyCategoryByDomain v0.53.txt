@@ -1,0 +1,24 @@
+Worflow: ARBM_Retail_GetCompanyCategoryByDomain
+
+	StartEvent: MessageStartEvent
+		next: GetDomainVariations
+
+	End: EndEvent
+
+	GetDomainVariations: ScriptTask
+		next: GetCompanyCategoryByDomainVariation
+
+	GetCompanyCategoryByDomainVariation: SubProcessTask
+		next: IsCategoryFound?
+
+	IsCategoryFound?: Gateway
+		switch:
+			conn: PrepareForNextIteration
+			else: SaveOutput
+
+	PrepareForNextIteration: ScriptTask
+		next: GetCompanyCategoryByDomainVariation
+
+	SaveOutput: ScriptTask
+		next: End
+

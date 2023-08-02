@@ -1,0 +1,102 @@
+Worflow: ARBM_Retail_GetExperianReportProcess
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	SetOutput: ScriptTask
+		next: End
+
+	WaitingByTokens: TimerEvent
+		next: GetExperianReportByTokens
+
+	ShoudRequestByTokens?: Gateway
+		switch:
+			conn: WaitingByTokens
+			conn: CreateManualTask_ExperianReportRetrievalError
+			else: GetExperianReportXml
+
+	IsAllInputDataProvided?: Gateway
+		switch:
+			else: SetOutput
+			conn: GetExperianCcrisSearchResult
+
+	GetExperianCcrisSearchResultError: BoundaryErrorEvent
+		next: ManualRejectionOrCCRISErrorInGetExperianReport?
+
+	GetExperianCcrisSearchResult: ComponentTask
+		switch:
+			next: GetExperianCcrisSearchResultError
+			next: ManualRejectionOrCCRISErrorInGetExperianReport?
+
+	GetExperianReportByTokensError: BoundaryErrorEvent
+		next: ManualRejectionInGetExperianReportByTokens?
+
+	GetExperianReportByTokens: ComponentTask
+		switch:
+			next: GetExperianReportByTokensError
+			next: ManualRejectionInGetExperianReportByTokens?
+
+	SetReportTokens: ScriptTask
+		next: GetExperianReportByTokens
+
+	CreateManualTask_ExperianReportRetrievalError: SubProcessTask
+		next: CheckConditionResolution
+
+	CheckConditionResolution: Gateway
+		switch:
+			else: SetRejectionReason
+			conn: GetExperianCcrisSearchResult
+
+	SetRejectionReason: ScriptTask
+		next: End
+
+	HandleExperianErrorMultipleEntitiesError: BoundaryErrorEvent
+		next: CreateManualTask_ExperianReportRetrievalError
+
+	HandleExperianErrorMultipleEntities: SubProcessTask
+		switch:
+			next: HandleExperianErrorMultipleEntitiesError
+			next: SetOutput
+
+	ShouldSimulateMultipleCcrisEntitiesError_GW?: Gateway
+		switch:
+			conn: GetExperianReport_MultipleCcrisEntitiesError
+			else: IsAllInputDataProvided?
+
+	GetExperianReport_MultipleCcrisEntitiesError: ScriptTask
+		next: HandleExperianErrorMultipleEntities
+
+	SetTags: ScriptTask
+		next: IsAllInputDataProvided?
+
+	ManualRejectionOrCCRISErrorInGetExperianReport?: Gateway
+		switch:
+			else: HaveReportTokens?
+			conn: HandleExperianErrorMultipleEntities
+			conn: SetRejectionReason
+
+	HaveReportTokens?: Gateway
+		switch:
+			else: SetReportTokens
+			conn: CreateManualTask_ExperianReportRetrievalError
+
+	ManualRejectionInGetExperianReportByTokens?: Gateway
+		switch:
+			else: ShoudRequestByTokens?
+			conn: SetRejectionReason
+
+	GetExperianReportXmlError: BoundaryErrorEvent
+		next: ManualRejectionInGetExperianReportXml?
+
+	GetExperianReportXml: ComponentTask
+		switch:
+			next: GetExperianReportXmlError
+			next: ManualRejectionInGetExperianReportXml?
+
+	ManualRejectionInGetExperianReportXml?: Gateway
+		switch:
+			else: SetOutput
+			conn: SetRejectionReason
+

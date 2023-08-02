@@ -1,0 +1,10 @@
+Worflow: AK_SendSignal
+
+	StartEvent: MessageStartEvent
+		next: SendSignal
+
+	End: EndEvent
+
+	SendSignal: SignalTask
+		next: End
+

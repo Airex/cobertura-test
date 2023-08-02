@@ -1,0 +1,46 @@
+Worflow: ZCRE_GetEventResult
+
+	StartEvent: MessageStartEvent
+		next: CheckEventCreated
+
+	End: EndEvent
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	CheckConditionCompleted: Gateway
+		switch:
+			conn: PrepareOutput
+			else: WaitConditionCompleted
+
+	DW_GetConditionsByEventId: ComponentTask
+		next: CheckConditionCompleted
+
+	CheckEventCreated: Gateway
+		switch:
+			else: SaveEvent
+			conn: GetWaitId
+
+	SaveEvent: SubProcessTask
+		next: GetWaitId
+
+	CheckConditionsCreated: Gateway
+		switch:
+			else: WaitEventProcessed
+			conn: DW_GetConditionsByEventId
+
+	WaitConditionCompleted: SignalEvent
+		next: DW_GetConditionsByEventId
+
+	WaitEventProcessed: SubProcessSucceededEvent
+		next: DW_GetConditionsByEventId
+
+	DW_GetConditionResolutionByWaitId: ComponentTask
+		next: CheckConditionsCreated
+
+	GetWaitId: ScriptTask
+		next: WaitConditionEventProcessed
+
+	WaitConditionEventProcessed: SubProcessStartTask
+		next: DW_GetConditionResolutionByWaitId
+

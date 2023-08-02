@@ -1,0 +1,10 @@
+Worflow: ARBM_Retail_UpdateAppStatusInCRRService
+
+	StartEvent: MessageStartEvent
+		next: UpdateAppStatusInCRRService
+
+	End: EndEvent
+
+	UpdateAppStatusInCRRService: ComponentTask
+		next: End
+

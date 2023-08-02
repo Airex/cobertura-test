@@ -1,0 +1,10 @@
+Worflow: ARBM_Retail_DecideSelfEmployedIncomeCheckStatus
+
+	ddbc243f-a208-49b3-b386-ff2f701d7568: FlowVerification
+		next: 
+
+	2b605eca-8613-4f99-a894-e1367854a44f: FlowVerification
+		next: 
+
+	6f0ad214-8a21-4333-8a48-589f4ca5ccba: FlowVerification
+

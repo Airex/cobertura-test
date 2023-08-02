@@ -1,0 +1,59 @@
+Worflow: ARBM_CCRIS_App
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	CreateCCRIS: SubProcessStartTask
+		next: CreateGateway
+
+	CreateBeforeUpdate: SubProcessSucceededEvent
+		next: CreateBeforeUpdateAppKey_GW
+
+	UpdateCCRIS: SubProcessStartTask
+		next: End
+
+	CreateGateway: Gateway
+		switch:
+			conn: CreateBeforeUpdate
+			conn: UpdateBeforeCreate
+			conn: CreateAfterUpdate
+
+	CreateAfterUpdate: SubProcessSucceededEvent
+		next: CreateAfterUpdateAppKey_GW
+
+	isCreateAfterUpdateSucceeded?: Gateway
+		switch:
+			conn: UpdateCCRIS
+			else: End
+
+	CreatePayload_GW: ScriptTask
+		next: CreateCCRIS
+
+	UpdateBeforeCreatePayload_GW: ScriptTask
+		next: isCreateAfterUpdateSucceeded?
+
+	UpdateAfterCreatePayload_GW: ScriptTask
+		next: UpdateCCRIS
+
+	CreateAfterUpdateAppKey_GW: ScriptTask
+		next: UpdateBeforeCreatePayload_GW
+
+	CreateBeforeUpdateAppKey_GW: ScriptTask
+		next: UpdateAfterCreate
+
+	isCreateBeforeUpdateSucceeded?: Gateway
+		switch:
+			conn: UpdateAfterCreatePayload_GW
+			else: End
+
+	UpdateBeforeCreate: SignalEvent
+		next: CreateAfterUpdate
+
+	UpdateAfterCreate: SignalEvent
+		next: isCreateBeforeUpdateSucceeded?
+
+	SetTags: ScriptTask
+		next: CreatePayload_GW
+

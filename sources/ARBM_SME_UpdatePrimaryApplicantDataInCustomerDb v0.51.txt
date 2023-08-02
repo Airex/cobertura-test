@@ -1,0 +1,62 @@
+Worflow: ARBM_SME_UpdatePrimaryApplicantDataInCustomerDb
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	UpdatePrimaryApplicantEmailError: BoundaryErrorEvent
+		next: ThrowError
+
+	UpdatePrimaryApplicantEmail: ComponentTask
+		switch:
+			next: UpdatePrimaryApplicantEmailError
+			next: DeriveValues
+
+	UpdatePrimaryApplicantProfileError: BoundaryErrorEvent
+		next: ThrowError
+
+	UpdatePrimaryApplicantProfile: ComponentTask
+		switch:
+			next: UpdatePrimaryApplicantProfileError
+			next: DW_BatchOrderUpsert_SaveClsToDb
+
+	UpdatePrimaryApplicantMailingAddressError: BoundaryErrorEvent
+		next: ThrowError
+
+	UpdatePrimaryApplicantMailingAddress: ComponentTask
+		switch:
+			next: UpdatePrimaryApplicantMailingAddressError
+			next: GetPrimaryApplicantProfile
+
+	IsMailingAddressSameAsResidentialAddress?: Gateway
+		switch:
+			conn: UpdatePrimaryApplicantMailingAddress
+			else: GetPrimaryApplicantProfile
+
+	ThrowError: ScriptTask
+		next: End
+
+	CreatePrimaryApplicantCustomersEmploymentError: BoundaryErrorEvent
+		next: ThrowError
+
+	CreatePrimaryApplicantCustomersEmployment: ComponentTask
+		switch:
+			next: CreatePrimaryApplicantCustomersEmploymentError
+			next: IsMailingAddressSameAsResidentialAddress?
+
+	DecideAnnualIncomeBracket: SubDecisionTask
+		next: CreatePrimaryApplicantCustomersEmployment
+
+	GetPrimaryApplicantProfile: ComponentTask
+		next: End
+
+	DeriveValues: ScriptTask
+		next: UpdatePrimaryApplicantProfile
+
+	DW_BatchOrderUpsert_SaveClsToDb: SubProcessStartTask
+		next: DecideAnnualIncomeBracket
+
+	SetTags: ScriptTask
+		next: UpdatePrimaryApplicantEmail
+

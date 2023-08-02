@@ -1,0 +1,95 @@
+Worflow: DW_BatchOrderUpsert
+
+	StartEvent: MessageStartEvent
+		next: SaveOrderIdToGlobalVars
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: Identification
+
+	IsOperations?: Gateway
+		switch:
+			else: PushOrderSnapshotToKafka
+			conn: GetValidOperations
+
+	GetValidOperationsError: BoundaryErrorEvent
+		next: AdwError_ManualTask
+
+	GetValidOperations: ScriptTask
+		switch:
+			next: GetValidOperationsError
+			next: IsValidOperation?
+
+	IsValidOperation?: Gateway
+		switch:
+			else: IsOperations?
+			conn: ExecuteOperation
+
+	OverrideOperations: MessageEvent
+		next: UpdateOperations
+
+	FilterOperations: ScriptTask
+		next: IsValidOperation?
+
+	ExctractIdsError: BoundaryErrorEvent
+		next: AdwError_ManualTask
+
+	ExctractIds: ScriptTask
+		switch:
+			next: ExctractIdsError
+			next: FilterOperations
+
+	UpdateOperations: ScriptTask
+		next: Identification
+
+	Identification: ScriptTask
+		next: IsOperations?
+
+	MutexEnter: ComponentTask
+		next: Init
+
+	ExecuteOperationError: BoundaryErrorEvent
+		next: isAttempts?
+
+	ExecuteOperation: SubProcessTask
+		switch:
+			next: ExecuteOperationError
+			next: ExctractIds
+
+	PushOrderSnapshotToKafka: SignalTask
+		next: IsExperianReportDocumentIdPresent?
+
+	isAttempts?: Gateway
+		switch:
+			conn: countDelay
+			else: AdwError_ManualTask
+
+	retryTimer: TimerEvent
+		next: ExecuteOperation
+
+	countDelay: ScriptTask
+		next: retryTimer
+
+	AdwError_ManualTask: SubProcessTask
+		next: isRetry?
+
+	isRetry?: Gateway
+		switch:
+			else: OverrideOperations
+			conn: PrepareRetry
+
+	PrepareRetry: ScriptTask
+		next: isAttempts?
+
+	IsExperianReportDocumentIdPresent?: Gateway
+		switch:
+			else: End
+			conn: PushExperianReportToKafka
+
+	PushExperianReportToKafka: SignalTask
+		next: End
+
+	SaveOrderIdToGlobalVars: ScriptTask
+		next: MutexEnter
+

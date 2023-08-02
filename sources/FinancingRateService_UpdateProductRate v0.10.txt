@@ -1,0 +1,10 @@
+Worflow: FinancingRateService_UpdateProductRate
+
+	StartEvent: MessageStartEvent
+		next: UpdateProductRate
+
+	End: EndEvent
+
+	UpdateProductRate: ComponentTask
+		next: End
+

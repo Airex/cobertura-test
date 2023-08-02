@@ -1,0 +1,7 @@
+Worflow: ARBM_Retail_DecideCCRISRejReasonCode
+
+	a3cbb980-f1fc-4706-a800-81647f025a5e: FlowVerification
+		next: 
+
+	2a98d5fd-1c0c-4fe1-844f-7b463f47a5de: FlowVerification
+

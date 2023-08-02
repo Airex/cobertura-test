@@ -1,0 +1,21 @@
+Worflow: Files_DownloadFromStorage
+
+	StartEvent: MessageStartEvent
+		next: PrepareData
+
+	End: EndEvent
+
+	PrepareData: ScriptTask
+		next: GetFileFromStorage
+
+	GetFileFromStorageError: BoundaryErrorEvent
+		next: SetGetFileFromStorageOutput
+
+	GetFileFromStorage: ComponentTask
+		switch:
+			next: GetFileFromStorageError
+			next: SetGetFileFromStorageOutput
+
+	SetGetFileFromStorageOutput: ScriptTask
+		next: End
+

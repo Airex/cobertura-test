@@ -1,0 +1,26 @@
+Worflow: FinancingRateService_GetProducts
+
+	StartEvent: MessageStartEvent
+		next: GetProducts
+
+	End: EndEvent
+
+	ProcessResults: ScriptTask
+		next: CheckShouldComplete
+
+	GetProductsError: BoundaryErrorEvent
+		next: PrepareOutput
+
+	GetProducts: ComponentTask
+		switch:
+			next: GetProductsError
+			next: ProcessResults
+
+	CheckShouldComplete: Gateway
+		switch:
+			else: GetProducts
+			conn: PrepareOutput
+
+	PrepareOutput: ScriptTask
+		next: End
+

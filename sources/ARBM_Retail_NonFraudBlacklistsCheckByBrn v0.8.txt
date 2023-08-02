@@ -1,0 +1,19 @@
+Worflow: ARBM_Retail_NonFraudBlacklistsCheckByBrn
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetIsInBlacklistExistingCorpCustWithOutstdCrd: ScriptTask
+		next: GetIsInBlacklistCorpWithStldCrdAndPastConductIssues
+
+	GetIsInBlacklistCorpWithStldCrdAndPastConductIssues: ScriptTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: GetIsInBlacklistExistingCorpCustWithOutstdCrd
+

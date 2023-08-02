@@ -1,0 +1,13 @@
+Worflow: ARBM_Retail_GetBalanceTransferFromDB
+
+	StartEvent: MessageStartEvent
+		next: GetOrderDetails
+
+	End: EndEvent
+
+	GetOrderDetails: SubProcessTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+

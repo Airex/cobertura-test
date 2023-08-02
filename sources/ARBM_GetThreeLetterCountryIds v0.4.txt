@@ -1,0 +1,27 @@
+Worflow: ARBM_GetThreeLetterCountryIds
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	DW_GetEnumTerritoryById: ComponentTask
+		next: SaveResults
+
+	SaveResults: ScriptTask
+		next: IsNextCountryId_GW?
+
+	IsNextCountryId_GW?: Gateway
+		switch:
+			else: End
+			conn: IncrementCounter
+
+	SetTags: ScriptTask
+		next: GetNextCountryId
+
+	GetNextCountryId: ScriptTask
+		next: DW_GetEnumTerritoryById
+
+	IncrementCounter: ScriptTask
+		next: GetNextCountryId
+

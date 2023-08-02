@@ -1,0 +1,40 @@
+Worflow: BO_SendNotification
+
+	StartEvent: MessageStartEvent
+		next: DW_GetOrderForNotification
+
+	End: EndEvent
+
+	DW_GetOrderForNotification: ComponentTask
+		next: PrepareOrderDetails
+
+	PrepareOrderDetails: ScriptTask
+		next: CheckOrderNotSilence
+
+	CheckOrderNotSilence: Gateway
+		switch:
+			conn: CheckCalendarNotSilence
+			else: DW_SaveSilentNotification
+
+	CheckCalendarNotSilence: Gateway
+		switch:
+			else: DW_SaveSilentNotification
+			conn: SendNotification
+
+	CloseActionWithSuccess: ScriptTask
+		next: End
+
+	DW_SaveSilentNotification: ComponentTask
+		next: CloseActionWithSuccess
+
+	DW_SaveRetryNotification: ComponentTask
+		next: CloseActionWithSuccess
+
+	SendNotificationError: BoundaryErrorEvent
+		next: DW_SaveRetryNotification
+
+	SendNotification: SubProcessTask
+		switch:
+			next: SendNotificationError
+			next: CloseActionWithSuccess
+

@@ -1,0 +1,78 @@
+Worflow: BO_ManualUnderwritingBT
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	Prepare_Output: ScriptTask
+		next: Cleanup
+
+	Init: ScriptTask
+		next: IsActionStartedOrSubmitted?
+
+	IsActionStartedOrSubmitted?: Gateway
+		switch:
+			conn: Prepare_InitialResponsePayload
+			conn: IsApproved?
+
+	Prepare_InitialResponsePayload: ScriptTask
+		next: Prepare_Output
+
+	Validate_SetSuccess: ScriptTask
+		next: ShouldSaveCommentToOrder?
+
+	Cleanup: ScriptTask
+		next: End
+
+	Set_Tags: ScriptTask
+		next: Init
+
+	ShouldSaveCommentToOrder?: Gateway
+		switch:
+			else: Prepare_Output
+			conn: Save_OrderComment
+
+	Save_OrderCommentError: BoundaryErrorEvent
+		next: Set_Error
+
+	Save_OrderComment: SubProcessTask
+		switch:
+			next: Save_OrderCommentError
+			next: Prepare_Output
+
+	Set_Error: ScriptTask
+		next: Prepare_Output
+
+	IsApproved?: Gateway
+		switch:
+			else: SetRejected
+			conn: Validate_AccountDetails
+
+	SetRejected: ScriptTask
+		next: ShouldSaveCommentToOrder?
+
+	Validate_AccountDetails: ScriptTask
+		next: IsAccountDetailsValid?
+
+	IsAccountDetailsValid?: Gateway
+		switch:
+			else: Prepare_Output
+			conn: DW_GetBankAccountDetails
+
+	DW_GetBankAccountDetailsError: BoundaryErrorEvent
+		next: Set_Error
+
+	DW_GetBankAccountDetails: ComponentTask
+		switch:
+			next: DW_GetBankAccountDetailsError
+			next: Validate_AccountNumbers
+
+	Validate_AccountNumbers: ScriptTask
+		next: IsAccountNumbersValid?
+
+	IsAccountNumbersValid?: Gateway
+		switch:
+			conn: Validate_SetSuccess
+			else: Prepare_Output
+

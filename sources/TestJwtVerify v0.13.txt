@@ -1,0 +1,10 @@
+Worflow: TestJwtVerify
+
+	StartEvent: MessageStartEvent
+		next: Verification
+
+	End: EndEvent
+
+	Verification: ScriptTask
+		next: End
+

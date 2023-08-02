@@ -1,0 +1,18 @@
+Worflow: ARBM_Retail_SetDocumentsResultsOfVerification
+
+	StartEvent: MessageStartEvent
+		next: DW_SetDocumentVerification
+
+	End: EndEvent
+
+	DW_SetDocumentVerification: ComponentTask
+		next: IsMoreDocVerificationsToUpdate?
+
+	IsMoreDocVerificationsToUpdate?: Gateway
+		switch:
+			else: End
+			conn: UpdateCounter
+
+	UpdateCounter: ScriptTask
+		next: DW_SetDocumentVerification
+

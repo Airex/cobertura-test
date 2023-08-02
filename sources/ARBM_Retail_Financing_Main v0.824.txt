@@ -1,0 +1,1034 @@
+Worflow: ARBM_Retail_Financing_Main
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	Completed: EndEvent
+
+	ShowFinancingDetails: ResponseTask
+		next: IsStartApplicationTimerStart?
+
+	Init: ScriptTask
+		next: GetConfigurationUri_Start
+
+	FinancingDetailsGateway: Gateway
+		switch:
+			conn: OnFinancingDetails
+			conn: BackDebtConsolidationSelection
+			conn: OnCalculate
+			conn: startApplicationTimerFinished
+
+	OnCalculate: MessageEvent
+		next: ProcessOnCalculateEvent
+
+	OnFinancingDetails: MessageEvent
+		next: ProcessOnFinancingDetailsEvent
+
+	CheckEligibility: SubProcessTask
+		next: CreditPolicyRulesGateway
+
+	EligibilityGateway: Gateway
+		switch:
+			else: SetStatus_Rejected_General
+			conn: ProcessConsentDocuments
+
+	Rejection: EndEvent
+
+	ShowConsentDocuments: ResponseTask
+		next: ConsentCancelGateway
+
+	OnConsent: MessageEvent
+		next: IsOnConsentValid?
+
+	ShowAppDetails: ResponseTask
+		next: AppDetailsCancelGateway
+
+	OnAppDetails: MessageEvent
+		next: OnAppDetails_VerifyToken
+
+	CheckCompany: SubProcessTask
+		next: IsCompanyCheckSuccessful?
+
+	IsCompanyCheckSuccessful?: Gateway
+		switch:
+			else: SetStatus_Rejected_General
+			conn: DecideCustomerType
+
+	DefineDocumentTypes: SubProcessTask
+		next: PrepareDocumentUpload
+
+	ShowUploadDocumentsList: ResponseTask
+		next: DocumentsGateway
+
+	OnNewUpload: MessageEvent
+		next: NewUpload_VerifyToken
+
+	DocumentsGateway: Gateway
+		switch:
+			conn: OnDocuments
+			conn: OnNewUpload
+			conn: OnCancel
+			conn: submitApplicationTimerFinished
+
+	OnDocuments: MessageEvent
+		next: OnDocuments_VerifyToken
+
+	ShowUnreviewedAppDetails: ResponseTask
+		next: ReviewGateway
+
+	OnReview: MessageEvent
+		next: OnReview_VerifyToken
+
+	RealtimeDecision: SubProcessStartTask
+		next: IsEmailVerificationCompleted_GW_1?
+
+	ShowRealtimeDecisionStatus: ResponseTask
+		next: RealtimeDecisionGateway
+
+	RealtimeDecisionGateway: Gateway
+		switch:
+			conn: OnDecision
+			conn: RealtimeDecisionFailed
+			conn: RealtimeDecisionSucceeded
+
+	RealtimeDecisionSucceeded: SubProcessSucceededEvent
+		next: isUpdateApplicationStatusSent?
+
+	RealtimeDecisionFailed: SubProcessFailedEvent
+		next: OnDecision
+
+	OnDecision: MessageEvent
+		next: OnDecision_VerifyToken
+
+	RealtimeDecisionStatusGateway: Gateway
+		switch:
+			conn: IsManualReview?
+			else: ShowRealtimeDecisionStatus
+			conn: SetStatus_InError
+
+	RealtimeDecisionResultGateway: Gateway
+		switch:
+			conn: approveApplication_Reminder
+			conn: Decision_Reject
+			conn: acceptDownsell_Reminder
+
+	Decision_Reject: ResponseTask
+		next: OnDecisionReject
+
+	OnDecisionReject: MessageEvent
+		next: OnDecisionReject_VerifyToken
+
+	Decision_Downsell: ResponseTask
+		next: IsAcceptDownsellTimerStart?
+
+	OnDownsell: MessageEvent
+		next: OnDownsell_VerifyToken
+
+	DownsellChoiceGateway: Gateway
+		switch:
+			conn: UpdateFinancingTerms
+			else: DW_BatchOrderUpsert_DownsellFinancingTerms_UpdateValidTill
+
+	Decision_Approved: ResponseTask
+		next: IsApproveApplicationTimerStart?
+
+	ApproveGateway: Gateway
+		switch:
+			conn: OnApprove
+			conn: OnWithdraw
+			conn: approveApplicationTimerFinished
+
+	OnApprove: MessageEvent
+		next: OnApprove_VerifyToken
+
+	OnWithdraw: MessageEvent
+		next: OnWithdraw_VerifyToken
+
+	Withdrawal: EndEvent
+
+	CheckEmailVerification: ScriptTask
+		next: ShouldSimulateWorkEmailVerificationSkip_GW?
+
+	ShouldSimulateWorkEmailVerificationSkip_GW?: Gateway
+		switch:
+			else: verifyWorkEmail_Reminder
+			conn: SetEmailVerificationCompletionIndicator
+
+	ShowEmailVerificationDetails: ResponseTask
+		next: IsVerifyWithoutWorkEmailTimerStart?
+
+	withoutEmailVerifyGateway: Gateway
+		switch:
+			conn: OnEmailRetry
+			conn: OnWithdraw
+			conn: verifyWithoutWorkEmailTimerFinished
+
+	OnEmailVerify: MessageEvent
+		next: OnEmailVerify_VerifyToken
+
+	OnEmailRetry: MessageEvent
+		next: OnEmailRetry_VerifyToken
+
+	ShowContractDetails: ResponseTask
+		next: IsSignApplicationTimerStart?
+
+	TooManyEmailRetries?: Gateway
+		switch:
+			else: EmailVerification_ManualTask
+			conn: RefreshEmailVerificationAttempts
+
+	ShowEmailManualVerificationStatus: ResponseTask
+		next: EmailVerification_ManualTask_GW
+
+	ShowEmailVerificationSuccess: ResponseTask
+		next: IsVerifyWorkEmailTimerStart?
+
+	OnEmailVerified: MessageEvent
+		next: OnEmailVerified_VerifyToken
+
+	IsEmailCodeValid?: Gateway
+		switch:
+			conn: ShowEmailVerificationSuccess
+			else: ProcessWrongCode
+
+	OnEmailManualVerify: MessageEvent
+		next: OnEmailManualVerify_VerifyToken
+
+	EmailVerification_ManualTask: SubProcessStartTask
+		next: ShowEmailManualVerificationStatus
+
+	EmailVerification_ManualTask_GW: Gateway
+		switch:
+			conn: OnWithdraw
+			conn: EmailVerification_ManualTask_Succeeded
+			conn: OnEmailManualVerify
+
+	EmailVerification_ManualTask_Succeeded: SubProcessSucceededEvent
+		next: EmailManualVerificationStatusPushSent?
+
+	EmailManualVerificationStatusGateway: Gateway
+		switch:
+			conn: ShouldProceedOrRejectOrRetry?
+			else: ShowEmailManualVerificationStatus
+
+	ShouldProceedOrRejectOrRetry?: Gateway
+		switch:
+			conn: DecideCCRISRejReasonCode_AfterEmailManualVerif
+			else: ResetEmailManualVerifyAttemptsAndSendings
+			conn: SetEmailVerificationCompletionIndicator
+
+	OnContractSign: MessageEvent
+		next: OnContractSign_VerifyToken
+
+	ShowPostContractSigningProcessStatus: ResponseTask
+		next: PostContractSigning_GW?
+
+	OnCompletion: MessageEvent
+		next: OnCompletion_VerifyToken
+
+	PostContractSigningProcess: SubProcessStartTask
+		next: ShowPostContractSigningProcessStatus
+
+	PostContractSigning_GW?: Gateway
+		switch:
+			conn: PostContractSigningProcessFailed
+			conn: PostContractSigningProcessSucceeded
+			conn: OnCompletion
+
+	PostContractSigningProcessSucceeded: SubProcessSucceededEvent
+		next: IsPostContractSigningReportingCompleted_GW?
+
+	PostContractSigningProcessFailed: SubProcessFailedEvent
+		next: IsFinishApplicationTimerStart?
+
+	PostContractSigningStatus_GW?: Gateway
+		switch:
+			conn: IsCRRCheckSuccessful_GW?
+			else: ShowPostContractSigningProcessStatus
+			conn: SetStatus_InError
+
+	SetStatus_Rejected_General: SubProcessStartTask
+		next: IsRealtimeDecisionSucceeded?
+
+	Status_Withdrawn: ResponseTask
+		next: SetTagAppStatus_Withdrawn
+
+	Status_Completed: ResponseTask
+		next: SetTagAppStatus_Completed
+
+	Resume: SpareMessageEvent
+		next: OnResume_VerifyToken
+
+	ResumeGateway: Gateway
+		switch:
+			conn: ShowConsentDocuments
+			conn: ShowAppDetails
+			conn: PrepareDocumentUpload
+			conn: ShowUnreviewedAppDetails
+			conn: Decision_Downsell
+			conn: ShowRealtimeDecisionStatus
+			conn: Decision_Approved
+			conn: ShowEmailManualVerificationStatus
+			conn: ShowContractDetails
+			conn: ShowPostContractSigningProcessStatus
+			conn: CheckVerificationValidity
+			conn: ShowEmailVerificationSuccess
+			conn: Decision_Reject
+			conn: ShowFinancingDetails
+			conn: ShowDebtConsolidationOptions
+			conn: ShowOnFinancingDetailsBT
+
+	GetLastEvent: ScriptTask
+		next: ResumeGateway
+
+	ReviewGateway: Gateway
+		switch:
+			conn: OnReview
+			conn: BackNewUpload
+			conn: OnCancel
+			conn: submitApplicationTimerFinished
+
+	BackNewUpload: MessageEvent
+		next: NewUpload_VerifyToken
+
+	PreCalculate: SubProcessTask
+		next: ShowFinancingDetails
+
+	OnCancel: MessageEvent
+		next: OnCancel_VerifyToken
+
+	Status_Cancel: ResponseTask
+		next: SetTagAppStatus_Canceled
+
+	Cancelation: EndEvent
+
+	ProcessWrongCode: ScriptTask
+		next: CheckVerificationValidity
+
+	IsEnoughEmailVerificationAttempts?: Gateway
+		switch:
+			conn: withEmailVerifyGateway
+			else: withoutEmailVerifyGateway
+			conn: EmailVerification_ManualTask
+
+	IsCRRCheckSuccessful_GW?: Gateway
+		switch:
+			else: SetStatus_Rejected_General
+			conn: Status_Completed
+
+	ContactAddressVerification: SubProcessTask
+		next: DefineDocumentTypes
+
+	ManualReviewStatusChange: ScriptTask
+		next: RealtimeDecision
+
+	IsManualReview?: Gateway
+		switch:
+			else: RealtimeDecisionResultGateway
+			conn: SetStatus_OnHold
+
+	Termination: EndEvent
+
+	Calculate: SubProcessTask
+		next: InitDefaultRuleStatuses_AfterOrderCreate_Order
+
+	SetDocumentsResultsOfVerifications: SubProcessTask
+		next: ShowAppDetails
+
+	Cleaner: EndEvent
+
+	PrepareDocumentUpload: SubProcessTask
+		next: ShowUploadDocumentsList
+
+	IsOnConsentValid?: Gateway
+		switch:
+			conn: ShowConsentDocuments
+			else: UpdateGlobalVarsFromDB_OnConsent
+
+	IsOnAppDetailsValid?: Gateway
+		switch:
+			conn: ShowAppDetails
+			else: UpdateGlobalVarsFromDB_OnAppDetails
+
+	IsOnDocumentsValid?: Gateway
+		switch:
+			conn: PrepareDocumentUpload
+			else: UpdateGlobalVarsFromDB_OnDocuments
+
+	IsOnContractSignValid?: Gateway
+		switch:
+			conn: ShowContractDetails
+			else: Start_LegalContractDocumentGeneration
+
+	ProcessDocuments: SubProcessTask
+		next: IsOnDocumentsValid?
+
+	ProcessConsentDocuments: SubProcessTask
+		next: submitApplication_Reminder
+
+	GetCustomerData: SubProcessTask
+		next: GetBankDetails
+
+	ConsentCancelGateway: Gateway
+		switch:
+			conn: OnConsent
+			conn: OnCancel
+			conn: submitApplicationTimerFinished
+
+	AppDetailsCancelGateway: Gateway
+		switch:
+			conn: OnAppDetails
+			conn: OnCancel
+			conn: submitApplicationTimerFinished
+
+	CheckVerificationValidity: ScriptTask
+		next: ShowEmailVerificationDetails
+
+	SetStatus_Draft: SubProcessStartTask
+		next: CheckCompany
+
+	OnCancel_SetStatus_Incomplete: SubProcessStartTask
+		next: Status_Cancel
+
+	SetStatus_InReview: SubProcessStartTask
+		next: DW_BatchOrderUpsert_OnReview
+
+	SetStatus_OnHold: SubProcessStartTask
+		next: ManualReviewStatusChange
+
+	DownsellGateway: Gateway
+		switch:
+			conn: OnDownsell
+			conn: acceptDownsellTimerFinished
+
+	OnWithdraw_SetStatus_Incomplete: SubProcessStartTask
+		next: CCRIS_PushUpdateStatus_W
+
+	EmailVerifiedGateway: Gateway
+		switch:
+			conn: OnEmailVerified
+			conn: OnWithdraw
+			conn: verifyWorkEmailTimerFinished
+
+	workEmailVerification_SetStatus_Incomplete: SubProcessStartTask
+		next: CCRIS_PushUpdateStatus_W_Incomplete
+
+	workEmailVerification_Incomplete: EndEvent
+
+	UpdateOrderStatus: SubProcessStartTask
+		next: IsFinishApplicationTimerStart?
+
+	SetStatus_InError: SubProcessStartTask
+		next: SetTagAppStatus_InError
+
+	AsyncTermination: ScriptTask
+		next: Termination
+
+	ContractSignGateway: Gateway
+		switch:
+			conn: OnContractSign
+			conn: OnWithdraw
+			conn: signApplicationTimerFinished
+
+	RefreshEmailVerificationAttempts: ScriptTask
+		next: TwillioEmailVerificationCancel
+
+	Status_Reject: ResponseTask
+		next: SetTagAppStatus_Rejected
+
+	ProcessOnCalculateEvent: ScriptTask
+		next: PreCalculate
+
+	ProcessOnFinancingDetailsEvent: ScriptTask
+		next: Calculate
+
+	ProcessOnAppDetailsEvent: ScriptTask
+		next: IsOnAppDetailsValid?
+
+	ProcessOnReviewEvent: ScriptTask
+		next: SetStatus_InReview
+
+	withEmailVerifyGateway: Gateway
+		switch:
+			conn: withoutEmailVerifyGateway
+			conn: OnEmailVerify
+
+	UpdateFinancingTerms: ScriptTask
+		next: DW_BatchOrderUpsert_DownsellFinancingTerms
+
+	GetDepositAccountError: BoundaryErrorEvent
+		next: IsErrorGetDepositAccount_GW?
+
+	GetDepositAccount: ComponentTask
+		switch:
+			next: GetDepositAccountError
+			next: IsErrorGetDepositAccount_GW?
+
+	IsRealtimeDecisionSucceeded?: Gateway
+		switch:
+			else: Status_Reject
+			conn: UpdateAppStatusInCRRService_Rejected
+
+	UpdateAppStatusInCRRService_Rejected: SubProcessStartTask
+		next: Status_Reject
+
+	UpdateAppStatusInCRRService_Withdrawn: SubProcessStartTask
+		next: Status_Withdrawn
+
+	CCRIS_PushUpdateStatus_W: SubProcessStartTask
+		next: UpdateAppStatusInCRRService_Withdrawn
+
+	ARBM_CCRIS_App: SubProcessStartTask
+		next: ProcessOnReviewEvent
+
+	CCRIS_PushUpdateStatus: SubProcessStartTask
+		next: ChoosePostContractSigningNotification_GW?
+
+	CCRIS_PushUpdateStatus_W_Incomplete: SubProcessStartTask
+		next: workEmailVerification_Incomplete
+
+	isUpdateApplicationStatusSent?: Gateway
+		switch:
+			else: UpdateRealtimeDecisionStatus
+			conn: OnDecision
+
+	SaveOrderValidFrom: ScriptTask
+		next: ARBM_CCRIS_App
+
+	updateApplicationStatus_Push: SubProcessStartTask
+		next: isInitialRealtimeDecisionProceedOrReject
+
+	rejection_Push: SubProcessStartTask
+		next: OnEmailManualVerify
+
+	finalAcceptance_Push: SubProcessStartTask
+		next: OnEmailManualVerify
+
+	submitApplication_Reminder: SubProcessStartTask
+		next: IsSubmitApplicationTimerStart?
+
+	acceptDownsell_Reminder: SubProcessStartTask
+		next: Decision_Downsell
+
+	approveApplication_Reminder: SubProcessStartTask
+		next: Start_LegalContractClausesDocumentGeneration
+
+	signApplication_Reminder: SubProcessStartTask
+		next: ProcessContractClausesDocument
+
+	verifyWorkEmail_Reminder: SubProcessStartTask
+		next: TwillioEmailVerification
+
+	IsPostContractSigningReportingCompleted_GW?: Gateway
+		switch:
+			else: CCRIS_PushUpdateStatus
+			conn: IsFinishApplicationTimerStart?
+
+	ChoosePostContractSigningNotification_GW?: Gateway
+		switch:
+			conn: disbursementSuccessful_Push
+			else: rejection_Push_OnPostContractSigning
+
+	disbursementSuccessful_Push: SubProcessStartTask
+		next: UpdateOrderStatus
+
+	rejection_Push_OnPostContractSigning: SubProcessStartTask
+		next: UpdateOrderStatus
+
+	DecideCustomerType: SubDecisionTask
+		next: IsCustomerSelfEmployed?
+
+	IsCustomerSelfEmployed?: Gateway
+		switch:
+			conn: CheckBusinessRegistrationNumber
+			else: ContactAddressVerification
+
+	CheckBusinessRegistrationNumber: SubProcessTask
+		next: IsBRNCheckSuccessful?
+
+	IsBRNCheckSuccessful?: Gateway
+		switch:
+			conn: ContactAddressVerification
+			else: SetStatus_Rejected_General
+
+	GetOrderSenderId: SubProcessTask
+		next: GetCustomerData
+
+	DW_SetOrder: SubProcessTask
+		next: BalanceTransferGateway
+
+	UpdateRealtimeDecisionStatus: Gateway
+		switch:
+			conn: SetStatus_Approved
+			conn: SetStatus_Rejected
+			else: DW_BatchOrderUpsert_MainFinancingTerms
+
+	SetStatus_Rejected: SubProcessStartTask
+		next: DecideCCRISRejReasonCode
+
+	CCRIS_PushUpdateStatus_R: SubProcessStartTask
+		next: DW_BatchOrderUpsert_MainFinancingTerms
+
+	SetStatus_Approved: SubProcessStartTask
+		next: DW_BatchOrderUpsert_MainFinancingTerms
+
+	DecideCCRISRejReasonCode: SubDecisionTask
+		next: CCRIS_PushUpdateStatus_R
+
+	Start_LegalContractClausesDocumentGeneration: SubProcessStartTask
+		next: IsEmailVerificationCompleted_GW_2?
+
+	ProcessContractClausesDocument: SubProcessTask
+		next: ShowContractDetails
+
+	Start_LegalContractDocumentGeneration: SubProcessStartTask
+		next: ProcessContractDocument
+
+	ProcessContractDocument: SubProcessStartTask
+		next: PostContractSigningProcess
+
+	DW_BatchOrderUpsert_OnAppDetails: SubProcessStartTask
+		next: SetStatus_Draft
+
+	DW_BatchOrderUpsert_OnReview: SubProcessStartTask
+		next: RealtimeDecision
+
+	CCRIS_PushUpdateStatus_R_EmailVerification: SubProcessStartTask
+		next: SetStatus_Rejected_General
+
+	DW_BatchOrderUpsert_OnFinancingDetails: SubProcessStartTask
+		next: ShouldSaveRuleBalanceTransferCheck_GW?
+
+	DW_BatchOrderUpsert_MainFinancingTerms: SubProcessStartTask
+		next: updateApplicationStatus_Push
+
+	DW_BatchOrderUpsert_DownsellFinancingTerms: SubProcessStartTask
+		next: DW_BatchOrderUpsert_MainFinancingTerms_UpdateValidTill
+
+	DW_BatchOrderUpsert_MainFinancingTerms_UpdateValidTill: SubProcessStartTask
+		next: approveApplication_Reminder
+
+	DW_BatchOrderUpsert_DownsellFinancingTerms_UpdateValidTill: SubProcessStartTask
+		next: SetStatus_OnHold
+
+	DW_BatchOrderUpsert_SaveTwillioDocuments: SubProcessStartTask
+		next: ShowEmailVerificationDetails
+
+	DecideCCRISRejReasonCode_AfterEmailManualVerif: SubDecisionTask
+		next: CCRIS_PushUpdateStatus_R_EmailVerification
+
+	StopMainProcess: SpareMessageEvent
+		next: Completed
+
+	IsErrorGetDepositAccount_GW?: Gateway
+		switch:
+			else: ValidationHTTPError
+			conn: IsEmailVerificationCompleted_GW_4?
+
+	EmailManualVerificationStatusSend: ScriptTask
+		next: ChoosePushNotification
+
+	ResetEmailManualVerifyAttemptsAndSendings: ScriptTask
+		next: ShouldSimulateWorkEmailVerificationSkip_GW?
+
+	EmailManualVerificationStatusPushSent?: Gateway
+		switch:
+			conn: OnEmailManualVerify
+			else: EmailManualVerificationStatusSend
+
+	ChoosePushNotification: Gateway
+		switch:
+			conn: rejection_Push
+			else: finalAcceptance_Push
+
+	IsEmailVerificationCompleted_GW_2?: Gateway
+		switch:
+			else: Decision_Approved
+			conn: signApplication_Reminder
+
+	IsManualVerification_GW?: Gateway
+		switch:
+			conn: RealtimeDecision
+			else: signApplication_Reminder
+
+	SetEmailVerificationCompletionIndicator: ScriptTask
+		next: IsManualVerification_GW?
+
+	isInitialRealtimeDecisionProceedOrReject: Gateway
+		switch:
+			conn: OnDecision
+			else: IsManualReview?
+
+	ApproveGatewayEmailVerificationCompleted: Gateway
+		switch:
+			conn: RealtimeDecisionSucceeded
+			conn: ApproveGateway
+
+	IsEmailVerificationCompleted_GW_3?: Gateway
+		switch:
+			else: ApproveGateway
+			conn: ApproveGatewayEmailVerificationCompleted
+
+	IsEmailVerificationCompleted_GW_1?: Gateway
+		switch:
+			else: ShowRealtimeDecisionStatus
+			conn: Decision_Approved
+
+	IsEmailVerificationCompleted_GW_4?: Gateway
+		switch:
+			else: CheckEmailVerification
+			conn: ShowEmailVerificationSuccess
+
+	IsEmailVerificationCompleted_GW_5?: Gateway
+		switch:
+			else: EmailVerifiedGateway
+			conn: EmailVerifiedCompletedGateway
+
+	EmailVerifiedCompletedGateway: Gateway
+		switch:
+			conn: EmailVerifiedGateway
+			conn: RealtimeDecisionSucceeded
+
+	IsEmailVerificationCompleted_GW_6?: Gateway
+		switch:
+			conn: Decision_Approved
+			else: SetEmailVerificationCompletionIndicator
+
+	InitDefaultRuleStatuses_AfterOrderCreate_Order: SubProcessStartTask
+		next: DW_BatchOrderUpsert_OnFinancingDetails
+
+	InitDefaultRuleStatuses_AfterOnAppDetails: SubProcessStartTask
+		next: DW_BatchOrderUpsert_OnAppDetails
+
+	OnResume_VerifyToken: SubProcessTask
+		next: GetConfigurationUri_Resume
+
+	OnAppDetails_VerifyToken: SubProcessTask
+		next: ProcessOnAppDetailsEvent
+
+	OnDocuments_VerifyToken: SubProcessTask
+		next: ProcessDocuments
+
+	NewUpload_VerifyToken: SubProcessTask
+		next: PrepareDocumentUpload
+
+	OnReview_VerifyToken: SubProcessTask
+		next: UpdateGlobalVarsFromDB_OnReview
+
+	OnDecision_VerifyToken: SubProcessTask
+		next: RealtimeDecisionStatusGateway
+
+	OnDownsell_VerifyToken: SubProcessTask
+		next: DownsellChoiceGateway
+
+	OnDecisionReject_VerifyToken: SubProcessTask
+		next: SetStatus_Rejected_General
+
+	OnApprove_VerifyToken: SubProcessTask
+		next: GetDepositAccount
+
+	OnWithdraw_VerifyToken: SubProcessTask
+		next: OnWithdraw_SetStatus_Incomplete
+
+	OnEmailRetry_VerifyToken: SubProcessTask
+		next: TooManyEmailRetries?
+
+	OnEmailVerify_VerifyToken: SubProcessTask
+		next: TwillioEmailVerificationCheck
+
+	OnEmailManualVerify_VerifyToken: SubProcessTask
+		next: EmailManualVerificationStatusGateway
+
+	OnEmailVerified_VerifyToken: SubProcessTask
+		next: IsEmailVerificationCompleted_GW_6?
+
+	OnContractSign_VerifyToken: SubProcessTask
+		next: IsOnContractSignValid?
+
+	OnCompletion_VerifyToken: SubProcessTask
+		next: PostContractSigningStatus_GW?
+
+	OnCancel_VerifyToken: SubProcessTask
+		next: OnCancel_SetStatus_Incomplete
+
+	SetTagAppStatus_Completed: ScriptTask
+		next: Completed
+
+	SetTagAppStatus_Rejected: ScriptTask
+		next: Rejection
+
+	SetTagAppStatus_InError: ScriptTask
+		next: AsyncTermination
+
+	SetTagAppStatus_Withdrawn: ScriptTask
+		next: Withdrawal
+
+	SetTagAppStatus_Canceled: ScriptTask
+		next: Cancelation
+
+	ShowDebtConsolidationOptions: ResponseTask
+		next: DebtConsolidationOptionsGateway
+
+	DebtConsolidationOptionsGateway: Gateway
+		switch:
+			conn: OnDebtConsolidationNotRequired
+			conn: OnDebtConsolidationRequired
+
+	OnDebtConsolidationNotRequired: MessageEvent
+		next: ShowFinancingDetails
+
+	OnDebtConsolidationRequired: MessageEvent
+		next: ProcessConsentDocumentsBT
+
+	BalanceTransferGateway: Gateway
+		switch:
+			else: ShowFinancingDetails
+			conn: ShowDebtConsolidationOptions
+
+	ShowOnFinancingDetailsBT: ResponseTask
+		next: IsStartApplicationTimerBTStart?
+
+	OnFinancingDetailsBTGateway: Gateway
+		switch:
+			conn: OnFinancingDetailsBT
+			conn: OnCalculateBT
+			conn: BackDebtConsolidationSelection
+			conn: startApplicationTimerBTFinished
+
+	OnCalculateBT: MessageEvent
+		next: ValidationOnFinancingDetailsBT
+
+	OnFinancingDetailsBT: MessageEvent
+		next: ValidationOnFinancingDetailsBT
+
+	ProcessOnCalculateBTEvent: ScriptTask
+		next: PreCalculateBT
+
+	PreCalculateBT: SubProcessTask
+		next: ShowOnFinancingDetailsBT
+
+	ProcessConsentDocumentsBT: SubProcessTask
+		next: ShowOnFinancingDetailsBT
+
+	GetLastProcessActions: ScriptTask
+
+	CheckValidationOnCalculateBT: Gateway
+		switch:
+			else: ShowOnFinancingDetailsBT
+			conn: ProcessOnCalculateBTEvent
+
+	ARBM_BalanceTransfer_StoreDetails: SubProcessStartTask
+		next: ProcessOnFinancingDetailsEvent
+
+	BatchOrderUpsert_OnFinancingDetailsBT: SubProcessStartTask
+		next: ARBM_BalanceTransfer_StoreDetails
+
+	ShouldSaveRuleBalanceTransferCheck_GW?: Gateway
+		switch:
+			conn: SaveRuleResultToDb_BalanceTransferCheck
+			else: CheckEligibility
+
+	ShouldSaveRuleAdditionalDocumentUploaded_GW?: Gateway
+		switch:
+			conn: SaveRuleResultToDb_AdditionalDocumentUploaded
+			else: ShowUnreviewedAppDetails
+
+	GetBankDetails: SubProcessTask
+		next: DW_SetOrder
+
+	ValidationOnFinancingDetailsBT: ScriptTask
+		next: CheckValidationOnFinancialDetailsBT
+
+	CheckValidationOnFinancialDetailsBT: Gateway
+		switch:
+			conn: BatchOrderUpsert_OnFinancingDetailsBT
+			else: CheckValidationOnCalculateBT
+
+	SaveRuleResultToDb_AdditionalDocumentUploaded: SubProcessTask
+		next: ShowUnreviewedAppDetails
+
+	SaveRuleResultToDb_BalanceTransferCheck: SubProcessTask
+		next: CheckEligibility
+
+	BackDebtConsolidationSelection: MessageEvent
+		next: ShowDebtConsolidationOptions
+
+	GetConfigurationUri_Resume: ComponentTask
+		next: SetGetConfigurationUri_ResumeOutput
+
+	SetGetConfigurationUri_ResumeOutput: ScriptTask
+		next: GetLastEvent
+
+	GetConfigurationUri_Start: ComponentTask
+		next: SetGetConfigurationUri_StartOutput
+
+	SetGetConfigurationUri_StartOutput: ScriptTask
+		next: GetRetailProduct
+
+	TwillioEmailVerificationError: BoundaryErrorEvent
+		next: IsErrorTwillioEmailVerification_GW?
+
+	TwillioEmailVerification: ComponentTask
+		switch:
+			next: TwillioEmailVerificationError
+			next: IsErrorTwillioEmailVerification_GW?
+
+	TwillioEmailVerificationCheckError: BoundaryErrorEvent
+		next: IsErrorTwillioEmailVerificationCheck_GW?
+
+	TwillioEmailVerificationCheck: ComponentTask
+		switch:
+			next: TwillioEmailVerificationCheckError
+			next: IsErrorTwillioEmailVerificationCheck_GW?
+
+	IsErrorTwillioEmailVerificationCheck_GW?: Gateway
+		switch:
+			else: IsEmailCodeValid?
+			conn: ProcessWrongCode
+
+	DecrementNumberOfAvailableEmailSendings: ScriptTask
+		next: DW_BatchOrderUpsert_SaveTwillioDocuments
+
+	TwillioEmailVerificationCancelError: BoundaryErrorEvent
+		next: TwillioEmailVerification
+
+	TwillioEmailVerificationCancel: ComponentTask
+		switch:
+			next: TwillioEmailVerificationCancelError
+			next: TwillioEmailVerification
+
+	GetRetailProduct: ScriptTask
+		next: GetOrderSenderId
+
+	ValidationHTTPError: ScriptTask
+		next: Decision_Approved
+
+	IsErrorTwillioEmailVerification_GW?: Gateway
+		switch:
+			else: DecrementNumberOfAvailableEmailSendings
+			conn: ValidationHTTPError
+
+	FinishApplicationTimer_GW?: Gateway
+		switch:
+			conn: OnCompletion
+			conn: finishApplicationTimerFinished
+
+	UpdateGlobalVarsFromDB_OnConsent: SubProcessTask
+		next: SetDocumentsResultsOfVerifications
+
+	UpdateGlobalVarsFromDB_OnReview: SubProcessTask
+		next: SaveOrderValidFrom
+
+	UpdateGlobalVarsFromDB_OnAppDetails: SubProcessTask
+		next: InitDefaultRuleStatuses_AfterOnAppDetails
+
+	UpdateGlobalVarsFromDB_OnDocuments: SubProcessTask
+		next: ShouldSaveRuleAdditionalDocumentUploaded_GW?
+
+	finishApplicationTimerStart: SubProcessStartTask
+		next: FinishApplicationTimer_GW?
+
+	IsFinishApplicationTimerStart?: Gateway
+		switch:
+			conn: FinishApplicationTimer_GW?
+			else: finishApplicationTimerStart
+
+	finishApplicationTimerFinished: SubProcessSucceededEvent
+		next: SetTagAppStatus_Completed
+
+	IsStartApplicationTimerStart?: Gateway
+		switch:
+			else: startApplicationTimerStart
+			conn: FinancingDetailsGateway
+
+	startApplicationTimerFinished: SubProcessSucceededEvent
+		next: Cleaner
+
+	startApplicationTimerStart: SubProcessStartTask
+		next: FinancingDetailsGateway
+
+	IsStartApplicationTimerBTStart?: Gateway
+		switch:
+			else: startApplicationTimerBTStart
+			conn: OnFinancingDetailsBTGateway
+
+	startApplicationTimerBTStart: SubProcessStartTask
+		next: OnFinancingDetailsBTGateway
+
+	startApplicationTimerBTFinished: SubProcessSucceededEvent
+		next: Cleaner
+
+	submitApplicationTimerStart: SubProcessStartTask
+		next: ShowConsentDocuments
+
+	submitApplicationTimerFinished: SubProcessSucceededEvent
+		next: OnCancel_SetStatus_Incomplete
+
+	IsSubmitApplicationTimerStart?: Gateway
+		switch:
+			conn: ShowConsentDocuments
+			else: submitApplicationTimerStart
+
+	IsAcceptDownsellTimerStart?: Gateway
+		switch:
+			conn: DownsellGateway
+			else: acceptDownsellTimerStart
+
+	acceptDownsellTimerStart: SubProcessStartTask
+		next: DownsellGateway
+
+	acceptDownsellTimerFinished: SubProcessSucceededEvent
+		next: DW_BatchOrderUpsert_DownsellFinancingTerms_UpdateValidTill
+
+	approveApplicationTimerStart: SubProcessStartTask
+		next: IsEmailVerificationCompleted_GW_3?
+
+	IsApproveApplicationTimerStart?: Gateway
+		switch:
+			else: approveApplicationTimerStart
+			conn: IsEmailVerificationCompleted_GW_3?
+
+	approveApplicationTimerFinished: SubProcessSucceededEvent
+		next: OnWithdraw_SetStatus_Incomplete
+
+	signApplicationTimerStart: SubProcessStartTask
+		next: ContractSignGateway
+
+	IsSignApplicationTimerStart?: Gateway
+		switch:
+			else: signApplicationTimerStart
+			conn: ContractSignGateway
+
+	signApplicationTimerFinished: SubProcessSucceededEvent
+		next: workEmailVerification_SetStatus_Incomplete
+
+	verifyWorkEmailTimerStart: SubProcessStartTask
+		next: IsEmailVerificationCompleted_GW_5?
+
+	IsVerifyWorkEmailTimerStart?: Gateway
+		switch:
+			else: verifyWorkEmailTimerStart
+			conn: IsEmailVerificationCompleted_GW_5?
+
+	verifyWorkEmailTimerFinished: SubProcessSucceededEvent
+		next: workEmailVerification_SetStatus_Incomplete
+
+	IsVerifyWithoutWorkEmailTimerStart?: Gateway
+		switch:
+			else: verifyWithoutWorkEmailTimerStart
+			conn: IsEnoughEmailVerificationAttempts?
+
+	verifyWithoutWorkEmailTimerStart: SubProcessStartTask
+		next: IsEnoughEmailVerificationAttempts?
+
+	verifyWithoutWorkEmailTimerFinished: SubProcessSucceededEvent
+		next: workEmailVerification_SetStatus_Incomplete
+
+	CreditPolicyRulesGateway: Gateway
+		switch:
+			conn: CreditPolicyRulesDecision
+			else: EligibilityGateway
+
+	CreditPolicyRulesDecision: SubProcessTask
+		next: EligibilityGateway
+

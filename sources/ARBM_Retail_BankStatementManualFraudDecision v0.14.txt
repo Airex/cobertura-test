@@ -1,0 +1,4 @@
+Worflow: ARBM_Retail_BankStatementManualFraudDecision
+
+	e0b7ac32-94cb-44d9-8aed-eeff1a6271f1: FlowVerification
+

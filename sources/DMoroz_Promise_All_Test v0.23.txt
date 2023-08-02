@@ -1,0 +1,56 @@
+Worflow: DMoroz_Promise_All_Test
+
+	StartEvent: MessageStartEvent
+		next: SubWF_1
+
+	End: EndEvent
+
+	SubWF_1: SubProcessStartTask
+		next: SubWF_2
+
+	SubWF_2: SubProcessStartTask
+		next: SubWF_3
+
+	SubWF_3: SubProcessStartTask
+		next: SubWF_4
+
+	SubWF_4: SubProcessStartTask
+		next: SubWF_5
+
+	SubWF_5: SubProcessStartTask
+		next: GW_AreAllSubProcessesCompleted?
+
+	GW_AreAllSubProcessesCompleted?: Gateway
+		switch:
+			conn: SubWF_1_Succeeded
+			conn: SubWF_2_Succeeded
+			conn: SubWF_4_Succeeded
+			conn: SubWF_5_Succeeded
+			conn: SubWF_3_Succeeded
+
+	SubWF_1_Succeeded: SubProcessSucceededEvent
+		next: count
+
+	SubWF_2_Succeeded: SubProcessSucceededEvent
+		next: count
+
+	SubWF_3_Succeeded: SubProcessSucceededEvent
+		next: count
+
+	SubWF_4_Succeeded: SubProcessSucceededEvent
+		next: count
+
+	SubWF_5_Succeeded: SubProcessSucceededEvent
+		next: count
+
+	KillProcess: SpareMessageEvent
+		next: End
+
+	count: ScriptTask
+		next: DoWeProceed?
+
+	DoWeProceed?: Gateway
+		switch:
+			else: End
+			conn: GW_AreAllSubProcessesCompleted?
+

@@ -1,0 +1,105 @@
+Worflow: ARBM_ChangeApplicationProperties
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	Prepare_Output: ScriptTask
+		next: Cleanup
+
+	Init: ScriptTask
+		next: DW_OrderDetails
+
+	CheckActionStartedOrSubmitted: Gateway
+		switch:
+			else: PrepareInitialResponsePayload
+			conn: NormalizeFormData
+
+	Cleanup: ScriptTask
+		next: End
+
+	Set_Tags: ScriptTask
+		next: Init
+
+	ShouldSaveCommentToOrder?: Gateway
+		switch:
+			conn: Save_OrderComment
+			else: SetSuccess
+
+	Save_OrderCommentError: BoundaryErrorEvent
+		next: Set_Error
+
+	Save_OrderComment: SubProcessTask
+		switch:
+			next: Save_OrderCommentError
+			next: SetSuccess
+
+	Set_Error: ScriptTask
+		next: Prepare_Output
+
+	DW_GetBankAccountDetailsError: BoundaryErrorEvent
+		next: Set_Error
+
+	DW_GetBankAccountDetails: ComponentTask
+		switch:
+			next: DW_GetBankAccountDetailsError
+			next: Validate_AccountNumbers
+
+	Validate_AccountNumbers: ScriptTask
+		next: CheckAccountNumbersValid
+
+	CheckAccountNumbersValid: Gateway
+		switch:
+			else: SetValidationError
+			conn: CheckTakafulChanged
+
+	ValidateAction: ScriptTask
+		next: CheckActionValid
+
+	CheckActionValid: Gateway
+		switch:
+			else: SetValidationError
+			conn: CheckActionStartedOrSubmitted
+
+	PrepareInitialResponsePayload: ScriptTask
+		next: Prepare_Output
+
+	SetValidationError: ScriptTask
+		next: Prepare_Output
+
+	DW_OrderDetails: ComponentTask
+		next: ValidateAction
+
+	DW_UpdateDataError: BoundaryErrorEvent
+		next: Set_Error
+
+	DW_UpdateData: SubProcessTask
+		switch:
+			next: DW_UpdateDataError
+			next: ShouldSaveCommentToOrder?
+
+	CheckHasChanges: Gateway
+		switch:
+			conn: CheckVerifyBankAccounts
+			else: ShouldSaveCommentToOrder?
+
+	NormalizeFormData: ScriptTask
+		next: CheckHasChanges
+
+	CheckVerifyBankAccounts: Gateway
+		switch:
+			conn: DW_GetBankAccountDetails
+			else: CheckTakafulChanged
+
+	SetSuccess: ScriptTask
+		next: Prepare_Output
+
+	TakafulFeeCalculation: SubProcessTask
+		next: DW_UpdateData
+
+	CheckTakafulChanged: Gateway
+		switch:
+			conn: TakafulFeeCalculation
+			else: DW_UpdateData
+

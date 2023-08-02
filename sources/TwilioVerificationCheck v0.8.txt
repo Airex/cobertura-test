@@ -1,0 +1,18 @@
+Worflow: TwilioVerificationCheck
+
+	StartEvent: MessageStartEvent
+		next: VerificationCheck
+
+	End: EndEvent
+
+	VerificationCheckError: BoundaryErrorEvent
+		next: SetVerificationCheckOutput
+
+	VerificationCheck: ComponentTask
+		switch:
+			next: VerificationCheckError
+			next: SetVerificationCheckOutput
+
+	SetVerificationCheckOutput: ScriptTask
+		next: End
+

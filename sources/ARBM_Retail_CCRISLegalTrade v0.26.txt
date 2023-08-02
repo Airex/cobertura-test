@@ -1,0 +1,50 @@
+Worflow: ARBM_Retail_CCRISLegalTrade
+
+	StartEvent: MessageStartEvent
+		next: GetTransformedExperianReport
+
+	End: EndEvent
+
+	GetCCRISLegalTradeError: BoundaryErrorEvent
+		next: SetOutput
+
+	GetCCRISLegalTrade: ComponentTask
+		switch:
+			next: GetCCRISLegalTradeError
+			next: SetOutput
+
+	IsDataMocked?: Gateway
+		switch:
+			conn: ReturnMockData
+			else: UseInternalCalculator?
+
+	SetOutput: ScriptTask
+		next: End
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	GetTransformedExperianReport: ScriptTask
+		next: IsDataMocked?
+
+	UseInternalCalculator?: Gateway
+		switch:
+			else: GetCCRISLegalTrade
+			conn: CcrisLegalAndTradeChecksCalculator
+
+	CcrisLegalAndTradeChecksCalculatorError: BoundaryErrorEvent
+		next: CcrisLegalAndTradeChecksCalculatorResult
+
+	CcrisLegalAndTradeChecksCalculator: ComponentTask
+		switch:
+			next: CcrisLegalAndTradeChecksCalculatorError
+			next: CcrisLegalAndTradeChecksCalculatorResult
+
+	CcrisLegalAndTradeChecksCalculatorResultError: BoundaryErrorEvent
+		next: SetOutput
+
+	CcrisLegalAndTradeChecksCalculatorResult: ScriptTask
+		switch:
+			next: CcrisLegalAndTradeChecksCalculatorResultError
+			next: SetOutput
+

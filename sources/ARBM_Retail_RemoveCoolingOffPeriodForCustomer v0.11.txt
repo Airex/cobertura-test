@@ -1,0 +1,22 @@
+Worflow: ARBM_Retail_RemoveCoolingOffPeriodForCustomer
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetOrderIds: ScriptTask
+		next: GetPreparedOperations
+
+	DW_FindRejectedAndWithdrawnOrdersByCustomerId: ComponentTask
+		next: GetOrderIds
+
+	SetTags: ScriptTask
+		next: DW_FindRejectedAndWithdrawnOrdersByCustomerId
+
+	DW_BatchOrderUpsert_UpdateOrderStatusesToCancelled: SubProcessStartTask
+		next: End
+
+	GetPreparedOperations: ScriptTask
+		next: DW_BatchOrderUpsert_UpdateOrderStatusesToCancelled
+

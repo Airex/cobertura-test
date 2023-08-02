@@ -1,0 +1,13 @@
+Worflow: SK_SignalTest_Consumer
+
+	StartEvent: MessageStartEvent
+		next: DefaultResponse
+
+	End: EndEvent
+
+	DefaultResponse: ResponseTask
+		next: NewMessageEvent
+
+	NewMessageEvent: SignalEvent
+		next: End
+

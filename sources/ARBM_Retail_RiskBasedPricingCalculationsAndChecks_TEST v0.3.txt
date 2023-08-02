@@ -1,0 +1,19 @@
+Worflow: ARBM_Retail_RiskBasedPricingCalculationsAndChecks_TEST
+
+	StartEvent: MessageStartEvent
+		next: GetTransformedExperianReport
+
+	End: EndEvent
+
+	DSRCalculations: SubProcessTask
+		next: SaveOutput
+
+	PrepareInput: ScriptTask
+		next: DSRCalculations
+
+	GetTransformedExperianReport: ScriptTask
+		next: PrepareInput
+
+	SaveOutput: ScriptTask
+		next: End
+

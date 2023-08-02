@@ -1,0 +1,159 @@
+Worflow: ARBM_Retail_IncomeCalcAndChecksForSelfEmployed
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	CalculateBusinessBankStatementIncomeError: BoundaryErrorEvent
+		next: GetDataManualReviewIncomeCalculation_ManualTask
+
+	CalculateBusinessBankStatementIncome: SubProcessTask
+		switch:
+			next: CalculateBusinessBankStatementIncomeError
+			next: IfIncomeCalculationResponseEmpty
+
+	IsFraudDecisionReject?: Gateway
+		switch:
+			else: CalculateBusinessBankStatementIncomeOffline
+			conn: SetFrontEndApplicationStatusReject
+
+	BankStatementFraudTriggersRulesCheck: SubDecisionTask
+		next: SaveToDb_Rule_FraudTriggersRuleCheck
+
+	GetPerfiosBankStatementsError: BoundaryErrorEvent
+		next: UpdateFrontEndApplicationStatus
+
+	GetPerfiosBankStatements: SubProcessTask
+		switch:
+			next: GetPerfiosBankStatementsError
+			next: IsNoStatementsBankStAnalysed
+
+	GetShareholdingPercentageCheckResult: SubDecisionTask
+		next: SaveToDb_Rule_ShareholdingPercentageCheck
+
+	PreProcessBankStatementFraudTriggersData: SubProcessTask
+		next: BankStatementFraudTriggersRulesCheck
+
+	CalculateBusinessBankStatementIncomeOfflineError: BoundaryErrorEvent
+		next: GetDataManualReviewIncomeCalculation_ManualTask
+
+	CalculateBusinessBankStatementIncomeOffline: SubProcessTask
+		switch:
+			next: CalculateBusinessBankStatementIncomeOfflineError
+			next: IfSalaryCalculationOfflineResponseEmpty
+
+	UpdateFrontEndApplicationStatus: ResponseTask
+		next: GetDataManualReviewPerfiosBusinessBankSt_ManualTask
+
+	GetBankStatementParameters: SubDecisionTask
+		next: GetShareholdingPercentageCheckResult
+
+	SetFrontEndApplicationStatusReject: ResponseTask
+		next: GetRulesToBeAddedToBlacklist
+
+	DecideSelfEmployedIncomeCheckStatus: SubDecisionTask
+		next: SaveToDb_Rules_SelfEmployedIncomeCheck
+
+	IsIncomeCheckStatusReject?: Gateway
+		switch:
+			else: SendOutputData
+			conn: SetFrontEndApplicationStatusReject
+
+	SendOutputData: ScriptTask
+		next: End
+
+	IsShareholdingChecktReject?: Gateway
+		switch:
+			else: GetPerfiosBankStatements
+			conn: SetFrontEndApplicationStatusReject
+
+	ManualFraudDecision: SubDecisionTask
+		next: SaveToDb_Rule_ManualFraudTriggersRuleCheck
+
+	DecideSelfEmployedIncomeCheckStatusManualRoute: SubDecisionTask
+		next: SaveToDb_Rules_SelfEmployedIncomeCheckMR
+
+	IsIncomeCheckStatusManuaReject?: Gateway
+		switch:
+			else: SendOutputData
+			conn: SetFrontEndApplicationStatusReject
+
+	SaveToDb_Rule_ShareholdingPercentageCheck: ComponentTask
+		next: IsShareholdingChecktReject?
+
+	SaveToDb_Rules_SelfEmployedIncomeCheck: ComponentTask
+		next: IsIncomeCheckStatusReject?
+
+	SaveToDb_Rule_FraudTriggersRuleCheck: ComponentTask
+		next: IsBankStatementFraudDecisionReject?
+
+	SaveToDb_Rule_ManualFraudTriggersRuleCheck: ComponentTask
+		next: IsFraudDecisionReject?
+
+	SaveToDb_Rules_SelfEmployedIncomeCheckMR: ComponentTask
+		next: IsIncomeCheckStatusManuaReject?
+
+	SaveToDb_PerfiosReport: ComponentTask
+		next: PreProcessBankStatementFraudTriggersData
+
+	IsNoStatementsBankStAnalysed: Gateway
+		switch:
+			conn: SaveToDb_PerfiosReport
+			else: UpdateFrontEndApplicationStatus
+
+	GetRulesToBeAddedToBlacklist: ScriptTask
+		next: AreRulesPresentToBeAddedToDB?
+
+	AreRulesPresentToBeAddedToDB?: Gateway
+		switch:
+			else: SendOutputData
+			conn: GetPreparedClsCategoriesToBeSavedToDb
+
+	GetPreparedClsCategoriesToBeSavedToDb: ScriptTask
+		next: AddEmailNricBrnToBlacklist
+
+	AddEmailNricBrnToBlacklist: ComponentTask
+		next: GetPreparedClsToBeSavedToDb
+
+	GetPreparedClsToBeSavedToDb: ScriptTask
+		next: DW_SetClassifications
+
+	DW_SetClassifications: ComponentTask
+		next: SendOutputData
+
+	GetDataManualReviewPerfiosBusinessBankSt_ManualTask: SubProcessTask
+		next: IfManualTaskPerfiosRetry
+
+	GetDataManualReviewIncomeCalculation_ManualTask: SubProcessTask
+		next: IfManualTaskIncomeCalcRetry
+
+	IfSalaryCalculationOfflineResponseEmpty: Gateway
+		switch:
+			conn: DecideSelfEmployedIncomeCheckStatusManualRoute
+			else: GetDataManualReviewIncomeCalculation_ManualTask
+
+	IfManualTaskIncomeCalcRetry: Gateway
+		switch:
+			else: DecideSelfEmployedIncomeCheckStatusManualRoute
+			conn: CalculateBusinessBankStatementIncome
+			conn: CalculateBusinessBankStatementIncomeOffline
+
+	IfManualTaskPerfiosRetry: Gateway
+		switch:
+			else: ManualFraudDecision
+			conn: GetPerfiosBankStatements
+
+	IsBankStatementFraudDecisionReject?: Gateway
+		switch:
+			conn: SetFrontEndApplicationStatusReject
+			else: CalculateBusinessBankStatementIncome
+
+	IfIncomeCalculationResponseEmpty: Gateway
+		switch:
+			conn: DecideSelfEmployedIncomeCheckStatus
+			else: GetDataManualReviewIncomeCalculation_ManualTask
+
+	SetTags: ScriptTask
+		next: GetBankStatementParameters
+

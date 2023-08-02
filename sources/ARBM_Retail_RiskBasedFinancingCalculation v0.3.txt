@@ -1,0 +1,21 @@
+Worflow: ARBM_Retail_RiskBasedFinancingCalculation
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	GetRiskBasedFinancingCalculation: ComponentTask
+		next: SetOutput
+
+	IsDataMocked?: Gateway
+		switch:
+			else: GetRiskBasedFinancingCalculation
+			conn: ReturnMockData
+
+	SetOutput: ScriptTask
+		next: End
+
+	ReturnMockData: ScriptTask
+		next: End
+

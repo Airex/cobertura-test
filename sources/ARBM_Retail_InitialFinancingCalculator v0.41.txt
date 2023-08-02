@@ -1,0 +1,40 @@
+Worflow: ARBM_Retail_InitialFinancingCalculator
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetDataFromParameterTables: SubDecisionTask
+		next: GetInitialFinancingCalculation
+
+	SaveOutput: ScriptTask
+		next: End
+
+	GetInitialFinancingCalculation: SubProcessTask
+		next: CalculateTakafulFee?
+
+	SetTags: ScriptTask
+		next: GetDataFromParameterTables
+
+	CalculateTakafulFee?: Gateway
+		switch:
+			else: SaveOutput
+			conn: TakafulFeeCalculation
+
+	TakafulFeeCalculationError: BoundaryErrorEvent
+		next: ThrowTakafulFeeCalculationError
+
+	TakafulFeeCalculation: SubProcessTask
+		switch:
+			next: TakafulFeeCalculationError
+			next: IsTakafulFeeCalculationError?
+
+	IsTakafulFeeCalculationError?: Gateway
+		switch:
+			else: SaveOutput
+			conn: ThrowTakafulFeeCalculationError
+
+	ThrowTakafulFeeCalculationError: ScriptTask
+		next: SaveOutput
+

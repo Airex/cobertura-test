@@ -1,0 +1,43 @@
+Worflow: ARBM_SME_NotifyPrimaryApplicantFromDataKeeper
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	GetStatusAllGuarantorsApprovedFinancing: ScriptTask
+		next: AllGuarantorsApprovedFinancing_GW?
+
+	AllGuarantorsApprovedFinancing_GW?: Gateway
+		switch:
+			else: GetStatusAllGuarantorsSignedFinancialGuarantee
+			conn: NotifyPrimaryApplicantWF_RealtimeDecisionProceed
+
+	GetStatusAllGuarantorsSignedFinancialGuarantee: ScriptTask
+		next: AllGuarantorsSignedLetterOfGuarantee_GW?
+
+	NotifyPrimaryApplicantWF_RealtimeDecisionProceed: SignalTask
+		next: GetStatusAllGuarantorsSignedFinancialGuarantee
+
+	AllGuarantorsSignedLetterOfGuarantee_GW?: Gateway
+		switch:
+			conn: NotifyPrimaryApplicantWF_PostContractSigningProceed
+			else: GetStatusAnyOfGuarantorsRejectedOrCanceled
+
+	NotifyPrimaryApplicantWF_PostContractSigningProceed: SignalTask
+		next: GetStatusAnyOfGuarantorsRejectedOrCanceled
+
+	GetStatusAnyOfGuarantorsRejectedOrCanceled: ScriptTask
+		next: IsAnyOfGuarantorsRejectedOrCanceled?
+
+	IsAnyOfGuarantorsRejectedOrCanceled?: Gateway
+		switch:
+			else: End
+			conn: NotifyPrimaryApplicantWF_RealtimeDecisionReject
+
+	NotifyPrimaryApplicantWF_RealtimeDecisionReject: SignalTask
+		next: End
+
+	Init: ScriptTask
+		next: GetStatusAllGuarantorsApprovedFinancing
+

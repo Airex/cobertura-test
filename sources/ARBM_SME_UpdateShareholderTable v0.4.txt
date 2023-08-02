@@ -1,0 +1,26 @@
+Worflow: ARBM_SME_UpdateShareholderTable
+
+	StartEvent: MessageStartEvent
+		next: GetShareholders
+
+	End: EndEvent
+
+	DW_BatchOrderUpsert_UpdateShareholderTable: SubProcessStartTask
+		next: IsMoreShareholdersToUpdate_GW?
+
+	GetShareholders: ScriptTask
+		next: IsNoShareholders_GW?
+
+	GetShareholderToBePersistedToDb: ScriptTask
+		next: DW_BatchOrderUpsert_UpdateShareholderTable
+
+	IsMoreShareholdersToUpdate_GW?: Gateway
+		switch:
+			else: End
+			conn: GetShareholderToBePersistedToDb
+
+	IsNoShareholders_GW?: Gateway
+		switch:
+			else: GetShareholderToBePersistedToDb
+			conn: End
+

@@ -1,0 +1,25 @@
+Worflow: ARBM_SME_OverdraftChecksCalculation
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	PerformCalculations: ComponentTask
+		next: Decision
+
+	SetOutput: ScriptTask
+		next: End
+
+	GetPreparedPayload: ScriptTask
+		next: PerformCalculations
+
+	Decision: SubDecisionTask
+		next: SaveToDb_RuleCheck
+
+	SaveToDb_RuleCheck: ComponentTask
+		next: SetOutput
+
+	SetTags: ScriptTask
+		next: GetPreparedPayload
+

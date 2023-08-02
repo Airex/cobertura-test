@@ -1,0 +1,32 @@
+Worflow: ConditionExecuteManualAction
+
+	StartEvent: MessageStartEvent
+		next: GetConditionAction
+
+	End: EndEvent
+
+	ExecuteActionError: BoundaryErrorEvent
+		next: End
+
+	ExecuteAction: SubProcessTask
+		switch:
+			next: ExecuteActionError
+			next: End
+
+	SaveConditions: SubProcessTask
+		next: End
+
+	GetOrder: SubProcessTask
+		next: PrepareActionParameters
+
+	GetConditionAction: SubProcessTask
+		next: CheckActionActive
+
+	PrepareActionParameters: ScriptTask
+		next: ExecuteAction
+
+	CheckActionActive: Gateway
+		switch:
+			else: End
+			conn: GetOrder
+

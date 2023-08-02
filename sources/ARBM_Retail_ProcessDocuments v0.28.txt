@@ -1,0 +1,47 @@
+Worflow: ARBM_Retail_ProcessDocuments
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: CleanS3
+
+	IsDocument?: Gateway
+		switch:
+			else: End
+			conn: CheckFileExists
+
+	PrepareDocumentDownload: ScriptTask
+		next: GetDownloadUrl
+
+	OutputDocument: ScriptTask
+		next: IsDocument?
+
+	IsDocumentExist?: Gateway
+		switch:
+			conn: PrepareDocumentDownload
+			else: OutputValidation
+
+	OutputValidation: ScriptTask
+		next: IsDocument?
+
+	DW_SetOrderDocument: ComponentTask
+		next: OutputDocument
+
+	CleanS3: SubProcessStartTask
+		next: IsDocument?
+
+	SetTags: ScriptTask
+		next: Init
+
+	ProcessOrdinalNumber: ScriptTask
+		next: DW_SetOrderDocument
+
+	CheckFileExists: ComponentTask
+		next: IsDocumentExist?
+
+	GetDownloadUrl: ComponentTask
+		next: ProcessOrdinalNumber
+

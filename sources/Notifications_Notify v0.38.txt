@@ -1,0 +1,47 @@
+Worflow: Notifications_Notify
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	NotifyError: BoundaryErrorEvent
+		next: IsDocument_GW?
+
+	Notify: ComponentTask
+		switch:
+			next: NotifyError
+			next: IsErrorInDocument_GW?
+
+	Response: ScriptTask
+		next: End
+
+	ManuallyProcessZnsError_ManualTask: SubProcessTask
+		next: IsManualTaskRetry_GW?
+
+	IsErrorInDocument_GW?: Gateway
+		switch:
+			else: Response
+			conn: ManuallyProcessZnsError_ManualTask
+
+	IsManualTaskReject_GW?: Gateway
+		switch:
+			conn: SaveRejectReason
+			else: Response
+
+	SaveRejectReason: ScriptTask
+		next: End
+
+	IsDocument_GW?: Gateway
+		switch:
+			conn: ManuallyProcessZnsError_ManualTask
+			else: Response
+
+	SetTags: ScriptTask
+		next: Notify
+
+	IsManualTaskRetry_GW?: Gateway
+		switch:
+			else: IsManualTaskReject_GW?
+			conn: Notify
+

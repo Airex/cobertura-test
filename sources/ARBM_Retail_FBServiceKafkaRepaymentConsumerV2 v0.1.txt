@@ -1,0 +1,10 @@
+Worflow: ARBM_Retail_FBServiceKafkaRepaymentConsumerV2
+
+	StartEvent: MessageStartEvent
+		next: FBServiceKafkaRepaymentConsumer
+
+	End: EndEvent
+
+	FBServiceKafkaRepaymentConsumer: SignalTask
+		next: End
+

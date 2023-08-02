@@ -1,0 +1,21 @@
+Worflow: ARBM_SME_InitiateNewSigningProcess
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	Initialization: ComponentTask
+		next: SetOutput
+
+	IsDataMocked?: Gateway
+		switch:
+			else: Initialization
+			conn: ReturnMockData
+
+	SetOutput: ScriptTask
+		next: End
+
+	ReturnMockData: ScriptTask
+		next: End
+

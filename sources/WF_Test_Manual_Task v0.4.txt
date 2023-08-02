@@ -1,0 +1,10 @@
+Worflow: WF_Test_Manual_Task
+
+	StartEvent: MessageStartEvent
+		next: ManualUnderwriting_ManualTask
+
+	End: EndEvent
+
+	ManualUnderwriting_ManualTask: SubProcessTask
+		next: End
+

@@ -1,0 +1,10 @@
+Worflow: ARBM_SME_DecideJumioEKYCResponseCheckRules
+
+	e2cd5e0c-3610-4869-9cec-63eadcfd7715: FlowVerification
+		next: 
+
+	e4bca604-d69a-442a-b7a1-0cf8e6583920: FlowVerification
+		next: 
+
+	04877999-ab1a-46c2-baa2-04c8ac427926: FlowVerification
+

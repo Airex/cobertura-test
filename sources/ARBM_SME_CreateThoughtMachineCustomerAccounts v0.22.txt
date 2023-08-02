@@ -1,0 +1,53 @@
+Worflow: ARBM_SME_CreateThoughtMachineCustomerAccounts
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	CreateCustomerAccountInThoughtMachineError: BoundaryErrorEvent
+		next: ReTrigger_CreateCustomerAccountInThoughtMachine
+
+	CreateCustomerAccountInThoughtMachine: ComponentTask
+		switch:
+			next: CreateCustomerAccountInThoughtMachineError
+			next: IsHttpCallError_CreateCustomerAccountInTM_GW?
+
+	Init: ScriptTask
+		next: CreateCustomerAccountInThoughtMachine
+
+	ShouldCreateOneMoreAccount?: Gateway
+		switch:
+			conn: GetNextCustomerId
+			else: End
+
+	GetNextCustomerId: ScriptTask
+		next: CreateCustomerAccountInThoughtMachine
+
+	CreateMoneythorAccountError: BoundaryErrorEvent
+		next: ReTrigger_CreateMoneythorAccount
+
+	CreateMoneythorAccount: ComponentTask
+		switch:
+			next: CreateMoneythorAccountError
+			next: IsHttpCallError_CreateMoneythorAccount_GW?
+
+	ReTrigger_CreateCustomerAccountInThoughtMachine: MessageEvent
+		next: CreateCustomerAccountInThoughtMachine
+
+	ReTrigger_CreateMoneythorAccount: MessageEvent
+		next: CreateMoneythorAccount
+
+	IsHttpCallError_CreateCustomerAccountInTM_GW?: Gateway
+		switch:
+			else: CreateMoneythorAccount
+			conn: ReTrigger_CreateCustomerAccountInThoughtMachine
+
+	IsHttpCallError_CreateMoneythorAccount_GW?: Gateway
+		switch:
+			else: ShouldCreateOneMoreAccount?
+			conn: ReTrigger_CreateMoneythorAccount
+
+	SetTags: ScriptTask
+		next: Init
+

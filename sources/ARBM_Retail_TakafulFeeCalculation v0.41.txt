@@ -1,0 +1,43 @@
+Worflow: ARBM_Retail_TakafulFeeCalculation
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: CalculateFinancingParameters
+
+	CalculateFinancingParameters: ScriptTask
+		next: ValidateFinancingParameters
+
+	DecideUnisexContributionRateError: BoundaryErrorEvent
+		next: ValidateUnisexContributionRate
+
+	DecideUnisexContributionRate: SubDecisionTask
+		switch:
+			next: DecideUnisexContributionRateError
+			next: ValidateUnisexContributionRate
+
+	ValidateFinancingParameters: ScriptTask
+		next: IsFinancingParametersValidationPassed?
+
+	IsFinancingParametersValidationPassed?: Gateway
+		switch:
+			conn: DecideUnisexContributionRate
+			else: SaveOutput
+
+	ValidateUnisexContributionRate: ScriptTask
+		next: IsUnisexContributionRateValidationPassed?
+
+	IsUnisexContributionRateValidationPassed?: Gateway
+		switch:
+			else: SaveOutput
+			conn: CalculateTakafulFee
+
+	CalculateTakafulFee: ScriptTask
+		next: SaveOutput
+

@@ -1,0 +1,10 @@
+Worflow: ARBM_TEST_GetTimeStampByTimezone
+
+	StartEvent: MessageStartEvent
+		next: GetTimeStamp
+
+	End: EndEvent
+
+	GetTimeStamp: ScriptTask
+		next: End
+

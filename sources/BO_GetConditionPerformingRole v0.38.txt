@@ -1,0 +1,30 @@
+Worflow: BO_GetConditionPerformingRole
+
+	StartEvent: MessageStartEvent
+		next: ListGroups
+
+	End: EndEvent
+
+	GetOrganizationRoutes: ScriptTask
+		next: CheckHasOneGroup
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	CheckHasOneGroup: Gateway
+		switch:
+			conn: SelectDefaultAssignee
+			else: PrepareOutput
+
+	SelectDefaultAssignee: ComponentTask
+		next: PrepareOutput
+
+	ListGroups: ComponentTask
+		next: ListUsers
+
+	ListUsers: ComponentTask
+		next: GetOrgChartHierarchy
+
+	GetOrgChartHierarchy: ComponentTask
+		next: GetOrganizationRoutes
+

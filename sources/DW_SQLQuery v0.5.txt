@@ -1,0 +1,27 @@
+Worflow: DW_SQLQuery
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	Execute_BulkQuery: SubProcessTask
+		next: CheckSuccess
+
+	CheckSuccess: Gateway
+		switch:
+			conn: PrepareOutput
+			else: ThrowException
+
+	PrepareOutput: ScriptTask
+		next: Cleanup
+
+	ThrowException: ScriptTask
+		next: Cleanup
+
+	Cleanup: ScriptTask
+		next: End
+
+	Init: ScriptTask
+		next: Execute_BulkQuery
+

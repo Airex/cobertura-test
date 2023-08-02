@@ -1,0 +1,16 @@
+Worflow: DW_GetOrderPaymentPlan
+
+	StartEvent: MessageStartEvent
+		next: PrepareGetOrderQuery
+
+	End: EndEvent
+
+	PrepareGetOrderQuery: ScriptTask
+		next: ExecuteQuery
+
+	ExecuteQuery: ComponentTask
+		next: PrepareOutput
+
+	PrepareOutput: ScriptTask
+		next: End
+

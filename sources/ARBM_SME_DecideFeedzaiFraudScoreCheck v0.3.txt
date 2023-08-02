@@ -1,0 +1,7 @@
+Worflow: ARBM_SME_DecideFeedzaiFraudScoreCheck
+
+	0a5da3b2-64dc-48f1-bdb0-50f83ee0e08f: FlowVerification
+
+	f9d55a84-406e-453a-822f-8f9967ef379e: FlowVerification
+		next: 
+

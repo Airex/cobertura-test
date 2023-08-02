@@ -1,0 +1,62 @@
+Worflow: ARBM_Retail_PostContractSigningProcess
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetFinancingCRRAfterContractSigning: SubProcessTask
+		next: DecideCustomerRiskRatingCheck
+
+	CommodityTrading: SubProcessTask
+		next: ShouldSkipCreateFinancingAccount?
+
+	CreateFinancingAccountAndDisburseFunds: SubProcessTask
+		next: isCreateFinancingAccountReject?
+
+	PostDisbursement: ScriptTask
+		next: End
+
+	DecideCustomerRiskRatingCheck: SubDecisionTask
+		next: IsCRRCheckResultReject?
+
+	IsCRRCheckResultReject?: Gateway
+		switch:
+			else: SaveCRRCheckResultIfProceed
+			conn: DecideCCRISRejReasonCode
+
+	SaveCRRCheckResultIfReject: ScriptTask
+		next: End
+
+	SaveCRRCheckResultIfProceed: ScriptTask
+		next: ShouldSkipCommodityTrading?
+
+	ShouldSkipCommodityTrading?: Gateway
+		switch:
+			else: CommodityTrading
+			conn: ShouldSkipCreateFinancingAccount?
+
+	ShouldSkipCreateFinancingAccount?: Gateway
+		switch:
+			else: CreateFinancingAccountAndDisburseFunds
+			conn: ShouldSkipBalanceTransferDisbursement?
+
+	SetTags: ScriptTask
+		next: GetFinancingCRRAfterContractSigning
+
+	DecideCCRISRejReasonCode: SubDecisionTask
+		next: SaveCRRCheckResultIfReject
+
+	isCreateFinancingAccountReject?: Gateway
+		switch:
+			conn: DecideCCRISRejReasonCode
+			else: ShouldSkipBalanceTransferDisbursement?
+
+	ShouldSkipBalanceTransferDisbursement?: Gateway
+		switch:
+			conn: PostDisbursement
+			else: BalanceTransferDisbursement
+
+	BalanceTransferDisbursement: SubProcessTask
+		next: PostDisbursement
+

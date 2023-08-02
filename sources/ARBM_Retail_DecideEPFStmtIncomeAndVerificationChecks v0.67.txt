@@ -1,0 +1,28 @@
+Worflow: ARBM_Retail_DecideEPFStmtIncomeAndVerificationChecks
+
+	60539446-f5be-42e8-a273-7268386a1e66: FlowVerification
+		next: 
+
+	8b655e29-cf6c-4922-8c30-f5a16a55358f: FlowVerification
+		next: 
+
+	8345d75f-f585-4e33-a2d3-9055125d9afd: FlowVerification
+		next: 
+
+	0da5f3ec-1eb6-441c-95cf-8718942fe089: FlowVerification
+		next: 
+
+	457579cd-3a31-4a83-a481-6457a4d4689e: FlowVerification
+		next: 
+
+	1653a1a0-6776-4f5a-85ad-6c637bf379f8: FlowVerification
+		next: 
+
+	27e6a3b0-9f74-4004-b6bc-3a6a9169d1c8: FlowVerification
+		next: 
+
+	e3f9a299-ab9a-4b99-a04d-2a40bb5e5fe1: FlowVerification
+
+	130127ed-54a8-44c6-b766-99dc5a76b0e0: FlowVerification
+		next: 
+

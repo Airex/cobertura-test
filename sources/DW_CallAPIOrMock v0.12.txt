@@ -1,0 +1,29 @@
+Worflow: DW_CallAPIOrMock
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	CallAPIError: BoundaryErrorEvent
+		next: ThrowError
+
+	CallAPI: ComponentTask
+		switch:
+			next: CallAPIError
+			next: SetOutput
+
+	IsDataMocked?: Gateway
+		switch:
+			else: CallAPI
+			conn: ReturnMockData
+
+	SetOutput: ScriptTask
+		next: End
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	ThrowError: ScriptTask
+		next: End
+

@@ -1,0 +1,13 @@
+Worflow: Test_SK_Twilio
+
+	StartEvent: MessageStartEvent
+		next: Prepare_URL
+
+	End: EndEvent
+
+	Send_SMS: HttpMessageTask
+		next: End
+
+	Prepare_URL: ScriptTask
+		next: Send_SMS
+

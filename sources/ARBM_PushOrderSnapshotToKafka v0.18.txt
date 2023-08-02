@@ -1,0 +1,16 @@
+Worflow: ARBM_PushOrderSnapshotToKafka
+
+	StartEvent: MessageStartEvent
+		next: Tags
+
+	End: EndEvent
+
+	DW_GetOrderSnapshotById: ComponentTask
+		next: KafkaProducer
+
+	KafkaProducer: SubProcessTask
+		next: End
+
+	Tags: ScriptTask
+		next: DW_GetOrderSnapshotById
+

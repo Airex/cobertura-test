@@ -1,0 +1,13 @@
+Worflow: ARBM_Retail_AppFraudServiceResponseConsumer
+
+	StartEvent: MessageStartEvent
+		next: GetIdentifier
+
+	End: EndEvent
+
+	NotifySignalAppFraudDecisionStatus: SignalTask
+		next: End
+
+	GetIdentifier: ScriptTask
+		next: NotifySignalAppFraudDecisionStatus
+

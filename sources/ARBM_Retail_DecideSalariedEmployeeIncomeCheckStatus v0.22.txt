@@ -1,0 +1,16 @@
+Worflow: ARBM_Retail_DecideSalariedEmployeeIncomeCheckStatus
+
+	8b970303-4ae1-4a74-8a9e-90a3509a2a76: FlowVerification
+		next: 
+
+	c6fc7f5b-a733-4c8d-a423-352c36b9dbbb: FlowVerification
+		next: 
+
+	509d8de7-c10e-41f7-98c5-98fc68d12569: FlowVerification
+		next: 
+
+	01c63342-2bb6-48fe-8a59-fbe87bf1eebd: FlowVerification
+		next: 
+
+	00457a53-4b39-420d-8c1d-0e82d1b03af8: FlowVerification
+

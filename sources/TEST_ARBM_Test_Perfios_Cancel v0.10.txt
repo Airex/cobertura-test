@@ -1,0 +1,10 @@
+Worflow: TEST_ARBM_Test_Perfios_Cancel
+
+	StartEvent: MessageStartEvent
+		next: SaveOutput
+
+	End: EndEvent
+
+	SaveOutput: ScriptTask
+		next: End
+

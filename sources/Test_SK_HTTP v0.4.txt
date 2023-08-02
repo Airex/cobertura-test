@@ -1,0 +1,16 @@
+Worflow: Test_SK_HTTP
+
+	StartEvent: MessageStartEvent
+		next: NewMessageResponse
+
+	End: EndEvent
+
+	HTTP_Task: SubProcessTask
+		next: End
+
+	Wait: ScriptTask
+		next: End
+
+	NewMessageResponse: ResponseTask
+		next: End
+

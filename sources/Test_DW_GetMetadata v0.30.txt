@@ -1,0 +1,19 @@
+Worflow: Test_DW_GetMetadata
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	Get_AllFieldsAndIndexes: SubProcessTask
+		next: Prepare_Output
+
+	Prepare_Output: ScriptTask
+		next: End
+
+	Get_ADWMetadata: SubProcessTask
+		next: Prepare_Output
+
+	Init: ScriptTask
+		next: Get_ADWMetadata
+

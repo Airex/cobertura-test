@@ -1,0 +1,18 @@
+Worflow: ARBM_Retail_EPFStatementIncomeCalculationManualRoute
+
+	StartEvent: MessageStartEvent
+		next: NewGateway
+
+	End: EndEvent
+
+	GetEPFStatementIncomeManualRoute: ComponentTask
+		next: End
+
+	NewGateway: Gateway
+		switch:
+			else: GetEPFStatementIncomeManualRoute
+			conn: ReturnMockData
+
+	ReturnMockData: ScriptTask
+		next: End
+

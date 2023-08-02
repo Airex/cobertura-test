@@ -1,0 +1,30 @@
+Worflow: FindFreeTimeInCalendar
+
+	StartEvent: MessageStartEvent
+		next: GetGroupMembers
+
+	End: EndEvent
+
+	PrepareGroupUsers: ScriptTask
+		next: CheckUserCount
+
+	CheckUserCount: Gateway
+		switch:
+			conn: CurrentUser
+			else: PrepareOutput
+
+	CurrentUser: ScriptTask
+		next: GetUserSchedules
+
+	CollectUserSchedule: ScriptTask
+		next: CheckUserCount
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	GetUserSchedules: ComponentTask
+		next: CollectUserSchedule
+
+	GetGroupMembers: ComponentTask
+		next: PrepareGroupUsers
+

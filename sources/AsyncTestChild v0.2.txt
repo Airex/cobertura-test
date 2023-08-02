@@ -1,0 +1,13 @@
+Worflow: AsyncTestChild
+
+	StartEvent: MessageStartEvent
+		next: NewMessageEvent
+
+	End: EndEvent
+
+	NewMessageEvent: TimerEvent
+		next: SetOutput
+
+	SetOutput: ScriptTask
+		next: End
+

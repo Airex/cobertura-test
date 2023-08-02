@@ -1,0 +1,26 @@
+Worflow: ARBM_Retail_GetFinancingCommodityTradingData
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	GetCommodityTradingFinancingDataError: BoundaryErrorEvent
+		next: SaveOutput
+
+	GetCommodityTradingFinancingData: ComponentTask
+		switch:
+			next: GetCommodityTradingFinancingDataError
+			next: SaveOutput
+
+	IsDataMocked?: Gateway
+		switch:
+			else: GetCommodityTradingFinancingData
+			conn: ReturnMockData
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	SaveOutput: ScriptTask
+		next: End
+

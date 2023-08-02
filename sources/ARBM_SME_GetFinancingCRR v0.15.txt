@@ -1,0 +1,75 @@
+Worflow: ARBM_SME_GetFinancingCRR
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	IsDataMocked?: Gateway
+		switch:
+			conn: WorkSimulationTimer
+			else: PreparePayload
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	SaveCRRStatusToOutput: ScriptTask
+		next: End
+
+	WorkSimulationTimer: TimerEvent
+		next: ReturnMockData
+
+	GetFinancingCRRError: BoundaryErrorEvent
+		next: GetCRR_ManualTask
+
+	GetFinancingCRR: ComponentTask
+		switch:
+			next: GetFinancingCRRError
+			next: GetKakfaMsgOnCrrStatus_Succeeded
+
+	SetTags: ScriptTask
+		next: ShouldSimulateGetFinancingCrrSucceed?
+
+	GetCRR_ManualTask: SubProcessTask
+		next: IsManualTaskSuccessful?
+
+	IsOnCRRStatusError?: Gateway
+		switch:
+			conn: GetCRR_ManualTask
+			else: SaveCRRStatusToOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	IsManualTaskSuccessful?: Gateway
+		switch:
+			else: GetCRR_ManualTask
+			conn: ShouldProceedOrRejectOrRetry?
+
+	ShouldProceedOrRejectOrRetry?: Gateway
+		switch:
+			else: SaveOutput
+			conn: GetFinancingCRR
+
+	PreparePayload: ScriptTask
+		next: ShouldSimulateGetCRRManualTaskIsOn?
+
+	ShouldSimulateGetCRRManualTaskIsOn?: Gateway
+		switch:
+			conn: GetCRR_ManualTask
+			else: WaitForKakfaMsgOnCrrStatus
+
+	ShouldSimulateGetFinancingCrrSucceed?: Gateway
+		switch:
+			else: IsDataMocked?
+			conn: SaveOutputApprove
+
+	SaveOutputApprove: ScriptTask
+		next: End
+
+	WaitForKakfaMsgOnCrrStatus: SubProcessAwaitFirstResponseTask
+		next: GetFinancingCRR
+
+	GetKakfaMsgOnCrrStatus_Succeeded: SubProcessSucceededEvent
+		next: IsOnCRRStatusError?
+

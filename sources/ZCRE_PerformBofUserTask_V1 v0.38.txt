@@ -1,0 +1,118 @@
+Worflow: ZCRE_PerformBofUserTask_V1
+
+	StartEvent: MessageStartEvent
+		next: CheckConditionAction
+
+	CheckActionActive: Gateway
+		switch:
+			else: SetScheduled
+			conn: ValidateConditionAction
+
+	CheckConditionTriggeredOrFound: Gateway
+		switch:
+			conn: SetNothingExecute
+			else: PrepareActionToExecute
+
+	SetNothingExecute: ScriptTask
+		next: ActionResponse
+
+	SetScheduled: ScriptTask
+		next: ActionResponse
+
+	PrepareActionToExecute: ScriptTask
+		next: CheckActionFound
+
+	CheckConditionAction: Gateway
+		switch:
+			conn: TriggerCondition
+			else: GetCondition
+
+	TriggerCondition: SubProcessTask
+		next: CheckConditionTriggeredOrFound
+
+	GetCondition: SubProcessTask
+		next: CheckConditionTriggeredOrFound
+
+	ValidateConditionActionError: BoundaryErrorEvent
+		next: SetUnableExecute
+
+	ValidateConditionAction: SubProcessTask
+		switch:
+			next: ValidateConditionActionError
+			next: CheckExecutionStatus
+
+	CheckActionFound: Gateway
+		switch:
+			conn: CheckActionActive
+			else: SetNothingExecute
+
+	ExecutionResponse: ResponseTask
+		next: RecieveContinue
+
+	RecieveContinue: MessageEvent
+		next: SetActionPayload
+
+	ReceiveCancel: SpareMessageEvent
+		next: UpdateAction
+
+	ReceiveSaveDraft: SpareMessageEvent
+		next: UpdateAction
+
+	ReceiveUpdateLastSeen: SpareMessageEvent
+		next: UpdateAction
+
+	CheckExecutionStatus: Gateway
+		switch:
+			conn: SetTooEarly
+			conn: SetAlreadyDone
+			conn: SetTooLate
+			else: UpdateActionBeforeExecute
+
+	SetTooEarly: ScriptTask
+		next: ActionResponse
+
+	SetAlreadyDone: ScriptTask
+		next: ActionResponse
+
+	SetTooLate: ScriptTask
+		next: ActionResponse
+
+	SetUnableExecute: ScriptTask
+		next: ActionResponse
+
+	ActionResponse: ResponseTask
+		next: NewMessageEvent
+
+	UpdateAction: ScriptTask
+		next: DW_UpdateConditionAction
+
+	DW_UpdateConditionAction: ComponentTask
+		next: SetOutputData
+
+	SetOutputData: ScriptTask
+		next: CheckNotUpdateLastSeen
+
+	CheckNotUpdateLastSeen: Gateway
+		switch:
+			conn: ActionResponse
+			else: ExecutionResponse
+
+	DW_UpdateConditionActionBeforeExecute: ComponentTask
+		next: ExecutionResponse
+
+	UpdateActionBeforeExecute: ScriptTask
+		next: DW_UpdateConditionActionBeforeExecute
+
+	ExecuteConditionActionError: BoundaryErrorEvent
+		next: SetUnableExecute
+
+	ExecuteConditionAction: SubProcessTask
+		switch:
+			next: ExecuteConditionActionError
+			next: UpdateAction
+
+	SetActionPayload: ScriptTask
+		next: ExecuteConditionAction
+
+	NewMessageEvent: EndEvent
+

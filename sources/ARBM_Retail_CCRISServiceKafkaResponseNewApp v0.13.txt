@@ -1,0 +1,13 @@
+Worflow: ARBM_Retail_CCRISServiceKafkaResponseNewApp
+
+	StartEvent: MessageStartEvent
+		next: TransformInputXMLToJSON
+
+	End: EndEvent
+
+	TransformInputXMLToJSON: ScriptTask
+		next: ThrowSignalCCRISNewApp
+
+	ThrowSignalCCRISNewApp: SignalTask
+		next: End
+

@@ -1,0 +1,10 @@
+Worflow: ARBM_Retail_CRRServiceResponseConsumer_AfterCRRScoring
+
+	StartEvent: MessageStartEvent
+		next: NotifySignalCRRResponse
+
+	End: EndEvent
+
+	NotifySignalCRRResponse: SignalTask
+		next: End
+

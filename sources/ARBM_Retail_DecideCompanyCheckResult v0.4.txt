@@ -1,0 +1,7 @@
+Worflow: ARBM_Retail_DecideCompanyCheckResult
+
+	887d72a6-9bc7-4336-b932-bc8474516a65: FlowVerification
+		next: 
+
+	51e90490-6041-4796-924b-cabb7fa80ca3: FlowVerification
+

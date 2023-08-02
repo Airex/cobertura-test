@@ -1,0 +1,34 @@
+Worflow: ARBM_Retail_GetPersonalBankStmntCreditSalaryExtractionOffline
+
+	StartEvent: MessageStartEvent
+		next: CheckdUseZdeCalculation
+
+	End: EndEvent
+
+	GetMonthlySalaryCreditAmountOfflineError: BoundaryErrorEvent
+		next: SaveOutput
+
+	GetMonthlySalaryCreditAmountOffline: ComponentTask
+		switch:
+			next: GetMonthlySalaryCreditAmountOfflineError
+			next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	CheckdUseZdeCalculation: Gateway
+		switch:
+			conn: PerformZdeCalculation
+			else: GetMonthlySalaryCreditAmountOffline
+
+	PerformZdeCalculation: ComponentTask
+		next: GetCalculationResult
+
+	GetCalculationResultError: BoundaryErrorEvent
+		next: SaveOutput
+
+	GetCalculationResult: ScriptTask
+		switch:
+			next: GetCalculationResultError
+			next: SaveOutput
+

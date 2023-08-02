@@ -1,0 +1,21 @@
+Worflow: ARBM_Retail_EmailVerification_ManualTask
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	WorkEmailVerification_ManualTask: SubProcessTask
+		next: IsManualTaskSuccessful?
+
+	SaveOutput: ScriptTask
+		next: End
+
+	IsManualTaskSuccessful?: Gateway
+		switch:
+			conn: SaveOutput
+			else: WorkEmailVerification_ManualTask
+
+	SetTags: ScriptTask
+		next: WorkEmailVerification_ManualTask
+

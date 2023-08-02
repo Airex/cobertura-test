@@ -1,0 +1,16 @@
+Worflow: ARBM_SME_ContractSigningProcess_SendOTP
+
+	StartEvent: MessageStartEvent
+		next: InitiateNewSigningProcess
+
+	End: EndEvent
+
+	InitiateNewSigningProcess: SubProcessTask
+		next: SendOTPToCustomer
+
+	SendOTPToCustomer: SubProcessTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+

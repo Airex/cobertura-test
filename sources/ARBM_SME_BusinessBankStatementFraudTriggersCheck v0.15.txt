@@ -1,0 +1,22 @@
+Worflow: ARBM_SME_BusinessBankStatementFraudTriggersCheck
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	InitMockSettings: ScriptTask
+		next: PreProcessBankStatementFraudTriggersData
+
+	BankStatementFraudTriggersRulesCheck: SubDecisionTask
+		next: SaveToDb_Rule_FraudTriggersRuleCheck
+
+	PreProcessBankStatementFraudTriggersData: SubProcessTask
+		next: BankStatementFraudTriggersRulesCheck
+
+	SaveToDb_Rule_FraudTriggersRuleCheck: ComponentTask
+		next: End
+
+	SetTags: ScriptTask
+		next: InitMockSettings
+

@@ -1,0 +1,38 @@
+Worflow: AsyncProcesses_Test
+
+	StartEvent: MessageStartEvent
+		next: SubProcess1
+
+	End: EndEvent
+
+	SubProcess1: SubProcessStartTask
+		next: SubProcess2
+
+	SubProcess2: SubProcessStartTask
+		next: NewGateway
+
+	SubProcess1Succeeded: SubProcessSucceededEvent
+		next: Copy_NewGateway
+
+	NewGateway: Gateway
+		switch:
+			conn: NewMessageEvent_1
+			conn: SubProcess1Succeeded
+
+	SubProcess2Succeeded: SubProcessSucceededEvent
+		next: SaveOutput
+
+	Copy_NewGateway: Gateway
+		switch:
+			conn: SubProcess2Succeeded
+			conn: Copy_NewMessageEvent_1
+
+	Copy_NewMessageEvent_1: SubProcessFailedEvent
+		next: End
+
+	NewMessageEvent_1: SubProcessFailedEvent
+		next: Copy_NewGateway
+
+	SaveOutput: ScriptTask
+		next: End
+

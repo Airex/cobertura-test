@@ -1,0 +1,51 @@
+Worflow: ARBM_Retail_DownsellOptionsCalculations
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	SetOutput: ScriptTask
+		next: End
+
+	FinancingCalculatorError: BoundaryErrorEvent
+		next: SetOutput
+
+	FinancingCalculator: SubProcessTask
+		switch:
+			next: FinancingCalculatorError
+			next: AdditionalRiskBasedPricingCalculationsAndChecks
+
+	AdditionalRiskBasedPricingCalculationsAndChecksError: BoundaryErrorEvent
+		next: IsReject_RiskBasedPricingCalculationsAndChecks_GW?
+
+	AdditionalRiskBasedPricingCalculationsAndChecks: SubProcessTask
+		switch:
+			next: AdditionalRiskBasedPricingCalculationsAndChecksError
+			next: IsReject_RiskBasedPricingCalculationsAndChecks_GW?
+
+	PrepareCalculationParams: ScriptTask
+		next: FinancingCalculator
+
+	ShouldRetryDownsellOptionCalc_GW?: Gateway
+		switch:
+			else: SetOutput
+			conn: IncrementAttemptNumber
+
+	GetParamsFromSettings: ScriptTask
+		next: PrepareCalculationParams
+
+	SetTags: ScriptTask
+		next: GetParamsFromSettings
+
+	IncrementAttemptNumber: ScriptTask
+		next: PrepareCalculationParams
+
+	SaveRejectReasonCode: ScriptTask
+		next: End
+
+	IsReject_RiskBasedPricingCalculationsAndChecks_GW?: Gateway
+		switch:
+			else: ShouldRetryDownsellOptionCalc_GW?
+			conn: SaveRejectReasonCode
+

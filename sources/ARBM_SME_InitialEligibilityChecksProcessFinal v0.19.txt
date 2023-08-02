@@ -1,0 +1,46 @@
+Worflow: ARBM_SME_InitialEligibilityChecksProcessFinal
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	InitSSMReport: ScriptTask
+		next: GetNumberOfDaysInBusiness
+
+	EligibilityChecksDecision: SubDecisionTask
+		next: SaveRuleResultToDB
+
+	GetNumberOfDaysInBusiness: ScriptTask
+		next: GetNricsOfShareholders
+
+	Init: ScriptTask
+		next: InitSSMReport
+
+	GetNricsOfShareholders: ScriptTask
+		next: GetEntityNameFromSsmReport
+
+	GetEntityNameFromSsmReport: ScriptTask
+		next: GetDaysSincePrevWithdrawalOrRejectionOfApp
+
+	ToBeImplemented: ScriptTask
+		next: EligibilityChecksDecision
+
+	GetDaysSincePrevWithdrawalOrRejectionOfApp: SubProcessTask
+		next: DW_FindAllBlacklistsByNricEmailBrn
+
+	DW_FindAllBlacklistsByNricEmailBrn: ComponentTask
+		next: GetFraudBlacklistsCheck
+
+	GetNonFraudBlacklistsCheck: ScriptTask
+		next: ToBeImplemented
+
+	SaveRuleResultToDB: ComponentTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	GetFraudBlacklistsCheck: SubProcessTask
+		next: GetNonFraudBlacklistsCheck
+

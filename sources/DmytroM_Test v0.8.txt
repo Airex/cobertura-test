@@ -1,0 +1,10 @@
+Worflow: DmytroM_Test
+
+	StartEvent: MessageStartEvent
+		next: test
+
+	End: EndEvent
+
+	test: ScriptTask
+		next: End
+

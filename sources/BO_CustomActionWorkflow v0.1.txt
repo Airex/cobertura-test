@@ -1,0 +1,10 @@
+Worflow: BO_CustomActionWorkflow
+
+	StartEvent: MessageStartEvent
+		next: ThrowError
+
+	End: EndEvent
+
+	ThrowError: ScriptTask
+		next: End
+

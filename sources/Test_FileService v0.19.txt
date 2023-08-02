@@ -1,0 +1,16 @@
+Worflow: Test_FileService
+
+	StartEvent: MessageStartEvent
+		next: PrepareParams
+
+	End: EndEvent
+
+	HttpTask: ComponentTask
+		next: End
+
+	Authent: HttpMessageTask
+		next: HttpTask
+
+	PrepareParams: ResponseTask
+		next: Authent
+

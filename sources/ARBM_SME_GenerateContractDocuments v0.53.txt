@@ -1,0 +1,58 @@
+Worflow: ARBM_SME_GenerateContractDocuments
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	PreparePayloadLetterOfGuaranty: ScriptTask
+		next: IsOnlyLetterOfGuaranteeGeneration_GW?
+
+	CreateLetterOfGuaranty: SubProcessStartTask
+		next: CreateContract
+
+	CreateContract: SubProcessStartTask
+		next: CreateLetterOfGuarantyEvents
+
+	CreateLetterOfGuarantySucceeded: SubProcessSucceededEvent
+		next: CreateContractEvents
+
+	CreateLetterOfGuarantyEvents: Gateway
+		switch:
+			conn: CreateLetterOfGuarantySucceeded
+			conn: CreateLetterOfGuarantyFailed
+
+	CreateLetterOfGuarantyFailed: SubProcessFailedEvent
+		next: CreateContractEvents
+
+	CreateContractSucceeded: SubProcessSucceededEvent
+		next: SaveOutput
+
+	CreateContractEvents: Gateway
+		switch:
+			conn: CreateContractSucceeded
+			conn: CreateContractFailed
+
+	CreateContractFailed: SubProcessFailedEvent
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	PreparePayloadContract: ScriptTask
+		next: CreateLetterOfGuaranty
+
+	SetTags: ScriptTask
+		next: PreparePayloadLetterOfGuaranty
+
+	IsOnlyLetterOfGuaranteeGeneration_GW?: Gateway
+		switch:
+			else: PreparePayloadContract
+			conn: CreateLetterOfGuaranty_Branch_2
+
+	CreateLetterOfGuaranty_Branch_2: SubProcessTask
+		next: SaveOutput_Branch_2
+
+	SaveOutput_Branch_2: ScriptTask
+		next: End
+

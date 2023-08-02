@@ -1,0 +1,30 @@
+Worflow: ConditionCreateByEventSignal_Test
+
+	StartEvent: MessageStartEvent
+		next: ConditionEventPublished
+
+	End: EndEvent
+
+	ConditionEventPublished: SignalTask
+		next: GetOrder
+
+	TriggerConditions: ScriptTask
+		next: GetConditionResolution
+
+	GetConditionResolution: SubProcessTask
+		next: FindNewConditions
+
+	GetOrderError: BoundaryErrorEvent
+		next: End
+
+	GetOrder: SubProcessTask
+		switch:
+			next: GetOrderError
+			next: TriggerConditions
+
+	FindNewConditions: ResponseTask
+		next: SaveConditions
+
+	SaveConditions: SubProcessTask
+		next: End
+

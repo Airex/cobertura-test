@@ -1,0 +1,65 @@
+Worflow: BO_ExportOrderToJSON
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	Prepare_Output: ScriptTask
+		next: Cleanup
+
+	Init: ScriptTask
+		next: Get_Order
+
+	Cleanup: ScriptTask
+		next: End
+
+	Set_Tags: ScriptTask
+		next: Init
+
+	Get_OrderError: BoundaryErrorEvent
+		next: Set_Error
+
+	Get_Order: SubProcessTask
+		switch:
+			next: Get_OrderError
+			next: Create_UploadLink
+
+	Set_Error: ScriptTask
+		next: Prepare_Output
+
+	Create_UploadLinkError: BoundaryErrorEvent
+		next: Set_Error
+
+	Create_UploadLink: ComponentTask
+		switch:
+			next: Create_UploadLinkError
+			next: __Upload_File
+
+	__Upload_FileError: BoundaryErrorEvent
+		next: Set_Error
+
+	__Upload_File: SubProcessTask
+		switch:
+			next: __Upload_FileError
+			next: Create_DownloadLink
+
+	Create_DownloadLinkError: BoundaryErrorEvent
+		next: Set_Error
+
+	Create_DownloadLink: ComponentTask
+		switch:
+			next: Create_DownloadLinkError
+			next: Add_OpenFileInstruction
+
+	Add_OpenFileInstruction: ScriptTask
+		next: Prepare_Output
+
+	Upload_FileError: BoundaryErrorEvent
+		next: Set_Error
+
+	Upload_File: ScriptTask
+		switch:
+			next: Upload_FileError
+			next: Create_DownloadLink
+

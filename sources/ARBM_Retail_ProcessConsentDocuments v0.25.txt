@@ -1,0 +1,40 @@
+Worflow: ARBM_Retail_ProcessConsentDocuments
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: IsDocument?
+
+	IsDocument?: Gateway
+		switch:
+			else: End
+			conn: IsS3Key?
+
+	PrepareDocumentDownload: ScriptTask
+		next: GetDownloadUrl
+
+	OutputDocument: ScriptTask
+		next: IsDocument?
+
+	DW_SetOrderDocument: ComponentTask
+		next: OutputDocument
+
+	IsS3Key?: Gateway
+		switch:
+			conn: PrepareDocumentDownload
+			conn: IsUpdateDocument_GW?
+
+	GetDownloadUrl: ComponentTask
+		next: IsUpdateDocument_GW?
+
+	DW_UpdateDocuments: SubProcessTask
+		next: OutputDocument
+
+	IsUpdateDocument_GW?: Gateway
+		switch:
+			else: DW_SetOrderDocument
+			conn: DW_UpdateDocuments
+

@@ -1,0 +1,16 @@
+Worflow: ARBM_Retail_DefineTypesOfRequiredDocuments
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	DecideTypesOfRequiredDocuments: SubDecisionTask
+		next: PrepareOutput
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: DecideTypesOfRequiredDocuments
+

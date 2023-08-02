@@ -1,0 +1,10 @@
+Worflow: BO_SelectDefaultAssignee_Workflow
+
+	StartEvent: MessageStartEvent
+		next: SelectDefaultRoute
+
+	End: EndEvent
+
+	SelectDefaultRoute: ScriptTask
+		next: End
+

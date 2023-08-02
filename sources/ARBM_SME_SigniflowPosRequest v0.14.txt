@@ -1,0 +1,26 @@
+Worflow: ARBM_SME_SigniflowPosRequest
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	SigniflowPosRequestError: BoundaryErrorEvent
+		next: SetOutput
+
+	SigniflowPosRequest: ComponentTask
+		switch:
+			next: SigniflowPosRequestError
+			next: SetOutput
+
+	IsDataMocked?: Gateway
+		switch:
+			else: SigniflowPosRequest
+			conn: ReturnMockData
+
+	SetOutput: ScriptTask
+		next: End
+
+	ReturnMockData: ScriptTask
+		next: End
+

@@ -1,0 +1,13 @@
+Worflow: DE_GetProcessStatus
+
+	StartEvent: MessageStartEvent
+		next: GetProcessStatus
+
+	End: EndEvent
+
+	SaveOutput: ScriptTask
+		next: End
+
+	GetProcessStatus: ComponentTask
+		next: SaveOutput
+

@@ -1,0 +1,58 @@
+Worflow: ARBM_Retail_FAServiceKafkaAccountStatusConsumer
+
+	StartEvent: MessageStartEvent
+		next: MutexLockFinancialAccout
+
+	End: EndEvent
+
+	FAAccountStatus: SignalTask
+
+	MapingStatusCode: ScriptTask
+		next: DW_FindFinancialAccount
+
+	DW_SetClassifications: ComponentTask
+		next: End
+
+	DW_FindFinancialAccount: ComponentTask
+		next: CheckHasFinancialAccount
+
+	DW_FindOrder: ComponentTask
+		next: CheckIfManatoryDataFound
+
+	DW_SetOrderLines: ComponentTask
+		next: DW_SetClassifications
+
+	InitProcess: ScriptTask
+		next: MapingStatusCode
+
+	WaitFinancingAccountCreated: SignalEvent
+		next: CheckWereToGo
+
+	CheckIfManatoryDataFound: Gateway
+		switch:
+			conn: WaitFinancingAccountCreated
+			else: ThrowErrorIfNotFound
+			conn: DW_GetOrderByFinancialAccountId
+
+	ThrowErrorIfNotFound: ScriptTask
+		next: End
+
+	CheckHasFinancialAccount: Gateway
+		switch:
+			conn: DW_FindOrder
+			else: CheckIfManatoryDataFound
+
+	CheckWereToGo: Gateway
+		switch:
+			conn: DW_FindFinancialAccount
+			else: DW_FindOrder
+
+	MutexLockFinancialAccout: ComponentTask
+		next: InitProcess
+
+	SetTags: ScriptTask
+		next: DW_SetOrderLines
+
+	DW_GetOrderByFinancialAccountId: ComponentTask
+		next: SetTags
+

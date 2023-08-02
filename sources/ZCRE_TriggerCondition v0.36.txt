@@ -1,0 +1,54 @@
+Worflow: ZCRE_TriggerCondition
+
+	StartEvent: MessageStartEvent
+		next: GetPerformingRole
+
+	End: EndEvent
+
+	SaveConditions: SubProcessTask
+		next: GetConditions
+
+	GetOrder: SubProcessTask
+		next: TriggerConditions
+
+	GetConditions: SubProcessTask
+		next: PrepareOutput
+
+	TriggerConditions: ComponentTask
+		next: FindNewConditions
+
+	FindNewConditions: ScriptTask
+		next: CheckConditionTriggered
+
+	CheckConditionTriggered: Gateway
+		switch:
+			else: PrepareOutput
+			conn: VerifyConditions
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	VerifyConditionsError: BoundaryErrorEvent
+		next: SaveConditions
+
+	VerifyConditions: SubProcessTask
+		switch:
+			next: VerifyConditionsError
+			next: SaveConditions
+
+	CheckHasOrder: Gateway
+		switch:
+			conn: GetOrder
+			else: GetSpecialOrderByTypeCode
+
+	GetSpecialOrderByTypeCode: ComponentTask
+		next: TriggerConditions
+
+	GetPerformingRole: SubProcessTask
+		next: CheckHasPermission
+
+	CheckHasPermission: Gateway
+		switch:
+			conn: CheckHasOrder
+			else: PrepareOutput
+

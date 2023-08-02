@@ -1,0 +1,53 @@
+Worflow: TEST_V1_ZCRE_PerformBofUserTask
+
+	StartEvent: MessageStartEvent
+		next: CheckConditionAction
+
+	End: EndEvent
+
+	CheckActionActive: Gateway
+		switch:
+			else: ScheduledResponse
+			conn: ExecuteConditionAction
+
+	CheckConditionTriggeredOrFound: Gateway
+		switch:
+			conn: NothingExecuteResponse
+			else: PrepareActionToExecute
+
+	NothingExecuteResponse: ResponseTask
+		next: End
+
+	ScheduledResponse: ResponseTask
+		next: End
+
+	PrepareActionToExecute: ScriptTask
+		next: CheckActionFound
+
+	CheckConditionAction: Gateway
+		switch:
+			conn: TriggerCondition
+			else: GetCondition
+
+	TriggerCondition: SubProcessTask
+		next: CheckConditionTriggeredOrFound
+
+	GetCondition: SubProcessTask
+		next: CheckConditionTriggeredOrFound
+
+	ExecuteConditionActionError: BoundaryErrorEvent
+		next: End
+
+	ExecuteConditionAction: SubProcessTask
+		switch:
+			next: ExecuteConditionActionError
+			next: ExecutionResponse
+
+	CheckActionFound: Gateway
+		switch:
+			conn: CheckActionActive
+			else: NothingExecuteResponse
+
+	ExecutionResponse: ResponseTask
+		next: End
+

@@ -1,0 +1,50 @@
+Worflow: ARBM_Retail_DSRCalculations
+
+	StartEvent: MessageStartEvent
+		next: GetTransformedExperianReport
+
+	End: EndEvent
+
+	GetCurrentAndNewDSRError: BoundaryErrorEvent
+		next: SetOutput
+
+	GetCurrentAndNewDSR: ComponentTask
+		switch:
+			next: GetCurrentAndNewDSRError
+			next: SetOutput
+
+	IsDataMocked?: Gateway
+		switch:
+			conn: ReturnMockData
+			else: UseInternalCalculator?
+
+	SetOutput: ScriptTask
+		next: End
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	UseInternalCalculator?: Gateway
+		switch:
+			else: GetCurrentAndNewDSR
+			conn: DsrCalculator
+
+	DsrCalculatorError: BoundaryErrorEvent
+		next: DsrCalculatorResult
+
+	DsrCalculator: ComponentTask
+		switch:
+			next: DsrCalculatorError
+			next: DsrCalculatorResult
+
+	DsrCalculatorResultError: BoundaryErrorEvent
+		next: SetOutput
+
+	DsrCalculatorResult: ScriptTask
+		switch:
+			next: DsrCalculatorResultError
+			next: SetOutput
+
+	GetTransformedExperianReport: ScriptTask
+		next: IsDataMocked?
+

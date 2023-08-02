@@ -1,0 +1,39 @@
+Worflow: ARBM_Retail_GetMUMApprovedUnsecuredLimits
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	GetMUMApprovedUnsecuredLimitsError: BoundaryErrorEvent
+		next: SetOutput
+
+	GetMUMApprovedUnsecuredLimits: ComponentTask
+		switch:
+			next: GetMUMApprovedUnsecuredLimitsError
+			next: SetOutput
+
+	IsDataMocked?: Gateway
+		switch:
+			conn: ReturnMockData
+			else: UseInternalCalculator?
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	SetOutput: ScriptTask
+		next: End
+
+	UseInternalCalculator?: Gateway
+		switch:
+			else: GetMUMApprovedUnsecuredLimits
+			conn: MumApprovedUnsecuredLimitsCalculator
+
+	MumApprovedUnsecuredLimitsCalculatorError: BoundaryErrorEvent
+		next: SetOutput
+
+	MumApprovedUnsecuredLimitsCalculator: ComponentTask
+		switch:
+			next: MumApprovedUnsecuredLimitsCalculatorError
+			next: SetOutput
+

@@ -1,0 +1,123 @@
+Worflow: ARBM_Retail_CreatePersonalFinancingAccount
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	CreatePersonalFinancingAccountError: BoundaryErrorEvent
+		next: IsTimerOn
+
+	CreatePersonalFinancingAccount: ComponentTask
+		switch:
+			next: CreatePersonalFinancingAccountError
+			next: IsCreatingAccountReturnError
+
+	SaveOutput: ScriptTask
+		next: End
+
+	GetAccountByAccountID: ComponentTask
+		next: ShouldSimulateManualTask_GW?
+
+	IsFinancingAccountStatusIsOpen: Gateway
+		switch:
+			else: IsRetryMechanizmClosed
+			conn: IsSME_GW?
+
+	Timer2: TimerEvent
+		next: GetAccountByAccountID
+
+	IsRetryMechanizmClosed: Gateway
+		switch:
+			conn: ShouldSkipManualTask_GW
+			else: SetTimer2
+
+	GetFinAccountStatusCodeMappedToDW: ScriptTask
+		next: DW_BatchOrderUpsert
+
+	IsAmountError: Gateway
+		switch:
+			conn: AmountErrorResponse
+			else: PreparePayload
+
+	AmountErrorResponse: ResponseTask
+		next: End
+
+	IsCreatingAccountReturnError: Gateway
+		switch:
+			else: IsTimerOn
+			conn: SetTags2
+
+	IsTimerOn: Gateway
+		switch:
+			conn: GetDataAfterManualReviewCreateAccount
+			else: SetTimer
+
+	Timer: TimerEvent
+		next: CreatePersonalFinancingAccount
+
+	DW_BatchOrderUpsert: SubProcessStartTask
+		next: SG_FinancialAccountCreated
+
+	GetDataAfterManualReviewCreateAccount: SubProcessTask
+		next: IsManualTaskReset
+
+	IsManualTaskReset: Gateway
+		switch:
+			conn: SetManualReviewReject
+			conn: ResetTimer
+			else: GetAccountByAccountID
+
+	SetManualReviewReject: ScriptTask
+		next: End
+
+	ResetTimer: ScriptTask
+		next: CreatePersonalFinancingAccount
+
+	SetTimer: ScriptTask
+		next: Timer
+
+	ManualFinancingAccountClosureRequired: SubProcessTask
+		next: CreatePersonalFinancingAccount
+
+	SG_FinancialAccountCreated: SignalTask
+		next: SaveOutput
+
+	ShouldSimulateManualTaskIs?: Gateway
+		switch:
+			else: IsAmountError
+			conn: GetDataAfterManualReviewCreateAccount
+
+	ShouldSimulateManualTask_GW?: Gateway
+		switch:
+			else: IsFinancingAccountStatusIsOpen
+			conn: ManualFinancingAccountClosureRequired
+
+	PreparePayload: ScriptTask
+		next: CreatePersonalFinancingAccount
+
+	SetTags: ScriptTask
+		next: ShouldSimulateManualTaskIs?
+
+	ShouldSkipManualTask_GW: Gateway
+		switch:
+			else: ManualFinancingAccountClosureRequired
+			conn: GetFinAccountStatusCodeMappedToDW
+
+	PostKafkaStatus_Active: SubProcessTask
+		next: GetFinAccountStatusCodeMappedToDW
+
+	StartTimer: ScriptTask
+		next: GetAccountByAccountID
+
+	SetTimer2: ScriptTask
+		next: Timer2
+
+	IsSME_GW?: Gateway
+		switch:
+			conn: PostKafkaStatus_Active
+			else: GetFinAccountStatusCodeMappedToDW
+
+	SetTags2: ScriptTask
+		next: StartTimer
+

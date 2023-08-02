@@ -1,0 +1,10 @@
+Worflow: ARBM_CreateMobilePushNotification
+
+	StartEvent: MessageStartEvent
+		next: KafkaProducer
+
+	End: EndEvent
+
+	KafkaProducer: SubProcessTask
+		next: End
+

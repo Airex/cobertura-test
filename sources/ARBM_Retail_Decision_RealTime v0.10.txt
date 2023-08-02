@@ -1,0 +1,61 @@
+Worflow: ARBM_Retail_Decision_RealTime
+
+	5c604721-ed6e-4452-99b2-73165d34ea6e: FlowVerification
+		next: 
+
+	31f7dc3e-5d77-4d1f-ab64-86110eb7ea71: FlowVerification
+		next: 
+
+	3c60f1a4-914e-4a8d-822e-f0025a4538a7: FlowVerification
+		next: 
+
+	7c3f7ad6-cc7e-4a1d-9143-f3ca2cf53f1d: FlowVerification
+		next: 
+
+	c6f5152b-773c-4de2-8ff3-bba98da4420e: FlowVerification
+		next: 
+
+	efc24415-81aa-4ff1-bfaf-4045e95228d0: FlowVerification
+		next: 
+
+	72e50b1c-7ac2-4ec2-b619-0671d52e3566: FlowVerification
+		next: 
+
+	83cac0e9-3e76-4b23-91dc-78c6e3510b62: FlowVerification
+		next: 
+
+	91f527fc-0015-415b-8d5b-245344fa09a5: FlowVerification
+		next: 
+
+	7ce8dcba-cf47-4b4a-91de-a701ddde7292: FlowVerification
+		next: 
+
+	01ac6d5b-b07e-4d50-bcf0-64b9a5a0aaea: FlowVerification
+		next: 
+
+	76bf364c-d011-40e0-88b7-99846b94724a: FlowVerification
+		next: 
+
+	beb52e80-ca5a-4401-9fd2-6be92dd11e74: FlowVerification
+		next: 
+
+	c531f408-2d9c-4045-91ec-2dbaf8610791: FlowVerification
+		next: 
+
+	4da6ad24-63d1-4a69-8020-d7011cf2ef56: FlowVerification
+		next: 
+
+	b3c51f3a-b8e8-49fb-98c2-8f2393e1faf9: FlowVerification
+		next: 
+
+	0492081d-677f-4a13-bc1f-c64a9ea3d19f: FlowVerification
+		next: 
+
+	590c27f2-6ef3-4eab-8bdf-be830f965d83: FlowVerification
+		next: 
+
+	a17de4e9-ad6c-4bf9-b833-73d22a48b02d: FlowVerification
+		next: 
+
+	3431e5e0-c66b-412d-a380-d1012bc47bc0: FlowVerification
+

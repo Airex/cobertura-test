@@ -1,0 +1,22 @@
+Worflow: BO_AddOrderComment
+
+	StartEvent: MessageStartEvent
+		next: ShowCommentForm
+
+	End: EndEvent
+
+	ShowCommentForm: ResponseTask
+		next: RecieveContinue
+
+	RecieveContinue: MessageEvent
+		next: SaveOrderComment
+
+	ReceiveClose: MessageEvent
+		next: PrepareOutput
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	SaveOrderComment: SubProcessTask
+		next: PrepareOutput
+

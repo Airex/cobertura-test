@@ -1,0 +1,59 @@
+Worflow: SK_Test
+
+	StartEvent: MessageStartEvent
+		next: NewSubDecision
+
+	End: EndEvent
+
+	MutexEnter: ComponentTask
+		next: NewMessageResponse
+
+	NewMessageResponse: ResponseTask
+		next: NewMessageEvent
+
+	NewMessageResponse_1: ResponseTask
+		next: MutexEnter
+
+	NewMessageEvent: MessageEvent
+		next: End
+
+	NewMessageResponse_3: ResponseTask
+		next: End
+
+	GetUrl: ScriptTask
+		next: NewMessageResponse_3
+
+	NewMessageResponse_2: HttpMessageTask
+		next: NewMessageResponse_4
+
+	NewMessageResponse_4: ResponseTask
+		next: End
+
+	NewSubDecision: SubDecisionTask
+		next: InitQueue
+
+	GetReport: ComponentTask
+		next: ProcessReport
+
+	ProcessReportError: BoundaryErrorEvent
+		next: CollectSubDecisions
+
+	ProcessReport: ScriptTask
+		switch:
+			next: ProcessReportError
+			next: CollectSubDecisions
+
+	CollectSubDecisions: ScriptTask
+		next: NewGateway
+
+	InitQueue: ScriptTask
+		next: GetReport
+
+	NewGateway: Gateway
+		switch:
+			conn: GetReport
+			else: PostProcessing
+
+	PostProcessing: ScriptTask
+		next: End
+

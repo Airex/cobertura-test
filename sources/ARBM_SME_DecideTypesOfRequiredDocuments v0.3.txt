@@ -1,0 +1,7 @@
+Worflow: ARBM_SME_DecideTypesOfRequiredDocuments
+
+	f16707e7-3ff5-4201-92f8-14fa79adb8e6: FlowVerification
+		next: 
+
+	203d51f2-e5d2-46f5-b6fe-86bcacac0192: FlowVerification
+

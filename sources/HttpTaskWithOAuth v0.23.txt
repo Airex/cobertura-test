@@ -1,0 +1,13 @@
+Worflow: HttpTaskWithOAuth
+
+	StartEvent: MessageStartEvent
+		next: GetToken
+
+	End: EndEvent
+
+	GetToken: ComponentTask
+		next: HttpTask
+
+	HttpTask: ComponentTask
+		next: End
+

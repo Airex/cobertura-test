@@ -1,0 +1,28 @@
+Worflow: DW_SetOrderPartyAndPartyPerson
+
+	StartEvent: MessageStartEvent
+		next: DW_SetOrderParty
+
+	End: EndEvent
+
+	DW_SetOrderParty: ComponentTask
+		next: SavePartyDataToGlobalVars
+
+	DW_SetPartyFinAccount: ComponentTask
+		next: DW_SetPartyAddress
+
+	DW_SetPartyAddress: ComponentTask
+		next: DW_SetPartyPerson
+
+	DW_SetPartyPerson: ComponentTask
+		next: DW_SetClassifications
+
+	DW_SetClassifications: ComponentTask
+		next: DW_SetPartyPrimaryContact
+
+	SavePartyDataToGlobalVars: ScriptTask
+		next: DW_SetPartyFinAccount
+
+	DW_SetPartyPrimaryContact: ComponentTask
+		next: End
+

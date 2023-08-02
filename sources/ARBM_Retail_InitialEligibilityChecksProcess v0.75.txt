@@ -1,0 +1,51 @@
+Worflow: ARBM_Retail_InitialEligibilityChecksProcess
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	DecideCustomerType: SubDecisionTask
+		next: ShouldSkipInitialEligibilityChecks?
+
+	InitialEligibilityChecks: SubDecisionTask
+		next: SaveRuleResultToDB
+
+	InitMockSettings: ScriptTask
+		next: Save_NRIC_Email_BRN_ToGlobalVars
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SaveRuleResultToDB: ComponentTask
+		next: SaveOutput
+
+	GetFraudBlacklistsCheck: SubProcessTask
+		next: GetNonFraudBlacklistsCheck
+
+	GetNonFraudBlacklistsCheck: SubProcessTask
+		next: InitialEligibilityChecks
+
+	DW_FindAllBlacklistsByNricEmailBrn: ComponentTask
+		next: GetFraudBlacklistsCheck
+
+	GetDaysSincePrevWithdrawalOrRejectionOfApp: SubProcessTask
+		next: DW_FindAllBlacklistsByNricEmailBrn
+
+	Save_NRIC_Email_BRN_ToGlobalVars: ScriptTask
+		next: DecideCustomerType
+
+	SaveHappyPathOutput: ScriptTask
+		next: End
+
+	ShouldSkipInitialEligibilityChecks?: Gateway
+		switch:
+			else: GetDaysSincePrevWithdrawalOrRejectionOfApp
+			conn: SaveRuleResultToDB_PROCEED
+
+	SetTags: ScriptTask
+		next: InitMockSettings
+
+	SaveRuleResultToDB_PROCEED: ComponentTask
+		next: SaveHappyPathOutput
+

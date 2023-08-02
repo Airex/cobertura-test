@@ -1,0 +1,21 @@
+Worflow: Files_CreateDownloadLinks
+
+	StartEvent: MessageStartEvent
+		next: PrepareOutput
+
+	End: EndEvent
+
+	CheckLoopFinished: Gateway
+		switch:
+			else: End
+			conn: CreateDownloadLink
+
+	CreateDownloadLink: ComponentTask
+		next: AddResult
+
+	PrepareOutput: ScriptTask
+		next: CheckLoopFinished
+
+	AddResult: ScriptTask
+		next: CheckLoopFinished
+

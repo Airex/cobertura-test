@@ -1,0 +1,27 @@
+Worflow: ARBM_Retail_GetCustomerData_Copy_June_20_2022
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	GetCustomerFinancingData: ComponentTask
+		next: SaveOutput
+
+	IsDataMocked?: Gateway
+		switch:
+			else: GetCustomerFinancingData
+			conn: GetMockedCustomerFinancingData
+
+	GetMockedCustomerFinancingData: ScriptTask
+		next: DW_SetOrderPartyAndPartyPerson
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SaveOutputDerivedFromMock: ScriptTask
+		next: End
+
+	DW_SetOrderPartyAndPartyPerson: SubProcessTask
+		next: SaveOutputDerivedFromMock
+

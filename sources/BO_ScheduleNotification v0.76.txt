@@ -1,0 +1,58 @@
+Worflow: BO_ScheduleNotification
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	SetActionNextExecution: ScriptTask
+		next: End
+
+	CheckPaymentPlanReady: Gateway
+		switch:
+			conn: CalculateNextNotificationDate
+			else: SetNextDayExecution
+
+	CalculateNextNotificationDate: ScriptTask
+		next: CheckHasNextNotificationDate
+
+	CheckHasNextNotificationDate: Gateway
+		switch:
+			conn: CloseActionWithSuccess
+			else: SetActionNextExecution
+			conn: CheckNotificationConfigured
+
+	CloseActionWithSuccess: ScriptTask
+		next: End
+
+	DW_SaveConditionAction: ComponentTask
+		next: SetNextDayExecution
+
+	SetNextDayExecution: ScriptTask
+		next: End
+
+	DW_GetOrderPaymentPlan: ComponentTask
+		next: CheckPaymentPlanReady
+
+	DW_GetOrderForNotification: ComponentTask
+		next: PrepareOrderDetails
+
+	CheckOrderNotCompleted: Gateway
+		switch:
+			conn: DW_GetOrderPaymentPlan
+			else: CloseActionWithSuccess
+
+	PrepareOrderDetails: ScriptTask
+		next: CheckOrderNotCompleted
+
+	CheckNotificationConfigured: Gateway
+		switch:
+			else: SetNextDayExecution
+			conn: GetPerformingRole
+
+	GetPerformingRole: SubProcessTask
+		next: DW_SaveConditionAction
+
+	Set_Tags: ScriptTask
+		next: DW_GetOrderForNotification
+

@@ -1,0 +1,18 @@
+Worflow: BO_ManualDocumentUpload
+
+	StartEvent: MessageStartEvent
+		next: CheckActionDaata
+
+	End: EndEvent
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	CheckActionDaata: Gateway
+		switch:
+			else: SetFormPayload
+			conn: PrepareOutput
+
+	SetFormPayload: ScriptTask
+		next: End
+

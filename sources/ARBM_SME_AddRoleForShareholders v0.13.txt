@@ -1,0 +1,31 @@
+Worflow: ARBM_SME_AddRoleForShareholders
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	AddRoleForEmployee: ComponentTask
+		next: IsShareholderInArray2
+
+	SetShareholder: ScriptTask
+		next: AddRoleForEmployee
+
+	GetAllCustomersRelatedToSme: ComponentTask
+
+	Init: ScriptTask
+		next: IsShareholderInArray
+
+	IsShareholderInArray: Gateway
+		switch:
+			conn: SetShareholder
+			else: End
+
+	IsShareholderInArray2: Gateway
+		switch:
+			else: End
+			conn: SetShareholder
+
+	SetTags: ScriptTask
+		next: Init
+

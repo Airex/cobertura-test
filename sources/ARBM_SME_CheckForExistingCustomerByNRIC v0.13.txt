@@ -1,0 +1,61 @@
+Worflow: ARBM_SME_CheckForExistingCustomerByNRIC
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	SaveOutputReject: ScriptTask
+		next: SaveRuleResultToDB
+
+	SetTags: ScriptTask
+		next: ShouldSimulateSkip?
+
+	GW_IsExistingCustomer?: Gateway
+		switch:
+			conn: SaveOutputProceed
+			else: GW_ExistingCustomerStatus?
+
+	SaveOutputProceed: ScriptTask
+		next: SaveRuleResultToDB
+
+	ThrowError: ScriptTask
+		next: End
+
+	GW_IsHttpCallError?: Gateway
+		switch:
+			else: GW_IsExistingCustomer?
+			conn: ThrowError
+
+	GW_ExistingCustomerStatus?: Gateway
+		switch:
+			conn: SaveExistingCustomerStatusAsArchivedInKafka
+			else: GetIsCustomerWhitelisted
+
+	SaveRuleResultToDB: ComponentTask
+		next: End
+
+	ShouldSimulateSkip?: Gateway
+		switch:
+			conn: SaveOutputProceed
+			else: GetCustomerInfoByNRICfromDB
+
+	SaveExistingCustomerStatusAsArchivedInKafka: SubProcessTask
+		next: SaveOutputProceed
+
+	GetCustomerInfoByNRICfromDBError: BoundaryErrorEvent
+		next: ThrowError
+
+	GetCustomerInfoByNRICfromDB: ComponentTask
+		switch:
+			next: GetCustomerInfoByNRICfromDBError
+			next: GW_IsHttpCallError?
+
+	GetIsCustomerWhitelisted: ScriptTask
+		next: IsCustomerWhitelisted_GW?
+
+	IsCustomerWhitelisted_GW?: Gateway
+		switch:
+			else: SaveOutputReject
+			conn: SaveOutputProceed
+

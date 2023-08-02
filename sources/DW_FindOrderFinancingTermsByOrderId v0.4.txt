@@ -1,0 +1,13 @@
+Worflow: DW_FindOrderFinancingTermsByOrderId
+
+	Copy_StartEvent: MessageStartEvent
+		next: AdwQuery
+
+	Copy_End: EndEvent
+
+	AdwQuery: ComponentTask
+		next: Output
+
+	Output: ScriptTask
+		next: Copy_End
+

@@ -1,0 +1,13 @@
+Worflow: TestADWComponent
+
+	StartEvent: MessageStartEvent
+		next: createRequestBody
+
+	End: EndEvent
+
+	createRequestBody: ScriptTask
+		next: CallADW
+
+	CallADW: HttpMessageTask
+		next: End
+

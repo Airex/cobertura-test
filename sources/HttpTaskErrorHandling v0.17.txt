@@ -1,0 +1,36 @@
+Worflow: HttpTaskErrorHandling
+
+	StartEvent: MessageStartEvent
+		next: ReturnError?
+
+	End: EndEvent
+
+	ReturnError: ScriptTask
+		next: End
+
+	ReturnRetry: ScriptTask
+		next: End
+
+	ReturnComplete: ScriptTask
+		next: End
+
+	ErrorActionEvent: MessageEvent
+		next: ReturnError
+
+	RetryActionEvent: MessageEvent
+		next: ReturnRetry
+
+	CompletetActionEvent: MessageEvent
+		next: ReturnComplete
+
+	ActionGateway: Gateway
+		switch:
+			conn: ErrorActionEvent
+			conn: RetryActionEvent
+			conn: CompletetActionEvent
+
+	ReturnError?: Gateway
+		switch:
+			else: ReturnError
+			conn: ActionGateway
+

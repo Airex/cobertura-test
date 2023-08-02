@@ -1,0 +1,24 @@
+Worflow: ARBM_SME_ActivateIndividualSmeCustomers
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	ActivateIndividualSmeCustomer: ComponentTask
+		next: IsMoreCustomers_GW?
+
+	SetTags: ScriptTask
+		next: Init
+
+	IsMoreCustomers_GW?: Gateway
+		switch:
+			else: End
+			conn: GetNextCustomerId
+
+	Init: ScriptTask
+		next: ActivateIndividualSmeCustomer
+
+	GetNextCustomerId: ScriptTask
+		next: ActivateIndividualSmeCustomer
+

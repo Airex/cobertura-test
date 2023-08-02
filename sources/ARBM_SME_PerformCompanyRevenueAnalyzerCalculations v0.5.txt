@@ -1,0 +1,26 @@
+Worflow: ARBM_SME_PerformCompanyRevenueAnalyzerCalculations
+
+	StartEvent: MessageStartEvent
+		next: NewGateway
+
+	End: EndEvent
+
+	GetRevenueAnalyzerCalculationsResultError: BoundaryErrorEvent
+		next: SaveOutput
+
+	GetRevenueAnalyzerCalculationsResult: ComponentTask
+		switch:
+			next: GetRevenueAnalyzerCalculationsResultError
+			next: SaveOutput
+
+	NewGateway: Gateway
+		switch:
+			else: GetRevenueAnalyzerCalculationsResult
+			conn: ReturnMockData
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	SaveOutput: ScriptTask
+		next: End
+

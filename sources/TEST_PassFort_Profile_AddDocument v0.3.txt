@@ -1,0 +1,30 @@
+Worflow: TEST_PassFort_Profile_AddDocument
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: Images?
+
+	Images?: Gateway
+		switch:
+			conn: GetImage
+			else: PrepareDocument
+
+	GetImage: ScriptTask
+		next: AddDocumentImage
+
+	AddDocumentImage: HttpMessageTask
+		next: PushImage
+
+	PushImage: ScriptTask
+		next: Images?
+
+	PrepareDocument: ScriptTask
+		next: CreateDocument
+
+	CreateDocument: HttpMessageTask
+		next: End
+

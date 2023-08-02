@@ -1,0 +1,26 @@
+Worflow: ARBM_Retail_BalanceTransfer_StoreDetails
+
+	StartEvent: MessageStartEvent
+		next: DataPreparationForBatchOrder
+
+	End: EndEvent
+
+	DataPreparationForBatchOrder: ScriptTask
+		next: CheckNotEmptyArray
+
+	BatchOrderUpsert: SubProcessStartTask
+		next: CheckEndDataProcessing
+
+	CheckEndDataProcessing: Gateway
+		switch:
+			else: End
+			conn: BatchOrderUpsert
+
+	CheckNotEmptyArray: Gateway
+		switch:
+			else: End
+			conn: DW_GetBankAccountDetails
+
+	DW_GetBankAccountDetails: SubProcessTask
+		next: BatchOrderUpsert
+

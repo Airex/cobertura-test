@@ -1,0 +1,37 @@
+Worflow: ARBM_SME_DataKeeperProcess
+
+	StartEvent: MessageStartEvent
+		next: InitContext
+
+	End: EndEvent
+
+	NextAction_GW?: Gateway
+		switch:
+			conn: SetContext
+			conn: StopProcessDataKeeper
+			conn: GetContext
+
+	SetContext: SignalEvent
+		next: SetUpdatedContext
+
+	SetUpdatedContext: ScriptTask
+		next: NotifyPrimaryApplicantFromDataKeeper
+
+	SendContext: SignalTask
+		next: NextAction_GW?
+
+	StopProcessDataKeeper: SignalEvent
+		next: End
+
+	KillProcess: SpareMessageEvent
+		next: End
+
+	GetContext: SignalEvent
+		next: SendContext
+
+	InitContext: ScriptTask
+		next: NextAction_GW?
+
+	NotifyPrimaryApplicantFromDataKeeper: SignalTask
+		next: NextAction_GW?
+

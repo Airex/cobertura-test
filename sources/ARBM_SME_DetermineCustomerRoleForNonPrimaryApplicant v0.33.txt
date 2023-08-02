@@ -1,0 +1,24 @@
+Worflow: ARBM_SME_DetermineCustomerRoleForNonPrimaryApplicant
+
+	Copy_StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	DetermineCustomerRoleForNonPrimaryApplicant: ScriptTask
+		next: PreparedPayload
+
+	LinkNonPrimaryApplicantWithSME: ComponentTask
+		next: SendOutputData
+
+	SendOutputData: ScriptTask
+		next: End
+
+	PreparedPayload: ScriptTask
+		next: LinkNonPrimaryApplicantWithSME
+
+	GetAllCustomerRelatedToSme: ComponentTask
+
+	SetTags: ScriptTask
+		next: DetermineCustomerRoleForNonPrimaryApplicant
+

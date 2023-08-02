@@ -1,0 +1,10 @@
+Worflow: ARBM_Retail_GetCompanyCategoryByDomainCallDataProvider
+
+	StartEvent: MessageStartEvent
+		next: CallDataProvider
+
+	End: EndEvent
+
+	CallDataProvider: ScriptTask
+		next: End
+

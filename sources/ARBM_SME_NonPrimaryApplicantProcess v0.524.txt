@@ -1,0 +1,611 @@
+Worflow: ARBM_SME_NonPrimaryApplicantProcess
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: GetConfigurationUri_Start
+
+	OnNonPrimaryApplicantConsent: ScriptTask
+		next: UpdateSharedContext_01
+
+	NonPrimaryApplicantConsentAction: ResponseTask
+		next: GetSharedContext_1
+
+	NonPrimaryApplicantConsent: MessageEvent
+		next: OnNonPrimaryApplicantConsent
+
+	ProcessConsentDocuments: SubProcessTask
+		next: NonPrimaryApplicantConsentAction
+
+	GetOrderIdAndOrderLineId: SubProcessTask
+		next: InitDefaultRuleStatuseses_OrderLine
+
+	ShowVerifyPhoneNumberOTP: ResponseTask
+		next: VerifyPhoneNumberOTP
+
+	VerifyPhoneNumberOTP: MessageEvent
+		next: isPhoneNumberVerificationSkipped?
+
+	OnVerifyPhoneNumberOTP: ScriptTask
+		next: Twilio_PhoneNumberVerification_Check
+
+	isPhoneCodeValid?: Gateway
+		switch:
+			conn: PhoneNumberVerification_DeleteGV
+			else: PhoneNumberWrongCode_Validation
+
+	CheckForExistingCustomerByPhoneNumber: SubProcessTask
+		next: isExistingCustomer?
+
+	isPhoneNumberVerificationCreated?: Gateway
+		switch:
+			else: OnVerifyPhoneNumberOTP
+			conn: Twilio_PhoneNumberVerification_Create_2
+
+	PhoneNumber_Validation: ScriptTask
+		next: Twilio_PhoneNumberVerification_Cancel
+
+	PhoneNumberVerification_DeleteGV: ScriptTask
+		next: CheckForExistingCustomerByPhoneNumber
+
+	PhoneNumberWrongCode_Validation: ScriptTask
+		next: IsPhoneNumberOtpExpired_GW?
+
+	isPhoneNumberVerificationSkipped?: Gateway
+		switch:
+			conn: PhoneNumberVerification_DeleteGV
+			else: isPhoneNumberVerificationCreated?
+
+	SubmitNonPrimaryAppAccountDetailsAction: ResponseTask
+		next: SubmitNonPrimaryAppAccountDetails
+
+	SubmitNonPrimaryAppAccountDetails: MessageEvent
+		next: OnSubmitNonPrimaryAppAccountDetails
+
+	OnSubmitNonPrimaryAppAccountDetails: ScriptTask
+		next: UpdateSharedContext_03
+
+	ShowFirstLoginRequest: ResponseTask
+		next: SetOrderLineExternalIdentification
+
+	FirstLogin: MessageEvent
+		next: OnFirstLogin_VerifyToken
+
+	isExistingCustomer?: Gateway
+		switch:
+			else: Status_Reject
+			conn: UpdateSharedContext_02
+
+	Status_Reject: ResponseTask
+		next: SetOrderLineStatus_Rejected
+
+	Rejection: EndEvent
+
+	Cancelation: EndEvent
+
+	Status_Cancel: ResponseTask
+		next: SetOrderLineStatus_Incomplete
+
+	SubmitScanReferenceAction: ResponseTask
+		next: SubmitScanReference
+
+	SubmitScanReference: MessageEvent
+		next: OnSubmitScanReference_VerifyToken
+
+	OnSubmitScanReference: ScriptTask
+		next: ProvideScansToCustomerService
+
+	Cancel: MessageEvent
+		next: OnCancel_VerifyToken
+
+	OnSubmitNonPrimaryApplicantsDetails: ScriptTask
+		next: GetNonPrimaryApplicantPostalAddress
+
+	SubmitNonPrimaryApplicantDetailsAction: ResponseTask
+		next: ShowNonPrimaryApplicantDetails_GW
+
+	SubmitNonPrimaryApplicantDetails: MessageEvent
+		next: OnSubmitNonPrimaryApplicantsDetails_VerifyToken
+
+	ShowNonPrimaryApplicantDetails_GW: Gateway
+		switch:
+			conn: SubmitNonPrimaryApplicantDetails
+			conn: Cancel
+
+	Review: MessageEvent
+		next: OnReview_VerifyToken
+
+	ShowUnreviewedAppDetailsGateway: Gateway
+		switch:
+			conn: Review
+			conn: Cancel
+
+	ShowUnreviewedFinancingDetails: ResponseTask
+		next: ShouldGoToEventGateway_GW?
+
+	ShowPrimaryApplicantStatus: ResponseTask
+		next: PrimaryApplicantStatus_GW?
+
+	PrimaryApplicantStatus: MessageEvent
+		next: OnPrimaryApplicantStatus_VerifyToken
+
+	isPrimaryApplicantStatusChanged?: Gateway
+		switch:
+			conn: IsPrimaryApplicantStatusRejectedOrCancelled?
+			else: GetSharedContext_3
+
+	IsPrimaryApplicantStatusRejectedOrCancelled?: Gateway
+		switch:
+			conn: ShowPrimaryApplicantRejected
+			else: FindBoardResolutionDoc
+
+	ShowSignDocuments: ResponseTask
+		next: SignDocuments
+
+	SignDocuments: MessageEvent
+		next: OnSignDocuments_VerifyToken
+
+	Termination: EndEvent
+
+	AsyncTermination: ScriptTask
+		next: Termination
+
+	ShowPrimaryApplicantRejected: ResponseTask
+		next: PrimaryApplicantRejected
+
+	PrimaryApplicantRejected: MessageEvent
+		next: OnPrimaryApplicantRejected_VerifyToken
+
+	ShowSignatureVerificationDetails: ResponseTask
+		next: isSignatureVerificationValid?
+
+	SignatureVerify: MessageEvent
+		next: OnSignatureVerify_VerifyToken
+
+	SignatureRetry: MessageEvent
+		next: OnSignatureRetry_VerifyToken
+
+	TooManySignatureVerificationRetries?: Gateway
+		switch:
+			conn: RefreshSignatureVerificationAttempts
+			else: SignatureVerification_ManualTask
+
+	ShowSignatureVerificationManualVerificationStatus: ResponseTask
+		next: ShowSignatureVerificationManualVerificationStatusGateway
+
+	IsSignatureVerificationCodeValid?: Gateway
+		switch:
+			else: SignatureVerificationWrongCode_Validation
+			conn: SigningOfLetterOfGuarantyProcess
+
+	SignatureManualVerify: MessageEvent
+		next: OnSignatureManualVerify_VerifyToken
+
+	SignatureVerification_ManualTask: SubProcessStartTask
+		next: ShowSignatureVerificationManualVerificationStatus
+
+	ShowSignatureVerificationManualVerificationStatusGateway: Gateway
+		switch:
+			conn: SignatureManualVerify
+			conn: SignatureVerification_ManualTask_Succeeded
+
+	SignatureVerification_ManualTask_Succeeded: SubProcessSucceededEvent
+		next: SignatureManualVerify
+
+	SignatureManualVerificationStatusGateway: Gateway
+		switch:
+			else: ShowSignatureVerificationManualVerificationStatus
+			conn: ShowNonPrimaryApplicantCompletionStatus
+
+	SignatureVerificationWrongCode_Validation: ScriptTask
+		next: ShowSignatureVerificationDetails
+
+	isSignatureVerificationValid?: Gateway
+		switch:
+			conn: SignatureVerificationWithVerifyGateway
+			else: SignatureRetry
+
+	RefreshSignatureVerificationAttempts: ScriptTask
+		next: Signiflow_SignatureVerification_Send
+
+	SignatureVerificationWithVerifyGateway: Gateway
+		switch:
+			conn: SignatureVerify
+			conn: SignatureRetry
+
+	isSignDocumentsSkipped?: Gateway
+		switch:
+			else: Signiflow_SignatureVerification_Send
+			conn: UpdateOrderLineStatusInGlobalVars
+
+	CreateNonPrimaryApplicantInCustomerService: SubProcessTask
+		next: UpdateNonPrimaryApplicantInCustomerDb
+
+	ShowNonPrimaryApplicantCompletionStatus: ResponseTask
+		next: NonPrimaryApplicantCompletionStatus
+
+	NonPrimaryApplicantCompletionStatus: MessageEvent
+		next: OnNonPrimaryApplicantCompletionStatus_VerifyToken
+
+	Status_Completed: ResponseTask
+		next: SetOrderLineStatus_Accepted
+
+	eKYCParties: SubProcessStartTask
+		next: GetSharedContext_3
+
+	Signiflow_SignatureVerification_Send: SubProcessTask
+		next: ShowSignatureVerificationDetails
+
+	Signiflow_SignatureVerification_Validate: SubProcessTask
+		next: IsSignatureVerificationCodeValid?
+
+	SetOrderLineStatus_InReview_GlobalVars: ScriptTask
+		next: SetOrderLineStatus_InReview
+
+	RetrieveStatusOfPrimaryApplicantFlow: ScriptTask
+
+	isEKYCStatusReject?: Gateway
+		switch:
+			else: ShouldGoToSubmitScanReference_GW2?
+			conn: Status_Reject
+
+	ProvideScansToCustomerService: SubProcessStartTask
+		next: UpdateSharedContext_05
+
+	UpdateNonPrimaryApplicantInCustomerDb: SubProcessStartTask
+		next: UpdateCustomerDeviceStatus
+
+	UpdateCustomer_ResidencyEthnicityMailingAddress: SubProcessStartTask
+		next: UpdateSharedContext_06
+
+	isPrimaryApplicantStatusChanged_02?: Gateway
+		switch:
+			conn: Status_Completed
+			conn: Status_Reject
+			else: ShowNonPrimaryApplicantCompletionStatus
+
+	SetOrderLineExternalIdentification: SubProcessTask
+		next: GetSharedContext_2
+
+	Resume: SpareMessageEvent
+		next: OnResume_VerifyToken
+
+	ResumeGateway: Gateway
+		switch:
+			conn: ShowFirstLoginRequest
+			conn: SubmitScanReferenceAction
+			conn: SubmitNonPrimaryApplicantDetailsAction
+			conn: ShowUnreviewedFinancingDetails
+			conn: ShowSignatureVerificationDetails
+			conn: ShowPrimaryApplicantRejected
+			conn: ShowSignatureVerificationManualVerificationStatus
+			conn: ShowNonPrimaryApplicantCompletionStatus
+			conn: GetSharedContext_3
+			conn: ProcessContractDocuments
+
+	GetLastEvent: ScriptTask
+		next: ResumeGateway
+
+	DW_BatchOrderUpsert_SetOrderLineParty: SubProcessStartTask
+		next: UpdateSharedContext_04
+
+	DetermineCustomerRoleForNonPrimaryApplicant: SubProcessTask
+		next: DW_BatchOrderUpsert_SetOrderLineParty
+
+	SetOrderLineStatus_Incomplete: SubProcessStartTask
+		next: UpdateSharedContext_Canceled
+
+	SetOrderLineStatus_Rejected: SubProcessStartTask
+		next: UpdateSharedContext_Rejected
+
+	SetTags: ScriptTask
+		next: ProcessConsentDocuments
+
+	DW_BatchOrderUpsert_OnSubmitNonPrimaryApplicantDetails: SubProcessStartTask
+		next: ShowUnreviewedFinancingDetails
+
+	PrimaryApplicantStatus_GW?: Gateway
+		switch:
+			conn: eKYCParties_Succeeded
+			conn: PrimaryApplicantStatus
+			conn: eKYCParties_Failed
+
+	DW_BatchOrderUpsert_SetOrderLinePartyPerson: SubProcessStartTask
+		next: DW_BatchOrderUpsert_SetShareholder
+
+	InitDefaultRuleStatuseses_OrderLine: SubProcessStartTask
+		next: SetTags
+
+	DW_BatchOrderUpsert_SetShareholder: SubProcessStartTask
+		next: SubmitNonPrimaryApplicantDetailsAction
+
+	GenerateLetterOfGuarantee: SubProcessStartTask
+		next: ProcessContractDocuments
+
+	ProcessContractDocuments: SubProcessTask
+		next: ShowSignDocuments
+
+	PrepareContractDocuments: ScriptTask
+		next: GenerateLetterOfGuarantee
+
+	SigningOfLetterOfGuarantyProcess: SubProcessStartTask
+		next: UpdateOrderLineStatusInGlobalVars
+
+	IsPhoneNumberOtpExpired_GW?: Gateway
+		switch:
+			else: ShowVerifyPhoneNumberOTP
+			conn: Twilio_PhoneNumberVerification_Create_2
+
+	eKYCParties_Succeeded: SubProcessSucceededEvent
+		next: ShouldReTriggerEKYC_GW?
+
+	eKYCParties_Failed: SubProcessFailedEvent
+		next: SetReTriggerEKYCFlag
+
+	SetReTriggerEKYCFlag: ScriptTask
+		next: PrimaryApplicantStatus
+
+	ShouldGoToSubmitScanReference_GW2?: Gateway
+		switch:
+			else: isPrimaryApplicantStatusChanged?
+			conn: SubmitScanReferenceAction
+
+	Status_Reject_onEKYC: ScriptTask
+		next: Rejected_SetStatus_Incomplete_onEKYC
+
+	Rejected_SetStatus_Incomplete_onEKYC: SubProcessStartTask
+		next: UpdateSharedContext_08
+
+	isEKYC_Rejected_GW?: Gateway
+		switch:
+			conn: Status_Reject_onEKYC
+			else: DW_BatchOrderUpsert_SetShareholder_AuthorizedAt
+
+	ShouldGoToEKYC_GW?: Gateway
+		switch:
+			else: DW_BatchOrderUpsert_SetOrderLinePartyPerson
+			conn: UpdateFlagReTriggerEKYC
+
+	UpdateFlagReTriggerEKYC: ScriptTask
+		next: eKYCParties
+
+	DW_BatchOrderUpsert_SetShareholder_AuthorizedAt: SubProcessStartTask
+		next: UpdateSharedContext_08
+
+	IsOnPhoneNumberVerificationSimulation_GW?: Gateway
+		switch:
+			conn: ShowVerifyPhoneNumberOTP
+			else: Twilio_PhoneNumberVerification_Create_1
+
+	SetOrderLineStatus_InReview: SubProcessStartTask
+		next: UpdateSharedContext_07
+
+	SetOrderLineStatus_Accepted: SubProcessStartTask
+		next: SetTagAppStatus_Completed
+
+	UpdateOrderLineStatusInGlobalVars: ScriptTask
+		next: UpdateSharedContext_09
+
+	SetDocumentsResultsOfVerifications: ComponentTask
+		next: IsOnPhoneNumberVerificationSimulation_GW?
+
+	GetSharedContext_1: SubProcessTask
+		next: NonPrimaryApplicantConsent
+
+	UpdateSharedContext_01: SubProcessStartTask
+		next: SetDocumentsResultsOfVerifications
+
+	UpdateSharedContext_02: SubProcessStartTask
+		next: SubmitNonPrimaryAppAccountDetailsAction
+
+	UpdateSharedContext_03: SubProcessStartTask
+		next: DW_BatchOrderUpsert_CreateClsCategories_Device
+
+	UpdateSharedContext_04: SubProcessStartTask
+		next: FirstLogin
+
+	UpdateSharedContext_05: SubProcessStartTask
+		next: ShouldGoToEKYC_GW?
+
+	UpdateSharedContext_06: SubProcessStartTask
+		next: ShowUnreviewedAppDetailsGateway
+
+	UpdateSharedContext_07: SubProcessStartTask
+		next: eKYCParties
+
+	UpdateSharedContext_08: SubProcessStartTask
+		next: PrimaryApplicantStatus
+
+	GetSharedContext_2: SubProcessTask
+		next: ShouldDetermineCustomerRoleForNpa_GW?
+
+	GetSharedContext_3: SubProcessTask
+		next: ShouldGoToDocumentsSigning_GW?
+
+	GetSharedContext_4: SubProcessTask
+		next: isPrimaryApplicantStatusChanged_02?
+
+	UpdateSharedContext_09: SubProcessStartTask
+		next: ShowNonPrimaryApplicantCompletionStatus
+
+	UpdateSharedContext_Rejected: SubProcessStartTask
+		next: SetTagAppStatus_Rejected
+
+	UpdateSharedContext_Canceled: SubProcessStartTask
+		next: SetTagAppStatus_Canceled
+
+	ShouldGoToDocumentsSigning_GW?: Gateway
+		switch:
+			conn: FindBoardResolutionDoc
+			else: ShouldGoToSubmitScanReference_GW1?
+
+	FindBoardResolutionDoc: ComponentTask
+		next: PrepareContractDocuments
+
+	OnResume_VerifyToken: SubProcessTask
+		next: GetConfigurationUri_Resume
+
+	OnFirstLogin_VerifyToken: SubProcessTask
+		next: SubmitScanReferenceAction
+
+	OnSubmitScanReference_VerifyToken: SubProcessTask
+		next: OnSubmitScanReference
+
+	OnSubmitNonPrimaryApplicantsDetails_VerifyToken: SubProcessTask
+		next: OnSubmitNonPrimaryApplicantsDetails
+
+	OnReview_VerifyToken: SubProcessTask
+		next: UpdateNPAStatusInCustomerService_ELIGIBILITY
+
+	OnPrimaryApplicantStatus_VerifyToken: SubProcessTask
+		next: isEKYCStatusReject?
+
+	OnPrimaryApplicantRejected_VerifyToken: SubProcessTask
+		next: Status_Reject
+
+	OnSignDocuments_VerifyToken: SubProcessTask
+		next: SetDocumentsResultsOfVerifications_OnSignDocuments
+
+	OnSignatureRetry_VerifyToken: SubProcessTask
+		next: TooManySignatureVerificationRetries?
+
+	OnSignatureVerify_VerifyToken: SubProcessTask
+		next: Signiflow_SignatureVerification_Validate
+
+	OnSignatureManualVerify_VerifyToken: SubProcessTask
+		next: SignatureManualVerificationStatusGateway
+
+	OnNonPrimaryApplicantCompletionStatus_VerifyToken: SubProcessTask
+		next: GetSharedContext_4
+
+	OnCancel_VerifyToken: SubProcessTask
+		next: Status_Cancel
+
+	SetTagAppStatus_Completed: ScriptTask
+		next: End
+
+	SetTagAppStatus_Rejected: ScriptTask
+		next: Rejection
+
+	SetTagAppStatus_Canceled: ScriptTask
+		next: Cancelation
+
+	GetPartyIdAndSaveToGlobalVars: SubProcessTask
+
+	DW_BatchOrderUpsert_CreateClsCategories_Device: SubProcessStartTask
+		next: CreateNonPrimaryApplicantInCustomerService
+
+	ShouldGoToSubmitScanReference_GW1?: Gateway
+		switch:
+			else: ShowPrimaryApplicantStatus
+			conn: SubmitScanReferenceAction
+
+	ShouldReTriggerEKYC_GW?: Gateway
+		switch:
+			conn: PrimaryApplicantStatus
+			else: IsAlreadyTriggered_UpdateSharedContext_08_GW?
+
+	UpdateCustomerDeviceStatus: SubProcessStartTask
+		next: ShowFirstLoginRequest
+
+	UpdateNPAStatusInCustomerService_ELIGIBILITY: SubProcessStartTask
+		next: SetOrderLineStatus_InReview_GlobalVars
+
+	SetDocumentsResultsOfVerifications_OnSignDocuments: ComponentTask
+		next: isSignDocumentsSkipped?
+
+	IsAlreadyTriggered_UpdateSharedContext_08_GW?: Gateway
+		switch:
+			else: isEKYC_Rejected_GW?
+			conn: PrimaryApplicantStatus
+
+	GetNonPrimaryApplicantPostalAddress: ScriptTask
+		next: DW_BatchOrderUpsert_OnSubmitNonPrimaryApplicantDetails
+
+	ConvertNonPrimaryApplicantAddress_IdToLabel: SubProcessTask
+		next: UpdateCustomer_ResidencyEthnicityMailingAddress
+
+	ShouldGoToEventGateway_GW?: Gateway
+		switch:
+			else: ConvertNonPrimaryApplicantAddress_IdToLabel
+			conn: UpdateCustomer_ResidencyEthnicityMailingAddress
+
+	SetGetConfigurationUri_StartOutput: ScriptTask
+		next: GetOrderIdAndOrderLineId
+
+	GetConfigurationUri_Start: ComponentTask
+		next: SetGetConfigurationUri_StartOutput
+
+	SetGetConfigurationUri_ResumeOutput: ScriptTask
+		next: GetLastEvent
+
+	GetConfigurationUri_Resume: ComponentTask
+		next: SetGetConfigurationUri_ResumeOutput
+
+	Twilio_PhoneNumberVerification_Create_1Error: BoundaryErrorEvent
+		next: isTwilioPhoneNumberVerificationCreate1Error
+
+	Twilio_PhoneNumberVerification_Create_1: ComponentTask
+		switch:
+			next: Twilio_PhoneNumberVerification_Create_1Error
+			next: isTwilioPhoneNumberVerificationCreate1Error
+
+	SetTwilio_PhoneNumberVerification_Create_Output_1: ScriptTask
+		next: ShowVerifyPhoneNumberOTP
+
+	Twilio_PhoneNumberVerification_Create_2Error: BoundaryErrorEvent
+		next: Twilio_PhoneNumberVerification_Create_2Error?
+
+	Twilio_PhoneNumberVerification_Create_2: ComponentTask
+		switch:
+			next: Twilio_PhoneNumberVerification_Create_2Error
+			next: Twilio_PhoneNumberVerification_Create_2Error?
+
+	SetTwilio_PhoneNumberVerification_Create_Output_2: ScriptTask
+		next: ShowVerifyPhoneNumberOTP
+
+	Twilio_PhoneNumberVerification_Create_2Error?: Gateway
+		switch:
+			else: SetTwilio_PhoneNumberVerification_Create_Output_2
+			conn: Twilio_PhoneNumberVerification_Cancel
+
+	Twilio_PhoneNumberVerification_CheckError: BoundaryErrorEvent
+		next: Twilio_PhoneNumberVerification_CheckError?
+
+	Twilio_PhoneNumberVerification_Check: ComponentTask
+		switch:
+			next: Twilio_PhoneNumberVerification_CheckError
+			next: Twilio_PhoneNumberVerification_CheckError?
+
+	Twilio_PhoneNumberVerification_CheckError?: Gateway
+		switch:
+			else: isPhoneCodeValid?
+			conn: PhoneNumber_Validation
+
+	Twilio_PhoneNumberVerification_CancelError: BoundaryErrorEvent
+		next: SetTwilio_PhoneNumberVerification_CancelOutput
+
+	Twilio_PhoneNumberVerification_Cancel: ComponentTask
+		switch:
+			next: Twilio_PhoneNumberVerification_CancelError
+			next: SetTwilio_PhoneNumberVerification_CancelOutput
+
+	SetTwilio_PhoneNumberVerification_CancelOutput: ScriptTask
+		next: ShowVerifyPhoneNumberOTP
+
+	isTwilioPhoneNumberVerificationCreate1Error: Gateway
+		switch:
+			else: SetTwilio_PhoneNumberVerification_Create_Output_1
+			conn: ValidationTwilioEmailVerificationError
+
+	ValidationTwilioEmailVerificationError: ScriptTask
+		next: NonPrimaryApplicantConsentAction
+
+	ShouldDetermineCustomerRoleForNpa_GW?: Gateway
+		switch:
+			conn: DetermineCustomerRoleForNonPrimaryApplicant
+			else: DW_BatchOrderUpsert_SetOrderLineParty
+

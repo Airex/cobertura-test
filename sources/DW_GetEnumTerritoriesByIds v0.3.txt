@@ -1,0 +1,13 @@
+Worflow: DW_GetEnumTerritoriesByIds
+
+	StartEvent: MessageStartEvent
+		next: AdwQuery
+
+	End: EndEvent
+
+	AdwQuery: ComponentTask
+		next: Output
+
+	Output: ScriptTask
+		next: End
+

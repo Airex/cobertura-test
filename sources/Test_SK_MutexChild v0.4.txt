@@ -1,0 +1,10 @@
+Worflow: Test_SK_MutexChild
+
+	StartEvent: MessageStartEvent
+		next: MutexEnter
+
+	End: EndEvent
+
+	MutexEnter: ComponentTask
+		next: End
+

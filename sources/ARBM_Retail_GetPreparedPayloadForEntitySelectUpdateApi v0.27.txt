@@ -1,0 +1,72 @@
+Worflow: ARBM_Retail_GetPreparedPayloadForEntitySelectUpdateApi
+
+	StartEvent: MessageStartEvent
+		next: GetMultipleEntities
+
+	End: EndEvent
+
+	GetPreparedSamplePayloadForEsuApi: ScriptTask
+		next: StatusCode?
+
+	GetMultipleEntities: ScriptTask
+		next: GW_PreviewType_ESU?
+
+	EntitySelectUpdateApi_ManualTask: SubProcessTask
+		next: ModifyInputOnEntitySelectUpdateApi
+
+	ModifyInputOnEntitySelectUpdateApi: ScriptTask
+		next: SaveOutput
+
+	OnDataInputForEntitySelectUpdateApi: MessageEvent
+		next: isExistingBnmEntitySeqNo?
+
+	GetPreparedPayloadForEntitySelectUpdateApi: ScriptTask
+		next: ReviewOnEntitySelectUpdate_GW
+
+	ReviewOnEntitySelectUpdate_GW: Gateway
+		switch:
+			conn: OverrideInputOnEntitySelectUpdateApi
+			conn: AcceptInputOnEntitySelectUpdateApi
+
+	AcceptInputOnEntitySelectUpdateApi: MessageEvent
+		next: SaveOutput
+
+	OverrideInputOnEntitySelectUpdateApi: MessageEvent
+		next: modifyInputOnEntitySelectUpdateApi
+
+	modifyInputOnEntitySelectUpdateApi: ScriptTask
+		next: SaveOutput
+
+	GW_PreviewType_ESU?: Gateway
+		switch:
+			else: GetPreparedSamplePayloadForEsuApi
+			conn: OnDataInputForEntitySelectUpdateApi
+
+	isExistingBnmEntitySeqNo?: Gateway
+		switch:
+			else: GetPreparedPayloadForEntitySelectUpdateApi
+			conn: PleaseVerifyBnmEntitySeqNo
+
+	PleaseVerifyBnmEntitySeqNo: ScriptTask
+		next: OnDataInputForEntitySelectUpdateApi
+
+	SaveOutput: ScriptTask
+		next: End
+
+	StatusCode?: Gateway
+		switch:
+			else: EntitySelectUpdateApi_ManualTask
+			conn: UnconfirmedEntity
+			conn: MultipleEntities
+
+	UnconfirmedEntity: ScriptTask
+		next: ModifyInputOnEntitySelectUpdateApi
+
+	MultipleEntities: ScriptTask
+		next: IsEntitySelected?
+
+	IsEntitySelected?: Gateway
+		switch:
+			conn: ModifyInputOnEntitySelectUpdateApi
+			else: EntitySelectUpdateApi_ManualTask
+

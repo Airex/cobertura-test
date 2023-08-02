@@ -1,0 +1,19 @@
+Worflow: Test_SK_FileUpload
+
+	StartEvent: MessageStartEvent
+		next: NewScript
+
+	End: EndEvent
+
+	Upload_File: HttpMessageTask
+		next: End
+
+	Get_Headers: ScriptTask
+		next: Upload_File
+
+	Get_UploadURL: ComponentTask
+		next: Get_Headers
+
+	NewScript: ScriptTask
+		next: Get_UploadURL
+

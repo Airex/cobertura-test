@@ -1,0 +1,129 @@
+Worflow: BO_VirtualVideoMeeting
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	Prepare_Output: ScriptTask
+		next: Cleanup
+
+	Init: ScriptTask
+		next: IsActionStartedOrSubmitted?
+
+	Cleanup: ScriptTask
+		next: End
+
+	Set_Tags: ScriptTask
+		next: Init
+
+	IsActionStartedOrSubmitted?: Gateway
+		switch:
+			else: Get_OrderCustomers
+			conn: BookStartOrResolve?
+
+	Validate_SubmittedData: ScriptTask
+		next: IsValid?
+
+	IsValid?: Gateway
+		switch:
+			conn: Resolve
+			else: Prepare_Output
+
+	BookStartOrResolve?: Gateway
+		switch:
+			conn: Get_Schedules
+			else: IsMeetingAboutToStart?
+			conn: Validate_SubmittedData
+
+	Prepare_VideoRoomError: BoundaryErrorEvent
+		next: Set_Error
+
+	Prepare_VideoRoom: SubProcessTask
+		switch:
+			next: Prepare_VideoRoomError
+			next: PreparePayload
+
+	Get_OrderCustomersError: BoundaryErrorEvent
+		next: Set_Error
+
+	Get_OrderCustomers: SubProcessTask
+		switch:
+			next: Get_OrderCustomersError
+			next: IsScheduled?
+
+	IsScheduled?: Gateway
+		switch:
+			else: Get_TimeSlots
+			conn: PreparePayload
+
+	Get_SchedulesError: BoundaryErrorEvent
+		next: Set_Error
+
+	Get_Schedules: SubProcessTask
+		switch:
+			next: Get_SchedulesError
+			next: Find_AnyFreeOfficer
+
+	Get_TimeSlotsError: BoundaryErrorEvent
+		next: Set_Error
+
+	Get_TimeSlots: SubProcessTask
+		switch:
+			next: Get_TimeSlotsError
+			next: PreparePayload
+
+	Book_MeetingError: BoundaryErrorEvent
+		next: Set_Error
+
+	Book_Meeting: SubProcessTask
+		switch:
+			next: Book_MeetingError
+			next: IsMeetingAboutToStart?
+
+	Find_AnyFreeOfficer: ScriptTask
+		next: IsFreeOfficer?
+
+	IsMeetingAboutToStart?: Gateway
+		switch:
+			else: PreparePayload
+			conn: Prepare_VideoRoom
+
+	Resolve: ScriptTask
+		next: ShouldSaveCommentToOrder?
+
+	ShouldSaveCommentToOrder?: Gateway
+		switch:
+			conn: Save_OrderComment
+			else: Complete_VideoRoom
+
+	Save_OrderCommentError: BoundaryErrorEvent
+		next: Set_Error
+
+	Save_OrderComment: SubProcessTask
+		switch:
+			next: Save_OrderCommentError
+			next: Complete_VideoRoom
+
+	Set_Error: ScriptTask
+		next: Prepare_Output
+
+	IsFreeOfficer?: Gateway
+		switch:
+			conn: Book_Meeting
+			else: Notify_Reschedule
+
+	PreparePayload: ScriptTask
+		next: Prepare_Output
+
+	Notify_Reschedule: ScriptTask
+		next: Get_TimeSlots
+
+	Complete_VideoRoomError: BoundaryErrorEvent
+		next: Set_Error
+
+	Complete_VideoRoom: SubProcessTask
+		switch:
+			next: Complete_VideoRoomError
+			next: Prepare_Output
+

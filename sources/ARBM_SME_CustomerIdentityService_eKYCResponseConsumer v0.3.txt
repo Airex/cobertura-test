@@ -1,0 +1,13 @@
+Worflow: ARBM_SME_CustomerIdentityService_eKYCResponseConsumer
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	NotifySignaleKYCResponse: SignalTask
+		next: End
+
+	SetTags: ScriptTask
+		next: NotifySignaleKYCResponse
+

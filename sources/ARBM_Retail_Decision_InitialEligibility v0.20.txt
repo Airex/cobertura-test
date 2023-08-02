@@ -1,0 +1,43 @@
+Worflow: ARBM_Retail_Decision_InitialEligibility
+
+	0afa9f89-6516-4f1c-a4a0-9bd174823218: FlowVerification
+		next: 
+
+	ba592b23-7cfd-4579-a2de-b4e339344388: FlowVerification
+		next: 
+
+	c982b053-f497-49ae-8594-927e901fa4c4: FlowVerification
+		next: 
+
+	cf8ac9c0-6222-4f7d-814f-5abd2f6f30f8: FlowVerification
+		next: 
+
+	94f8dc2f-f4d9-4186-8752-32ec4235a8fa: FlowVerification
+		next: 
+
+	6d947159-bc87-416a-af48-228bc6e73762: FlowVerification
+		next: 
+
+	e71c160e-32bb-4bb8-9386-17faffcec249: FlowVerification
+		next: 
+
+	6d9bddde-416f-4c34-8fa9-a38e3406eae4: FlowVerification
+		next: 
+
+	aedfaf2c-3e29-45f2-ba8a-5a0fc40c3073: FlowVerification
+		next: 
+
+	835d8317-22fb-443a-8a44-8846a07d638f: FlowVerification
+		next: 
+
+	61f31870-3abd-4d87-adef-b65a122c88e0: FlowVerification
+		next: 
+
+	a2352e7b-fe2c-46f9-9805-0f95862d62a3: FlowVerification
+		next: 
+
+	c37e553f-639e-4abe-abfe-9139ec956135: FlowVerification
+		next: 
+
+	5d8da8a8-0da3-4491-a4e6-1374b21895d0: FlowVerification
+

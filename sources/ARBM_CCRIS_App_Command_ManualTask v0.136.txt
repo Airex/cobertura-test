@@ -1,0 +1,228 @@
+Worflow: ARBM_CCRIS_App_Command_ManualTask
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	IsReviewModeActive?: Gateway
+		switch:
+			else: HttpCallToCCRIS
+			conn: GW_PreviewType?
+
+	HttpCallToCCRISError: BoundaryErrorEvent
+		next: SetIsReviewModeTrue
+
+	HttpCallToCCRIS: ComponentTask
+		switch:
+			next: HttpCallToCCRISError
+			next: IsHttpCallError?
+
+	isError?: Gateway
+		switch:
+			else: ShouldUseEntitySelectUpdateApi?
+			conn: PushOrderSnapshotToKafka
+
+	OutputSave: ScriptTask
+		next: End
+
+	GeneratePayloadForCCRIS: SubProcessTask
+		next: SavePayloadForCCRISToGlobalVars
+
+	SavePayloadForCCRISToGlobalVars: ScriptTask
+		next: IsReviewModeActive?
+
+	Retail_ActionType_GW?: Gateway
+		switch:
+			conn: UpdateCCRISApp_ManualTask_Retail
+			else: CreateCCRISApp_ManualTask_Retail
+
+	SaveCCRISRequestToDB: ComponentTask
+		next: SaveCCRISResponseToDB
+
+	SaveCCRISResponseToDB: ComponentTask
+		next: isError?
+
+	ShouldUseEntitySelectUpdateApi?: Gateway
+		switch:
+			conn: GetPreparedPayloadForEntitySelectUpdateApi
+			else: SetIsReviewModeTrue
+
+	HttpCallToCCRIS_EntitySelectUpdateApiError: BoundaryErrorEvent
+		next: ShouldUseEntitySelectUpdateApi?
+
+	HttpCallToCCRIS_EntitySelectUpdateApi: ComponentTask
+		switch:
+			next: HttpCallToCCRIS_EntitySelectUpdateApiError
+			next: CCRISServiceResponseConsumer_EntitySelectUpdateApi
+
+	CCRISServiceResponseConsumer_EntitySelectUpdateApi: SignalEvent
+		next: SaveCCRISRequestToDB_AfterEntitySelectUpdateApi
+
+	SaveCCRISResponseToDB_AfterEntitySelectUpdateApi: ComponentTask
+		next: IsEntitySelectUpdateApiError?
+
+	IsEntitySelectUpdateApiError?: Gateway
+		switch:
+			else: ShouldUseEntitySelectUpdateApi?
+			conn: PushOrderSnapshotToKafka_EntitySelectUpdateApi
+			conn: SetIsReviewModeTrue
+
+	PushOrderSnapshotToKafka: SignalTask
+		next: OutputSave
+
+	PushOrderSnapshotToKafka_EntitySelectUpdateApi: SignalTask
+		next: OutputSave
+
+	SaveCCRISRequestToDB_AfterEntitySelectUpdateApi: ComponentTask
+		next: SaveCCRISResponseToDB_AfterEntitySelectUpdateApi
+
+	UpdateCCRISApp_ManualTask_Retail: SubProcessTask
+		next: IsManualTaskSuccessful_Retail_Update_GW?
+
+	CreateCCRISApp_ManualTask_Retail: SubProcessTask
+		next: IsManualTaskSuccessful_Retail_Create_GW?
+
+	ShouldModifyInput_Retail_Update_GW?: Gateway
+		switch:
+			conn: HttpCallToCCRIS
+			else: ModifyInputOnUpdate_Retail
+
+	ModifyInputOnUpdate_Retail: ScriptTask
+		next: HttpCallToCCRIS
+
+	ShouldModifyInput_Retail_Create_GW?: Gateway
+		switch:
+			conn: HttpCallToCCRIS
+			else: ModifyInputOnCreate_Retail
+
+	ModifyInputOnCreate_Retail: ScriptTask
+		next: HttpCallToCCRIS
+
+	IsManualTaskSuccessful_Retail_Create_GW?: Gateway
+		switch:
+			conn: ShouldModifyInput_Retail_Create_GW?
+			else: CreateCCRISApp_ManualTask_Retail
+
+	IsManualTaskSuccessful_Retail_Update_GW?: Gateway
+		switch:
+			conn: ShouldModifyInput_Retail_Update_GW?
+			else: UpdateCCRISApp_ManualTask_Retail
+
+	CCRISServiceResponseConsumer: SignalEvent
+		next: CCRISServiceResponse
+
+	SaveCorrelationId: ScriptTask
+		next: IsCCRISServiceResponseSimulation?
+
+	IsHttpCallError?: Gateway
+		switch:
+			else: SaveCorrelationId
+			conn: SetIsReviewModeTrue
+
+	SetTags: ScriptTask
+		next: GetSettingsForFinProduct
+
+	GW_PreviewType?: Gateway
+		switch:
+			conn: GW_ZdeMessage_IsActionTypeCreate?
+			else: ProductCode_GW?
+
+	ReviewOnCreateGateway: Gateway
+		switch:
+			conn: AcceptInputOnCreate
+			conn: OverrideInputOnCreate
+
+	AcceptInputOnCreate: MessageEvent
+		next: HttpCallToCCRIS
+
+	GW_ZdeMessage_IsActionTypeCreate?: Gateway
+		switch:
+			conn: ReviewOnUpdateGateway
+			else: ReviewOnCreateGateway
+
+	ReviewOnUpdateGateway: Gateway
+		switch:
+			conn: AcceptInputOnUpdate
+			conn: OverrideInputOnUpdate
+
+	AcceptInputOnUpdate: MessageEvent
+		next: HttpCallToCCRIS
+
+	OverrideInputOnUpdate: MessageEvent
+		next: Copy_modifyInputOnUpdate
+
+	Copy_modifyInputOnUpdate: ScriptTask
+		next: HttpCallToCCRIS
+
+	OverrideInputOnCreate: MessageEvent
+		next: Copy_modifyInputOnCreate
+
+	Copy_modifyInputOnCreate: ScriptTask
+		next: HttpCallToCCRIS
+
+	GetSettingsForFinProduct: SubProcessTask
+		next: GeneratePayloadForCCRIS
+
+	ProductCode_GW?: Gateway
+		switch:
+			conn: Retail_ActionType_GW?
+			else: SME_ActionType_GW?
+
+	SME_ActionType_GW?: Gateway
+		switch:
+			conn: UpdateCCRISApp_ManualTask_SME
+			else: CreateCCRISApp_ManualTask_SME
+
+	UpdateCCRISApp_ManualTask_SME: SubProcessTask
+		next: IsManualTaskSuccessful_SME_Update_GW?
+
+	CreateCCRISApp_ManualTask_SME: SubProcessTask
+		next: IsManualTaskSuccessful_SME_Create_GW?
+
+	ShouldModifyInput_SME_Update_GW?: Gateway
+		switch:
+			else: ModifyInputOnUpdate_SME
+			conn: HttpCallToCCRIS
+
+	ModifyInputOnUpdate_SME: ScriptTask
+		next: HttpCallToCCRIS
+
+	ShouldModifyInput_SME_Create_GW?: Gateway
+		switch:
+			else: ModifyInputOnCreate_SME
+			conn: HttpCallToCCRIS
+
+	ModifyInputOnCreate_SME: ScriptTask
+		next: HttpCallToCCRIS
+
+	IsManualTaskSuccessful_SME_Create_GW?: Gateway
+		switch:
+			conn: ShouldModifyInput_SME_Create_GW?
+			else: CreateCCRISApp_ManualTask_SME
+
+	IsManualTaskSuccessful_SME_Update_GW?: Gateway
+		switch:
+			conn: ShouldModifyInput_SME_Update_GW?
+			else: UpdateCCRISApp_ManualTask_SME
+
+	GetPreparedPayloadForEntitySelectUpdateApi: SubProcessTask
+		next: HttpCallToCCRIS_EntitySelectUpdateApi
+
+	Init: ScriptTask
+		next: SetTags
+
+	SetIsReviewModeTrue: ScriptTask
+		next: IsReviewModeActive?
+
+	IsCCRISServiceResponseSimulation?: Gateway
+		switch:
+			else: CCRISServiceResponseConsumer
+			conn: SimulateCCRISServiceResponse
+
+	SimulateCCRISServiceResponse: ScriptTask
+		next: CCRISServiceResponse
+
+	CCRISServiceResponse: ScriptTask
+		next: SaveCCRISRequestToDB
+

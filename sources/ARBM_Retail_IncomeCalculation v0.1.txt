@@ -1,0 +1,7 @@
+Worflow: ARBM_Retail_IncomeCalculation
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

@@ -1,0 +1,110 @@
+Worflow: ZCRE_ExecuteAction
+
+	StartEvent: MessageStartEvent
+		next: PrepareActionParameters
+
+	End: EndEvent
+
+	PrepareActionParameters: ScriptTask
+		next: CheckSynchronousExecution
+
+	CheckTooEarly: Gateway
+		switch:
+			else: SetTooEarlyStatus
+			conn: CheckTooLate
+
+	SetTooEarlyStatus: ScriptTask
+		next: End
+
+	SetAlreadyDone: ScriptTask
+		next: End
+
+	CheckAlreadyDone: Gateway
+		switch:
+			conn: CheckTooEarly
+			else: SetAlreadyDone
+
+	CheckTooLate: Gateway
+		switch:
+			else: SetTooLateStatus
+			conn: ExecuteAction
+
+	SetTooLateStatus: ScriptTask
+		next: End
+
+	ExecuteActionError: BoundaryErrorEvent
+		next: UpdateAction
+
+	ExecuteAction: SubProcessTask
+		switch:
+			next: ExecuteActionError
+			next: UpdateAction
+
+	DW_UpdateConditionAction: ComponentTask
+		next: CheckUpdatePerformed
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	UpdateAction: ScriptTask
+		next: DW_UpdateConditionAction
+
+	GetCondition: SubProcessTask
+		next: ConditionChanges
+
+	CheckHasResult: Gateway
+		switch:
+			conn: GetCondition
+			else: CheckHasConditionResult
+
+	ConditionChanges: ScriptTask
+		next: CheckHasChanges
+
+	CheckNeedSendCompletedSignal: Gateway
+		switch:
+			conn: SendConditionCompleted
+			else: PrepareOutput
+
+	CheckHasChanges: Gateway
+		switch:
+			conn: DW_UpdateCondition
+			else: PrepareOutput
+
+	DW_UpdateCondition: ComponentTask
+		next: CheckNeedSendCompletedSignal
+
+	CheckUpdatePerformed: Gateway
+		switch:
+			conn: CheckHasResult
+			else: SetAlreadyDone
+
+	SendConditionCompleted: SignalTask
+		next: PrepareOutput
+
+	CheckHasConditionResult: Gateway
+		switch:
+			else: PrepareOutput
+			conn: DW_SaveConditionResult
+
+	DW_SaveConditionResult: ComponentTask
+		next: PrepareOutput
+
+	MutexTryEnter: ComponentTask
+		next: CheckLockTaken
+
+	CheckSynchronousExecution: Gateway
+		switch:
+			conn: MutexTryEnter
+			else: MutexEnter
+
+	CheckLockTaken: Gateway
+		switch:
+			else: SetExecutionBlockedStatus
+			conn: CheckAlreadyDone
+
+	SetExecutionBlockedStatus: ScriptTask
+		next: End
+
+	MutexEnter: ComponentTask
+		next: CheckAlreadyDone
+

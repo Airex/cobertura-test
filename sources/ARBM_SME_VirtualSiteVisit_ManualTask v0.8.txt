@@ -1,0 +1,16 @@
+Worflow: ARBM_SME_VirtualSiteVisit_ManualTask
+
+	StartEvent: MessageStartEvent
+		next: VirtualSiteVisit_ManualTask
+
+	End: EndEvent
+
+	VirtualSiteVisit_ManualTask: SubProcessTask
+		next: Proccess_VirtualSiteVisit_ManualTask
+
+	Proccess_VirtualSiteVisit_ManualTask: ScriptTask
+		next: DW_BatchOrderUpsert_SaveToDb_RuleResult
+
+	DW_BatchOrderUpsert_SaveToDb_RuleResult: SubProcessStartTask
+		next: End
+

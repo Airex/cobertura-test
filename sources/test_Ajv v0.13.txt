@@ -1,0 +1,13 @@
+Worflow: test_Ajv
+
+	StartEvent: MessageStartEvent
+		next: NewScript
+
+	End: EndEvent
+
+	NewScript: ScriptTask
+		next: NewMessageResponse
+
+	NewMessageResponse: ResponseTask
+		next: End
+

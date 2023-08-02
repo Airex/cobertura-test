@@ -1,0 +1,13 @@
+Worflow: JsonDiffTest_DmytroM
+
+	StartEvent: MessageStartEvent
+		next: InitGlobalVars
+
+	End: EndEvent
+
+	GetAllExperianReportsHaveSameContents: ScriptTask
+		next: End
+
+	InitGlobalVars: ScriptTask
+		next: GetAllExperianReportsHaveSameContents
+

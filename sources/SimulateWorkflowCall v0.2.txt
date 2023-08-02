@@ -1,0 +1,24 @@
+Worflow: SimulateWorkflowCall
+
+	StartEvent: MessageStartEvent
+		next: CheckSimulation
+
+	End: EndEvent
+
+	CheckSimulation: ResponseTask
+		next: NewGateway
+
+	NewGateway: Gateway
+		switch:
+			conn: NewMessageResponse
+			conn: NewMessageResponse_1
+
+	NewMessageResponse: ResponseTask
+		next: NewMessageResponse_2
+
+	NewMessageResponse_1: SubProcessTask
+		next: NewMessageResponse_2
+
+	NewMessageResponse_2: ResponseTask
+		next: End
+

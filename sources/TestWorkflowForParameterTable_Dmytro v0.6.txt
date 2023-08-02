@@ -1,0 +1,18 @@
+Worflow: TestWorkflowForParameterTable_Dmytro
+
+	StartEvent: MessageStartEvent
+		next: DecideRejectReasonCode
+
+	End: EndEvent
+
+	DecideRejectReasonCodeError: BoundaryErrorEvent
+		next: SaveOutput
+
+	DecideRejectReasonCode: SubDecisionTask
+		switch:
+			next: DecideRejectReasonCodeError
+			next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+

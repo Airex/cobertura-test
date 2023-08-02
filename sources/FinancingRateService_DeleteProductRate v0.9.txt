@@ -1,0 +1,10 @@
+Worflow: FinancingRateService_DeleteProductRate
+
+	StartEvent: MessageStartEvent
+		next: DeleteProductRate
+
+	End: EndEvent
+
+	DeleteProductRate: ComponentTask
+		next: End
+

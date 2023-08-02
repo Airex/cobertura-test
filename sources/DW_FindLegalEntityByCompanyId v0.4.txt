@@ -1,0 +1,13 @@
+Worflow: DW_FindLegalEntityByCompanyId
+
+	StartEvent: MessageStartEvent
+		next: AdwQuery
+
+	End: EndEvent
+
+	AdwQuery: ComponentTask
+		next: Output
+
+	Output: ScriptTask
+		next: End
+

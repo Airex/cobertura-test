@@ -1,0 +1,19 @@
+Worflow: DW_StartApplication
+
+	StartEvent: MessageStartEvent
+		next: DW_SetCatalogue
+
+	End: EndEvent
+
+	DW_SetCatalogue: ComponentTask
+		next: DW_CreateOrderNumber
+
+	DW_CreateOrderNumber: ComponentTask
+		next: DW_SetOrder
+
+	DW_SetOrder: ComponentTask
+		next: SetOutput
+
+	SetOutput: ScriptTask
+		next: End
+

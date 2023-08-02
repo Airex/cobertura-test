@@ -1,0 +1,13 @@
+Worflow: ARBM_SME_UpdateNonPrimaryApplicantInCustomerDb
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	UpdateCustomerMobPreferencesInCustService: SubProcessTask
+		next: End
+
+	SetTags: ScriptTask
+		next: UpdateCustomerMobPreferencesInCustService
+

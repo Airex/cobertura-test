@@ -1,0 +1,44 @@
+Worflow: ARBM_SME_EntityDSRCheck
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	EntityDSRCalculationsError: BoundaryErrorEvent
+		next: IsEntityDSRCalculationsError_GW?
+
+	EntityDSRCalculations: SubProcessTask
+		switch:
+			next: EntityDSRCalculationsError
+			next: IsEntityDSRCalculationsError_GW?
+
+	PreparePayload: ScriptTask
+		next: EntityDSRCalculations
+
+	EntityDSRCheck: SubDecisionTask
+		next: SaveToDb_Rule_EntityDSRCheck
+
+	SaveToDb_Rule_EntityDSRCheck: ComponentTask
+		next: SetOutput
+
+	SetOutput: ScriptTask
+		next: End
+
+	IsEntityDSRCalculationsError_GW?: Gateway
+		switch:
+			conn: GetDataDsrCalculatorManualEntry_ManualTask
+			else: EntityDSRCheck
+
+	GetDataDsrCalculatorManualEntry_ManualTask: SubProcessTask
+		next: IsManualTaskRetryOrReject_GW?
+
+	IsManualTaskRetryOrReject_GW?: Gateway
+		switch:
+			conn: EntityDSRCalculations
+			else: EntityDSRCheck
+			conn: SaveToDb_Rule_EntityDSRCheck
+
+	SetTags: ScriptTask
+		next: PreparePayload
+

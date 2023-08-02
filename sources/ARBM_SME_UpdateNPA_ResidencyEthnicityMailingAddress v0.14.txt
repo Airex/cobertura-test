@@ -1,0 +1,30 @@
+Worflow: ARBM_SME_UpdateNPA_ResidencyEthnicityMailingAddress
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	UpdateCustomerProfile_EthnicityAndResidencyStatus: ComponentTask
+		next: DW_BatchOrderUpsert_SaveClsToDb
+
+	UpdateNonPrimaryApplicantMailingAddress: ComponentTask
+		next: GetNonPrimaryPrimaryApplicantProfile
+
+	IsMailingAddressSameAsResidentialAddress?: Gateway
+		switch:
+			conn: UpdateNonPrimaryApplicantMailingAddress
+			else: GetNonPrimaryPrimaryApplicantProfile
+
+	GetNonPrimaryPrimaryApplicantProfile: ComponentTask
+		next: End
+
+	DW_BatchOrderUpsert_SaveClsToDb: SubProcessStartTask
+		next: IsMailingAddressSameAsResidentialAddress?
+
+	DeriveValues: ScriptTask
+		next: UpdateCustomerProfile_EthnicityAndResidencyStatus
+
+	SetTags: ScriptTask
+		next: DeriveValues
+

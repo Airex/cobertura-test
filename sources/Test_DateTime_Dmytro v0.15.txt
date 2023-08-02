@@ -1,0 +1,13 @@
+Worflow: Test_DateTime_Dmytro
+
+	StartEvent: MessageStartEvent
+		next: CreateDateTime
+
+	End: EndEvent
+
+	CreateDateTime: ScriptTask
+		next: NewScript
+
+	NewScript: ScriptTask
+		next: End
+

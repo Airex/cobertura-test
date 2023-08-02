@@ -1,0 +1,10 @@
+Worflow: TEST_CompleteDecision
+
+	StartEvent: MessageStartEvent
+		next: NewSignal
+
+	End: EndEvent
+
+	NewSignal: SignalTask
+		next: End
+

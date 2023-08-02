@@ -1,0 +1,61 @@
+Worflow: ZCRE_HandleUploadedFiles
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	CheckUIEventType: Gateway
+		switch:
+			else: Prepare_Output
+			conn: ShouldAppendHistoricalValidationData?
+
+	Prepare_Output: ScriptTask
+		next: Cleanup
+
+	Set_ErrorStatus: ScriptTask
+		next: Prepare_Output
+
+	Prepare_UploadedToSave: ScriptTask
+		next: CreateOrUpdateAndLink_DocToCondition
+
+	IsApprovedOrRejected?: Gateway
+		switch:
+			else: Prepare_Output
+			conn: Link_DocToOrder
+
+	Link_DocToOrderError: BoundaryErrorEvent
+		next: Set_ErrorStatus
+
+	Link_DocToOrder: SubProcessTask
+		switch:
+			next: Link_DocToOrderError
+			next: Prepare_Output
+
+	CreateOrUpdateAndLink_DocToConditionError: BoundaryErrorEvent
+		next: Set_ErrorStatus
+
+	CreateOrUpdateAndLink_DocToCondition: SubProcessTask
+		switch:
+			next: CreateOrUpdateAndLink_DocToConditionError
+			next: IsApprovedOrRejected?
+
+	Init: ScriptTask
+		next: CheckUIEventType
+
+	Cleanup: ScriptTask
+		next: End
+
+	Get_HistoricalValidationDataError: BoundaryErrorEvent
+		next: Set_ErrorStatus
+
+	Get_HistoricalValidationData: SubProcessTask
+		switch:
+			next: Get_HistoricalValidationDataError
+			next: Prepare_UploadedToSave
+
+	ShouldAppendHistoricalValidationData?: Gateway
+		switch:
+			conn: Get_HistoricalValidationData
+			else: Prepare_UploadedToSave
+

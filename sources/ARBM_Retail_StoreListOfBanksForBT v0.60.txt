@@ -1,0 +1,26 @@
+Worflow: ARBM_Retail_StoreListOfBanksForBT
+
+	StartEvent: MessageStartEvent
+		next: InitDataBankList
+
+	End: EndEvent
+
+	GetPreparedClsCategoriesToBeSavedToDb: ScriptTask
+		next: CheckNotEmptyArray
+
+	InitDataBankList: ScriptTask
+		next: GetPreparedClsCategoriesToBeSavedToDb
+
+	SetClassificationCategories: ComponentTask
+		next: CheckEndDataProcessing
+
+	CheckNotEmptyArray: Gateway
+		switch:
+			else: End
+			conn: SetClassificationCategories
+
+	CheckEndDataProcessing: Gateway
+		switch:
+			else: End
+			conn: SetClassificationCategories
+

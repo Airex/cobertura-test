@@ -1,0 +1,13 @@
+Worflow: ZCRE_GetUploadLinks
+
+	StartEvent: MessageStartEvent
+		next: Get_UploadLinks
+
+	End: EndEvent
+
+	Get_UploadLinks: SubProcessTask
+		next: Prepare_Output
+
+	Prepare_Output: ScriptTask
+		next: End
+

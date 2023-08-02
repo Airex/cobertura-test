@@ -1,0 +1,13 @@
+Worflow: Origination_ApplicantsTracking
+
+	StartEvent: MessageStartEvent
+		next: GetEventState
+
+	End: EndEvent
+
+	MergeContext: ScriptTask
+		next: End
+
+	GetEventState: SubProcessTask
+		next: MergeContext
+

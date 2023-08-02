@@ -1,0 +1,18 @@
+Worflow: TwilioVerificationCancel
+
+	StartEvent: MessageStartEvent
+		next: VerificationCancel
+
+	End: EndEvent
+
+	VerificationCancelError: BoundaryErrorEvent
+		next: SaveOutput
+
+	VerificationCancel: ComponentTask
+		switch:
+			next: VerificationCancelError
+			next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+

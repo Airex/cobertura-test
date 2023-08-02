@@ -1,0 +1,52 @@
+Worflow: ARBM_ProcessConsentDocuments
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: IsDocument?
+
+	IsDocument?: Gateway
+		switch:
+			conn: IsS3Key?
+			else: IsEntityTypeOrderOrOrderLine_GW2?
+
+	PrepareDocumentDownload: ScriptTask
+		next: GetDownloadUrl
+
+	SaveOutputDocuments: ScriptTask
+		next: IsDocument?
+
+	IsS3Key?: Gateway
+		switch:
+			conn: PrepareDocumentDownload
+			else: PrepareDocumentForDb
+
+	IsEntityTypeOrderOrOrderLine_GW2?: Gateway
+		switch:
+			conn: DW_SetOrderDocuments
+			else: DW_SetOrderLineDocuments
+
+	DW_SetOrderDocuments: ComponentTask
+		next: SaveOutputOrderDocuments
+
+	SaveOutputOrderDocuments: ScriptTask
+		next: End
+
+	PrepareDocumentForDb: ScriptTask
+		next: SaveOutputDocuments
+
+	DW_SetOrderLineDocuments: ComponentTask
+		next: SaveOutputOrderLineDocuments
+
+	SaveOutputOrderLineDocuments: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: Init
+
+	GetDownloadUrl: ComponentTask
+		next: PrepareDocumentForDb
+

@@ -1,0 +1,7 @@
+Worflow: ARBM_SME_DecideCompanyCheckResult
+
+	e83a5fd6-b0cf-4aaf-8d69-2b872bf896b3: FlowVerification
+		next: 
+
+	bfc545ec-ca38-446b-857d-e7b9a68ef1dd: FlowVerification
+

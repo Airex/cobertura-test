@@ -1,0 +1,27 @@
+Worflow: ARBM_SME_RiskBasedFinancingCalculator_Test
+
+	StartEvent: MessageStartEvent
+		next: GetGeneratedRandomPayload
+
+	End: EndEvent
+
+	RiskBasedFinancingCalculator: SubProcessTask
+		next: SaveResults
+
+	GetGeneratedRandomPayload: ScriptTask
+		next: RiskBasedFinancingCalculator
+
+	ShouldMakeAnotherIteration?: Gateway
+		switch:
+			conn: DecrementCounter
+			else: SaveOutput
+
+	DecrementCounter: ScriptTask
+		next: GetGeneratedRandomPayload
+
+	SaveResults: ScriptTask
+		next: ShouldMakeAnotherIteration?
+
+	SaveOutput: ScriptTask
+		next: End
+

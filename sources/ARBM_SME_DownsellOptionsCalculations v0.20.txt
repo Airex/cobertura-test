@@ -1,0 +1,64 @@
+Worflow: ARBM_SME_DownsellOptionsCalculations
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	SetOutput: ScriptTask
+		next: isDownsell
+
+	PrepareCalculationParams: ScriptTask
+		next: FinancingCalculator
+
+	CheckDecision: Gateway
+		switch:
+			else: SetOutput
+			conn: PrepareCalculationParams
+
+	EntityDSRCheckError: BoundaryErrorEvent
+		next: isRejectedEntityDSRCheck_GW?
+
+	EntityDSRCheck: SubProcessTask
+		switch:
+			next: EntityDSRCheckError
+			next: isRejectedEntityDSRCheck_GW?
+
+	FinancingCalculatorError: BoundaryErrorEvent
+		next: SetOutputReject
+
+	FinancingCalculator: SubProcessTask
+		switch:
+			next: FinancingCalculatorError
+			next: IsFinancingCalculatorReject?
+
+	SetTags: ScriptTask
+		next: GetParamsFromSettings
+
+	IsFinancingCalculatorReject?: Gateway
+		switch:
+			else: EntityDSRCheck
+			conn: SetOutputReject
+
+	SetOutputReject: ScriptTask
+		next: End
+
+	SaveToDb_Rule21_DownsellCalcAndCheck: ComponentTask
+		next: End
+
+	isDownsell: Gateway
+		switch:
+			conn: SaveToDb_Rule21_DownsellCalcAndCheck
+			else: End
+
+	GetParamsFromSettings: ScriptTask
+		next: PrepareCalculationParams
+
+	isRejectedEntityDSRCheck_GW?: Gateway
+		switch:
+			else: CheckDecision
+			conn: SaveOutputReject_AfterEntityDsrCheck
+
+	SaveOutputReject_AfterEntityDsrCheck: ScriptTask
+		next: End
+

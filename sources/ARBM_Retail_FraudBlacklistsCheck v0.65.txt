@@ -1,0 +1,50 @@
+Worflow: ARBM_Retail_FraudBlacklistsCheck
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	EndEvent: EndEvent
+
+	GetIsInBlacklistIdentifiedFraudCasesForPFCustomers: ScriptTask
+		next: IsCustomerSelfEmployed?
+
+	SaveOutput: ScriptTask
+		next: EndEvent
+
+	IsCustomerSelfEmployed?: Gateway
+		switch:
+			else: SaveOutput
+			conn: GetIsInBlacklistIdentifiedFraudCasesForCorpCust
+
+	GetIsInBlacklistIdentifiedFraudCasesForCorpCust: ScriptTask
+		next: GetIsLegalEntityInBLSuspectedFraudByBRN
+
+	IsOverrideOn?: Gateway
+		switch:
+			conn: OverrideOutputResult
+			else: GetIsPersonInBlacklistSuspectedFraud
+
+	OverrideOutputResult: ScriptTask
+		next: EndEvent
+
+	GetIsLegalEntityInBlacklistSuspectedFraudByWorkEmail: SubProcessTask
+		next: GetIsLegalEntityInBLFailedLegalTradeChecksByWorkEmail
+
+	GetIsPersonInBlacklistSuspectedFraud: ScriptTask
+		next: GetIsPersonInBLFailedLegalTradeChecks
+
+	GetIsLegalEntityInBLSuspectedFraudByBRN: ScriptTask
+		next: GetIsLegalEntityInBLFailedLegalTradeChecksByBRN
+
+	GetIsPersonInBLFailedLegalTradeChecks: ScriptTask
+		next: GetIsInBlacklistIdentifiedFraudCasesForPFCustomers
+
+	GetIsLegalEntityInBLFailedLegalTradeChecksByBRN: ScriptTask
+		next: GetIsLegalEntityInBlacklistSuspectedFraudByWorkEmail
+
+	GetIsLegalEntityInBLFailedLegalTradeChecksByWorkEmail: SubProcessTask
+		next: SaveOutput
+
+	SetTags: ScriptTask
+		next: IsOverrideOn?
+

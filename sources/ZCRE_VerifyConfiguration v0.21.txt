@@ -1,0 +1,54 @@
+Worflow: ZCRE_VerifyConfiguration
+
+	StartEvent: MessageStartEvent
+		next: CheckVerify
+
+	End: EndEvent
+
+	PrepareEventsQuery: ScriptTask
+		next: SaveEvents
+
+	SaveEvents: ComponentTask
+		next: PrepareOutput
+
+	ChecNeedSaveEvents: Gateway
+		switch:
+			else: CheckNeedSaveConditions
+			conn: PrepareEventsQuery
+
+	SaveConditionTypes: ComponentTask
+		next: PrepareConditionActionsQuery
+
+	PrepareConditionTypesQuery: ScriptTask
+		next: SaveConditionTypes
+
+	CheckNeedSaveConditions: Gateway
+		switch:
+			conn: PrepareConditionTypesQuery
+			else: End
+
+	CheckNeedReshreshEvents: ScriptTask
+		next: CheckNeedRefresh
+
+	CheckVerify: Gateway
+		switch:
+			else: ChecNeedSaveEvents
+			conn: CheckNeedReshreshEvents
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	RefreshData: ScriptTask
+		next: End
+
+	CheckNeedRefresh: Gateway
+		switch:
+			conn: RefreshData
+			else: End
+
+	PrepareConditionActionsQuery: ScriptTask
+		next: SaveConditionActions
+
+	SaveConditionActions: ComponentTask
+		next: PrepareOutput
+

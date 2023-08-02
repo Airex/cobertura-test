@@ -1,0 +1,7 @@
+Worflow: ARBM_Retail_DecideTypesOfRequiredDocuments
+
+	9902d3b8-a252-4722-a7d1-6d85c923b131: FlowVerification
+		next: 
+
+	c146fbaf-7271-4bb2-a501-412b0a8fa032: FlowVerification
+

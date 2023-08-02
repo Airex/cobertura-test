@@ -1,0 +1,7 @@
+Worflow: ARBM_Retail_DecideCustomerType
+
+	ba709bd1-ec7d-4efd-aa40-933f992ef737: FlowVerification
+		next: 
+
+	f2de66b1-ec44-4c76-8b05-f69a3e634ddb: FlowVerification
+

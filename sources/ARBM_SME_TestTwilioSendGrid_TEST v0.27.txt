@@ -1,0 +1,12 @@
+Worflow: ARBM_SME_TestTwilioSendGrid_TEST
+
+	StartEvent: MessageStartEvent
+		next: Twilio_EmailVerification_Create
+
+	End: EndEvent
+
+	Twilio_EmailVerification_Create: HttpMessageTask
+		next: End
+
+	SendEmail: ComponentTask
+

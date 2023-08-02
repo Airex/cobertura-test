@@ -1,0 +1,41 @@
+Worflow: ARBM_DecisionWrapperProcess
+
+	StartEvent: MessageStartEvent
+		next: Tags
+
+	End: EndEvent
+
+	NewSubDecision: SubDecisionTask
+		next: InitQueue
+
+	GetReport: ComponentTask
+		next: ProcessReport
+
+	ProcessReportError: BoundaryErrorEvent
+		next: CollectSubDecisions
+
+	ProcessReport: ScriptTask
+		switch:
+			next: ProcessReportError
+			next: CollectSubDecisions
+
+	CollectSubDecisions: ScriptTask
+		next: NewGateway
+
+	InitQueue: ScriptTask
+		next: GetReport
+
+	NewGateway: Gateway
+		switch:
+			conn: GetReport
+			else: PostProcessing
+
+	PostProcessing: ScriptTask
+		next: SaveResult
+
+	Tags: ScriptTask
+		next: NewSubDecision
+
+	SaveResult: ComponentTask
+		next: End
+

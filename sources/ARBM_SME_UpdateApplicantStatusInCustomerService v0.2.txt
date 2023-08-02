@@ -1,0 +1,13 @@
+Worflow: ARBM_SME_UpdateApplicantStatusInCustomerService
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	UpdateApplicantStatusInCustomerService: SubProcessTask
+		next: End
+
+	SetTags: ScriptTask
+		next: UpdateApplicantStatusInCustomerService
+

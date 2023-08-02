@@ -1,0 +1,16 @@
+Worflow: DW_UpdateCondition_Workflow_1656848183687
+
+	StartEvent: MessageStartEvent
+		next: PrepareQuery
+
+	End: EndEvent
+
+	AdwQuery: ComponentTask
+		next: PrepareOutput
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	PrepareQuery: ScriptTask
+		next: AdwQuery
+

@@ -1,0 +1,24 @@
+Worflow: ARBM_SME_CreatePrimaryApplicantCustomerRecord
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	CreatePrimaryApplicantCustomerRecordError: BoundaryErrorEvent
+		next: ThrowError
+
+	CreatePrimaryApplicantCustomerRecord: ComponentTask
+		switch:
+			next: CreatePrimaryApplicantCustomerRecordError
+			next: SaveOutput
+
+	SetTags: ScriptTask
+		next: CreatePrimaryApplicantCustomerRecord
+
+	SaveOutput: ScriptTask
+		next: End
+
+	ThrowError: ScriptTask
+		next: End
+

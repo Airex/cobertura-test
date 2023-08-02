@@ -1,0 +1,7 @@
+Worflow: Test_Master_Products
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

@@ -1,0 +1,57 @@
+Worflow: ARBM_SME_WaitUntilDocumentsAreSignedByNPAs
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	GetSharedContext: SubProcessTask
+		next: GetStatusAllGuarantorsSignedFinancialDocs
+
+	ShouldRetryPollingOfData_GW?: Gateway
+		switch:
+			conn: SaveOutputReject_1
+			else: GetStatusAnyOfGuarantorsHasFailedTokenVerif
+
+	AllGuarantorsSignedFinancialDocs_GW?: Gateway
+		switch:
+			conn: SaveOutputProceed
+			else: ShouldRetryPollingOfData_GW?
+
+	SaveOutputProceed: ScriptTask
+		next: End
+
+	SaveOutputReject_1: ScriptTask
+		next: End
+
+	SharedContextWasUpdatedSignal: SignalEvent
+		next: GetSharedContext
+
+	Init: ScriptTask
+		next: GetSharedContext
+
+	UpdateSharedContextByTimerOrBySignal_GW?: Gateway
+		switch:
+			conn: SharedContextWasUpdatedSignal
+			conn: RetryTimer_Succeeded
+
+	RetryTimer: SubProcessStartTask
+		next: UpdateSharedContextByTimerOrBySignal_GW?
+
+	RetryTimer_Succeeded: SubProcessSucceededEvent
+		next: GetSharedContext
+
+	GetStatusAllGuarantorsSignedFinancialDocs: ScriptTask
+		next: AllGuarantorsSignedFinancialDocs_GW?
+
+	GetStatusAnyOfGuarantorsHasFailedTokenVerif: ScriptTask
+		next: IsAnyOfGuarantorsHasFailedTokenVerif_GW?
+
+	IsAnyOfGuarantorsHasFailedTokenVerif_GW?: Gateway
+		switch:
+			else: RetryTimer
+			conn: SaveOutputReject_2
+
+	SaveOutputReject_2: ScriptTask
+		next: End
+

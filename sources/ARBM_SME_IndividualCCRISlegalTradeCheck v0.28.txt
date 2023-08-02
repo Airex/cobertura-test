@@ -1,0 +1,46 @@
+Worflow: ARBM_SME_IndividualCCRISlegalTradeCheck
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	PrepareApplicants: ScriptTask
+		next: haveMoreApplicants?
+
+	haveMoreApplicants?: Gateway
+		switch:
+			else: SetOutput
+			conn: CallDataProvider
+
+	SetOutput: ScriptTask
+		next: End
+
+	SaveData: ScriptTask
+		next: haveMoreApplicants?
+
+	IndividualCCRISLegalTradeRules: SubDecisionTask
+		next: DW_BatchOrderUpsert_SaveToDb_Rule_CCRISLegalTradeCheckResult
+
+	CallDataProviderError: BoundaryErrorEvent
+		next: DW_BatchOrderUpsert_SaveToDb_Rule_CCRISLegalTradeCheckError
+
+	CallDataProvider: ComponentTask
+		switch:
+			next: CallDataProviderError
+			next: IsCCRISLegalTradeCheckFailed?
+
+	IsCCRISLegalTradeCheckFailed?: Gateway
+		switch:
+			conn: IndividualCCRISLegalTradeRules
+			else: DW_BatchOrderUpsert_SaveToDb_Rule_CCRISLegalTradeCheckError
+
+	DW_BatchOrderUpsert_SaveToDb_Rule_CCRISLegalTradeCheckError: SubProcessStartTask
+		next: haveMoreApplicants?
+
+	DW_BatchOrderUpsert_SaveToDb_Rule_CCRISLegalTradeCheckResult: SubProcessStartTask
+		next: SaveData
+
+	SetTags: ScriptTask
+		next: PrepareApplicants
+

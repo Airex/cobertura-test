@@ -1,0 +1,27 @@
+Worflow: ARBM_SME_AddCapabilityForGuarantors
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	Init: ScriptTask
+		next: IsMoreGuarantors_GW?
+
+	AddNewCapability: ScriptTask
+		next: IsMoreGuarantors_GW?
+
+	IsMoreGuarantors_GW?: Gateway
+		switch:
+			conn: GetGuarantor
+			else: DW_BatchOrderUpsert_SetGuarantorsCapabilities
+
+	GetGuarantor: ScriptTask
+		next: DW_FindPartyBySenderIdSenderScopeId
+
+	DW_FindPartyBySenderIdSenderScopeId: ComponentTask
+		next: AddNewCapability
+
+	NewMessageEvent: EndEvent
+
+	DW_BatchOrderUpsert_SetGuarantorsCapabilities: SubProcessStartTask
+		next: NewMessageEvent
+

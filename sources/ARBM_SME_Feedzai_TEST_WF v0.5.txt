@@ -1,0 +1,10 @@
+Worflow: ARBM_SME_Feedzai_TEST_WF
+
+	StartEvent: MessageStartEvent
+		next: GetPreparedPayload
+
+	End: EndEvent
+
+	GetPreparedPayload: ScriptTask
+		next: End
+

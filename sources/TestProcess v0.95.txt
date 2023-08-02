@@ -1,0 +1,19 @@
+Worflow: TestProcess
+
+	StartEvent: MessageStartEvent
+		next: init
+
+	End: EndEvent
+
+	init: ScriptTask
+		next: filter
+
+	Check: ScriptTask
+		next: End
+
+	Process: ScriptTask
+		next: Check
+
+	filter: ScriptTask
+		next: Process
+

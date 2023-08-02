@@ -1,0 +1,13 @@
+Worflow: Test_DM_MutexLockAndReleaseByMessage
+
+	StartEvent: MessageStartEvent
+		next: MutexEnter
+
+	End: EndEvent
+
+	MutexEnter: ComponentTask
+		next: ReleaseMutexByMessage
+
+	ReleaseMutexByMessage: MessageEvent
+		next: End
+

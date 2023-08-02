@@ -1,0 +1,42 @@
+Worflow: BO_ServiceNotAvailableHandler
+
+	StartEvent: MessageStartEvent
+		next: CreateManualTask_ZCRECondition
+
+	End: EndEvent
+
+	ReturnRetry: ScriptTask
+		next: End
+
+	ReturnComplete: ScriptTask
+		next: End
+
+	RetryActionEvent: MessageEvent
+		next: ReturnRetry
+
+	CompletetActionEvent: MessageEvent
+		next: ReturnComplete
+
+	ActionGateway: Gateway
+		switch:
+			conn: RetryActionEvent
+			conn: CompletetActionEvent
+			conn: ZCREConditionComplete
+
+	CreateManualTask_ZCRECondition: SubProcessStartTask
+		next: ActionGateway
+
+	ZCREConditionComplete: SubProcessSucceededEvent
+		next: CheckConditionResolution
+
+	CheckConditionResolution: Gateway
+		switch:
+			else: ReturnErrorAfterResolution
+			conn: ReturnRetryAfterResoution
+
+	ReturnErrorAfterResolution: ScriptTask
+		next: End
+
+	ReturnRetryAfterResoution: ScriptTask
+		next: End
+

@@ -1,0 +1,13 @@
+Worflow: DW_AddNotesForEntity
+
+	StartEvent: MessageStartEvent
+		next: AdwQuery
+
+	End: EndEvent
+
+	AdwQuery: ComponentTask
+		next: PrepareOutput
+
+	PrepareOutput: ScriptTask
+		next: End
+

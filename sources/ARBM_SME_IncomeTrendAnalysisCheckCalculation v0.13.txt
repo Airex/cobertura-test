@@ -1,0 +1,28 @@
+Worflow: ARBM_SME_IncomeTrendAnalysisCheckCalculation
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	PerformCalculations: ComponentTask
+		next: ShowCalculationResults
+
+	SetOutput: ScriptTask
+		next: End
+
+	GetPreparedPayload: ScriptTask
+		next: PerformCalculations
+
+	Decision: SubDecisionTask
+		next: SaveToDb_RuleCheck
+
+	SaveToDb_RuleCheck: ComponentTask
+		next: SetOutput
+
+	ShowCalculationResults: ScriptTask
+		next: Decision
+
+	SetTags: ScriptTask
+		next: GetPreparedPayload
+

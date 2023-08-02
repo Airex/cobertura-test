@@ -1,0 +1,10 @@
+Worflow: ARBM_Retail_InitialBankStatementParameters
+
+	55360c0c-a3e5-4777-a36b-99f290207a61: FlowVerification
+		next: 
+
+	7579cbd7-6819-40af-a14c-8e705216662a: FlowVerification
+		next: 
+
+	01cdb72a-4555-4fb8-8cae-47b0aa92c357: FlowVerification
+

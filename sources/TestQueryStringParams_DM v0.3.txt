@@ -1,0 +1,10 @@
+Worflow: TestQueryStringParams_DM
+
+	StartEvent: MessageStartEvent
+		next: NewScript
+
+	End: EndEvent
+
+	NewScript: ScriptTask
+		next: End
+

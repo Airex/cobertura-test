@@ -1,0 +1,290 @@
+Worflow: HttpTask
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	HTTP_GetError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Get: HttpMessageTask
+		switch:
+			next: HTTP_GetError
+			next: Result
+
+	Method?: Gateway
+		switch:
+			conn: AuthForGet?
+			conn: AuthForPost?
+			conn: AuthForPatch?
+			conn: AuthForDelete?
+			conn: AuthForPut?
+			else: UnsupportedMethodError
+
+	UnsupportedMethodError: ScriptTask
+		next: Statistics
+
+	Result: ScriptTask
+		next: CheckMockEnabledAfterResponse
+
+	HttpCallRetry?: Gateway
+		switch:
+			else: CallCustomWorkflow_GW?
+			conn: Process_HttpCallRetryTimer
+
+	HTTP_PostError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Post: HttpMessageTask
+		switch:
+			next: HTTP_PostError
+			next: Result
+
+	HTTP_PatchError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Patch: HttpMessageTask
+		switch:
+			next: HTTP_PatchError
+			next: Result
+
+	HTTP_DeleteError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Delete: HttpMessageTask
+		switch:
+			next: HTTP_DeleteError
+			next: Result
+
+	Init: ScriptTask
+		next: CheckMockEnabledBeforeRequest
+
+	HttpCallError: ScriptTask
+		next: ErrorAlertBeforeExit
+
+	Process_HttpCallRetryTimer: SubProcessTask
+		next: CheckMockEnabledBeforeRequest
+
+	Statistics: ScriptTask
+		next: End
+
+	HTTP_PutError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Put: HttpMessageTask
+		switch:
+			next: HTTP_PutError
+			next: Result
+
+	HTTP_Get_OAuthError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Get_OAuth: HttpMessageTask
+		switch:
+			next: HTTP_Get_OAuthError
+			next: Result
+
+	HTTP_Post_OAuthError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Post_OAuth: HttpMessageTask
+		switch:
+			next: HTTP_Post_OAuthError
+			next: Result
+
+	HTTP_Patch_OAuthError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Patch_OAuth: HttpMessageTask
+		switch:
+			next: HTTP_Patch_OAuthError
+			next: Result
+
+	HTTP_Delete_OAuthError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Delete_OAuth: HttpMessageTask
+		switch:
+			next: HTTP_Delete_OAuthError
+			next: Result
+
+	HTTP_Put_OAuthError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Put_OAuth: HttpMessageTask
+		switch:
+			next: HTTP_Put_OAuthError
+			next: Result
+
+	AuthForPut?: Gateway
+		switch:
+			conn: HTTP_Put_OAuth
+			else: HTTP_Put
+			conn: HTTP_Put_Basic
+
+	AuthForPost?: Gateway
+		switch:
+			else: HTTP_Post
+			conn: HTTP_Post_OAuth
+			conn: HTTP_Post_Basic
+
+	AuthForGet?: Gateway
+		switch:
+			else: HTTP_Get
+			conn: HTTP_Get_OAuth
+			conn: HTTP_Get_Basic
+
+	AuthForPatch?: Gateway
+		switch:
+			conn: HTTP_Patch_OAuth
+			else: HTTP_Patch
+			conn: HTTP_Patch_Basic
+
+	AuthForDelete?: Gateway
+		switch:
+			conn: HTTP_Delete_OAuth
+			else: HTTP_Delete
+			conn: HTTP_Delete_Basic
+
+	SuccessMetrics: SubDecisionTask
+		next: Statistics
+
+	ErrorMetrics: SubDecisionTask
+		next: CheckMocksEnabledAfterError
+
+	RequestOverride_Request: HttpMessageTask
+		next: After_RequestOverride
+
+	CheckMockEnabledBeforeRequest: Gateway
+		switch:
+			else: RequestData
+			conn: AnalyzeMock_Request
+
+	AnalyzeMock_Request: HttpMessageTask
+		next: After_Analyze
+
+	ResponseOverride_RequestError: BoundaryErrorEvent
+		next: ResponseOverride_Request_Error_Handler
+
+	ResponseOverride_Request: HttpMessageTask
+		switch:
+			next: ResponseOverride_RequestError
+			next: After_ResponseOverride
+
+	CheckRequestOverrideRequested: Gateway
+		switch:
+			conn: RequestOverride_Request
+			else: RequestData
+
+	CheckOriginalRequestRequired: Gateway
+		switch:
+			else: RequestData
+			conn: ResponseOverride_Request
+
+	RequestData: ScriptTask
+		next: Method?
+
+	CheckMockEnabledAfterResponse: Gateway
+		switch:
+			else: SuccessMetrics
+			conn: ResponseOverride_Request
+
+	CheckMocksEnabledAfterError: Gateway
+		switch:
+			else: DefineResponseError
+			conn: ResponseOverride_Request
+
+	ResponseOverride_Request_Error_Handler: ScriptTask
+		next: CheckMockResponseReturnError
+
+	After_Analyze: ScriptTask
+		next: CheckRequestOverrideRequested
+
+	After_RequestOverride: ScriptTask
+		next: CheckOriginalRequestRequired
+
+	After_ResponseOverride: ScriptTask
+		next: CheckMockResponseReturnError
+
+	CallCustomWorkflow_GW?: Gateway
+		switch:
+			else: HttpCallError
+			conn: ErrorAlertBeforeCustomFlow
+
+	RunCustomWorkflow: SubProcessTask
+		next: ChooseActionFromCustomWorkflow
+
+	PrepareDataForCustomWorkflow: ScriptTask
+		next: RunCustomWorkflow
+
+	ChooseActionFromCustomWorkflow: Gateway
+		switch:
+			conn: PrepareOutputForCompleteAction
+			conn: Init
+			else: HttpCallError
+
+	PrepareOutputForCompleteAction: ScriptTask
+		next: Statistics
+
+	ShouldRetry_GW?: Gateway
+		switch:
+			conn: HttpCallRetry?
+			else: CallCustomWorkflow_GW?
+
+	DefineResponseError: ScriptTask
+		next: ShouldRetry_GW?
+
+	CheckMockResponseReturnError: Gateway
+		switch:
+			else: SuccessMetrics
+			conn: DefineResponseError
+
+	README_txt: ScriptTask
+
+	HTTP_Post_BasicError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Post_Basic: HttpMessageTask
+		switch:
+			next: HTTP_Post_BasicError
+			next: Result
+
+	HTTP_Get_BasicError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Get_Basic: HttpMessageTask
+		switch:
+			next: HTTP_Get_BasicError
+			next: Result
+
+	HTTP_Patch_BasicError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Patch_Basic: HttpMessageTask
+		switch:
+			next: HTTP_Patch_BasicError
+			next: Result
+
+	HTTP_Delete_BasicError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Delete_Basic: HttpMessageTask
+		switch:
+			next: HTTP_Delete_BasicError
+			next: Result
+
+	HTTP_Put_BasicError: BoundaryErrorEvent
+		next: ErrorMetrics
+
+	HTTP_Put_Basic: HttpMessageTask
+		switch:
+			next: HTTP_Put_BasicError
+			next: Result
+
+	ErrorAlertBeforeCustomFlow: SubProcessStartTask
+		next: PrepareDataForCustomWorkflow
+
+	ErrorAlertBeforeExit: SubProcessStartTask
+		next: Statistics
+

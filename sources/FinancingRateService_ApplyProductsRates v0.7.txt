@@ -1,0 +1,26 @@
+Worflow: FinancingRateService_ApplyProductsRates
+
+	StartEvent: MessageStartEvent
+		next: PrepareCurrentOperation
+
+	End: EndEvent
+
+	PrepareCurrentOperation: ScriptTask
+		next: CheckAllDone
+
+	CheckAllDone: Gateway
+		switch:
+			conn: CheckShouldDelete
+			else: End
+
+	CheckShouldDelete: Gateway
+		switch:
+			conn: FinancingRateService_DeleteProductRate
+			else: FinancingRateService_UpdateProductRate
+
+	FinancingRateService_DeleteProductRate: ComponentTask
+		next: PrepareCurrentOperation
+
+	FinancingRateService_UpdateProductRate: ComponentTask
+		next: PrepareCurrentOperation
+

@@ -1,0 +1,163 @@
+Worflow: TEST_GenerateConditionsByEvents
+
+	StartEvent: MessageStartEvent
+		next: AdwError
+
+	End: EndEvent
+
+	BursaCommodityTrading: SubProcessTask
+		next: BusinessBankStatementCalculation
+
+	PerfiosIndividualBankStatementAnalyzer: SubProcessTask
+		next: ManualCcrisStpReportingBasicCreate
+
+	PerfiosBusinessBankStatementAnalyzer: SubProcessTask
+		next: PerfiosEpfStatementAnalyzer
+
+	PerfiosEpfStatementAnalyzer: SubProcessTask
+		next: RiskBasedFinancing
+
+	ExperianReportAnalyzer: SubProcessTask
+		next: Feedzai
+
+	CrrError: SubProcessTask
+		next: DocumentStampingRequired
+
+	ThoughtMachineFinancingAccount: SubProcessTask
+		next: ThoughtMachineDepositAccount
+
+	IndividualBankStatementCalculation: SubProcessTask
+		next: IindividualDsrCalculatorErrorSme
+
+	BusinessBankStatementCalculation: SubProcessTask
+		next: BusinessBankStatementCalculationSme
+
+	EpfStatementCalculation: SubProcessTask
+		next: Feedzai
+
+	CcrisLegalTradeCheck: SubProcessTask
+		next: CompanyCategorisationMissing
+
+	CompanyCategorisationMissing: SubProcessTask
+		next: ComplyAdvantageError
+
+	ContactAddressReview: SubProcessTask
+		next: ContractSignError
+
+	DsrCalculation: SubProcessTask
+		next: EpfStatementCalculation
+
+	DsrCalculationReview: SubProcessTask
+		next: EpfStatementCalculation
+
+	DuplicateWorkEmailReview: SubProcessTask
+		next: EpfStatementCalculation
+
+	WorkEmailVerification: SubProcessTask
+		next: ZnsError
+
+	Feedzai: SubProcessTask
+		next: FinancingAccountClosure
+
+	ManualUnderwritingRequired: SubProcessTask
+		next: ManualUnderwritingRequiredSME
+
+	MumCalculationError: SubProcessTask
+		next: ManualReviewSmeDecision
+
+	MumDeviationReview: SubProcessTask
+		next: PerfiosIndividualBankStatementAnalyzer
+
+	RiskBasedFinancing: SubProcessTask
+		next: RiskBasedFinancingErrorSME
+
+	RiskyIndustrialSectorReview: SubProcessTask
+		next: RiskyOccupationReview
+
+	RiskyOccupationReview: SubProcessTask
+		next: SigniflowPosError
+
+	ZnsError: SubProcessTask
+		next: ScheduledOrderNotifications
+
+	AdwError: SubProcessTask
+		next: BursaCommodityTrading
+
+	BlockListDecisionReview: SubProcessTask
+		next: BursaCommodityTrading
+
+	SigniflowPosError: SubProcessTask
+		next: ThoughtMachineFinancingAccount
+
+	ContractSignError: SubProcessTask
+		next: CrrError
+
+	ManualVerificationOverallDecision: SubProcessTask
+		next: ManualUnderwritingRequestSalariedIncome
+
+	ManualUnderwritingRequestSalariedIncome: SubProcessTask
+		next: ManualUnderwritingRequestSelfEmployedIncome
+
+	ManualUnderwritingRequestSelfEmployedIncome: SubProcessTask
+		next: MumCalculationError
+
+	FinancingAccountClosure: SubProcessTask
+		next: JumioKycError
+
+	ManualCcrisStpReportingBasicCreate: SubProcessTask
+		next: ManualCcrisStpReportingBasicCreateSme
+
+	ManualCcrisStpReportingBasicUpdate: SubProcessTask
+		next: ManualCcrisStpReportingBasicUpdateSme
+
+	ManualCcrisStpReportingEntitySelectUpdate: SubProcessTask
+		next: ManualReviewOfBusinessBankStatement_SME
+
+	ScheduledOrderNotifications: SubProcessTask
+		next: End
+
+	BusinessOwnersNotFound: SubProcessTask
+		next: BoardResolutionReview
+
+	DocumentStampingRequired: SubProcessTask
+		next: DsrCalculation
+
+	ComplyAdvantageError: SubProcessTask
+		next: ContractSignError
+
+	JumioKycError: SubProcessTask
+		next: IndividualBankStatementCalculation
+
+	ManualCcrisStpReportingBasicCreateSme: SubProcessTask
+		next: ManualCcrisStpReportingBasicUpdate
+
+	ManualCcrisStpReportingBasicUpdateSme: SubProcessTask
+		next: ManualCcrisStpReportingEntitySelectUpdate
+
+	BoardResolutionReview: SubProcessTask
+		next: ComplyAdvantageError
+
+	BusinessBankStatementCalculationSme: SubProcessTask
+		next: BusinessOwnersNotFound
+
+	ManualReviewOfBusinessBankStatement_SME: SubProcessTask
+		next: PerfiosBusinessBankStatementAnalyzer
+
+	ManualReviewSmeDecision: SubProcessTask
+		next: ManualVerificationSmeDecision
+
+	ManualVerificationSmeDecision: SubProcessTask
+		next: PerfiosIndividualBankStatementAnalyzer
+
+	ThoughtMachineDepositAccount: SubProcessTask
+		next: ZnsError
+
+	IindividualDsrCalculatorErrorSme: SubProcessTask
+		next: ManualUnderwritingRequired
+
+	ManualUnderwritingRequiredSME: SubProcessTask
+		next: ManualVerificationOverallDecision
+
+	RiskBasedFinancingErrorSME: SubProcessTask
+		next: SigniflowPosError
+

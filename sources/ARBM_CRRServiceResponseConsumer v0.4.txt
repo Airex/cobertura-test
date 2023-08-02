@@ -1,0 +1,13 @@
+Worflow: ARBM_CRRServiceResponseConsumer
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	NotifySignalCRRResponse: SignalTask
+		next: End
+
+	SetTags: ScriptTask
+		next: NotifySignalCRRResponse
+

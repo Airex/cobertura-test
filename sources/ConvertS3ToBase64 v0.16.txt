@@ -1,0 +1,27 @@
+Worflow: ConvertS3ToBase64
+
+	Copy_StartEvent: MessageStartEvent
+		next: NewGateway
+
+	End: EndEvent
+
+	NewGateway: Gateway
+		switch:
+			else: GetPresignUrl
+			conn: GetBase64FromUrl
+
+	GetPresignUrl: ComponentTask
+		next: GetBase64FromKey
+
+	GetBase64FromKey: ComponentTask
+		next: SetGetBase64FromKeyOutput
+
+	SetGetBase64FromKeyOutput: ScriptTask
+		next: End
+
+	GetBase64FromUrl: ComponentTask
+		next: SetGetBase64FromUrlOutput
+
+	SetGetBase64FromUrlOutput: ScriptTask
+		next: End
+

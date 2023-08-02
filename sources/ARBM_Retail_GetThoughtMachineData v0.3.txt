@@ -1,0 +1,21 @@
+Worflow: ARBM_Retail_GetThoughtMachineData
+
+	StartEvent: MessageStartEvent
+		next: NewGateway
+
+	End: EndEvent
+
+	GetThoughtMachineData: ComponentTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	NewGateway: Gateway
+		switch:
+			else: GetThoughtMachineData
+			conn: ReturnMockData
+
+	ReturnMockData: ScriptTask
+		next: End
+

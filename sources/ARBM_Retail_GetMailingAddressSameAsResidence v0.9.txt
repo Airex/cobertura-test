@@ -1,0 +1,24 @@
+Worflow: ARBM_Retail_GetMailingAddressSameAsResidence
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	IsDataMocked?: Gateway
+		switch:
+			conn: GetMockCustomerData
+			else: GetCustomerFinancingData
+
+	GetMockCustomerData: ScriptTask
+		next: GetMailingAddressSameAsResidence
+
+	GetMailingAddressSameAsResidence: ScriptTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	GetCustomerFinancingData: ComponentTask
+		next: GetMailingAddressSameAsResidence
+

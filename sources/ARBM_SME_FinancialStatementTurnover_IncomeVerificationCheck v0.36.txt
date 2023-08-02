@@ -1,0 +1,40 @@
+Worflow: ARBM_SME_FinancialStatementTurnover_IncomeVerificationCheck
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	PerformCompanyRevenueAnalyzerCalculationsError: BoundaryErrorEvent
+		next: IfIncomeCalculationResponseEmpty
+
+	PerformCompanyRevenueAnalyzerCalculations: SubProcessTask
+		switch:
+			next: PerformCompanyRevenueAnalyzerCalculationsError
+			next: IfIncomeCalculationResponseEmpty
+
+	InitMockSettings: ScriptTask
+		next: IfManualRoute
+
+	DecideFinancialStatementTurnoverVSIncomeVerifCheck: SubDecisionTask
+		next: SaveToDbCheckRules
+
+	SendOutputData: ScriptTask
+		next: End
+
+	IfIncomeCalculationResponseEmpty: Gateway
+		switch:
+			conn: DecideFinancialStatementTurnoverVSIncomeVerifCheck
+			else: SendOutputData
+
+	SaveToDbCheckRules: ComponentTask
+		next: SendOutputData
+
+	IfManualRoute: Gateway
+		switch:
+			else: PerformCompanyRevenueAnalyzerCalculations
+			conn: DecideFinancialStatementTurnoverVSIncomeVerifCheck
+
+	SetTags: ScriptTask
+		next: InitMockSettings
+

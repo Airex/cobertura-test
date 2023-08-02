@@ -1,0 +1,37 @@
+Worflow: BO_UploadBlockList
+
+	StartEvent: MessageStartEvent
+		next: CheckSendNotification
+
+	End: EndEvent
+
+	SetFormPayload: ScriptTask
+		next: End
+
+	CheckSendNotification: Gateway
+		switch:
+			else: SetFormPayload
+			conn: Files_DownloadFromStorage
+
+	PrepareSaveOutput: ScriptTask
+		next: End
+
+	Files_DownloadFromStorageError: BoundaryErrorEvent
+		next: PrepareSaveOutput
+
+	Files_DownloadFromStorage: ComponentTask
+		switch:
+			next: Files_DownloadFromStorageError
+			next: GetUploadFileName
+
+	GetUploadFileName: ScriptTask
+		next: UploadFileToZde
+
+	UploadFileToZdeError: BoundaryErrorEvent
+		next: PrepareSaveOutput
+
+	UploadFileToZde: ComponentTask
+		switch:
+			next: UploadFileToZdeError
+			next: PrepareSaveOutput
+

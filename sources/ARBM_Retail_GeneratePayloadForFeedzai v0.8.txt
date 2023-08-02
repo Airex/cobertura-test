@@ -1,0 +1,13 @@
+Worflow: ARBM_Retail_GeneratePayloadForFeedzai
+
+	StartEvent: MessageStartEvent
+		next: GetTransformedExperianReport
+
+	End: EndEvent
+
+	GeneratePayload: ScriptTask
+		next: End
+
+	GetTransformedExperianReport: ScriptTask
+		next: GeneratePayload
+

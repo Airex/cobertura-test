@@ -1,0 +1,10 @@
+Worflow: Twilio_SendSms
+
+	StartEvent: MessageStartEvent
+		next: SendSms
+
+	End: EndEvent
+
+	SendSms: ComponentTask
+		next: End
+

@@ -1,0 +1,36 @@
+Worflow: SaveMeetingRecordings
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	Get_ConditionAction: SubProcessTask
+		next: Prepare_Data
+
+	Init: ScriptTask
+		next: Get_VideoRoom
+
+	Get_VideoRoomRecordings: SubProcessTask
+		next: Prepare_ToSave
+
+	Prepare_ToSave: ScriptTask
+		next: CreateAndLink_DocToCondition
+
+	Link_DocToOrder: SubProcessTask
+
+	CreateAndLink_DocToCondition: SubProcessTask
+		next: Link_DocToOrder
+
+	Cleanup: ResponseTask
+		next: End
+
+	Prepare_Data: ScriptTask
+		next: SaveAndLink_ToConditionAndOrder
+
+	SaveAndLink_ToConditionAndOrder: SubProcessTask
+		next: Cleanup
+
+	Get_VideoRoom: SubProcessTask
+		next: Get_ConditionAction
+

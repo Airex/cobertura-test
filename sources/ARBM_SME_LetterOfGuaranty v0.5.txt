@@ -1,0 +1,13 @@
+Worflow: ARBM_SME_LetterOfGuaranty
+
+	StartEvent: MessageStartEvent
+		next: Notifications_Notify
+
+	End: EndEvent
+
+	Notifications_Notify: ComponentTask
+		next: SetOutput
+
+	SetOutput: ScriptTask
+		next: End
+

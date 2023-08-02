@@ -1,0 +1,111 @@
+Worflow: ARBM_Retail_GetExperianReportProcess_TestCopy
+
+	StartEvent: MessageStartEvent
+		next: IsDataMocked?
+
+	End: EndEvent
+
+	IsDataMocked?: Gateway
+		switch:
+			conn: ReturnMockData
+			else: IsAllInputDataProvided?
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	SetOutput: ScriptTask
+		next: End
+
+	Waiting: TimerEvent
+		next: GetExperianReport
+
+	ShoudRequest?: Gateway
+		switch:
+			conn: Waiting
+			else: SetOutput
+			conn: CreateManualTask_ExperianReportRetrievalError
+
+	ShoudRequestXml?: Gateway
+		switch:
+			conn: WaitingXml
+			else: SetOutput
+
+	WaitingXml: TimerEvent
+		next: GetExperianReportXml
+
+	ShouldTryByTokens: Gateway
+		switch:
+			conn: GetExperianReportByTokens
+			else: GetExperianReportXml
+
+	WaitingByTokens: TimerEvent
+		next: GetExperianReportByTokens
+
+	ShoudRequestByTokens?: Gateway
+		switch:
+			conn: WaitingByTokens
+			else: GetExperianReportXml
+
+	IsAllInputDataProvided?: Gateway
+		switch:
+			else: SetOutput
+			conn: GetExperianReport
+
+	GetExperianReportError: BoundaryErrorEvent
+		next: ShoudRequest?
+
+	GetExperianReport: ComponentTask
+		switch:
+			next: GetExperianReportError
+			next: ShouldGoToExit_GW?
+
+	GetExperianReportByTokensError: BoundaryErrorEvent
+		next: ShoudRequestByTokens?
+
+	GetExperianReportByTokens: ComponentTask
+		switch:
+			next: GetExperianReportByTokensError
+			next: ShoudRequestByTokens?
+
+	GetExperianReportXmlError: BoundaryErrorEvent
+		next: ShoudRequestXml?
+
+	GetExperianReportXml: ScriptTask
+		switch:
+			next: GetExperianReportXmlError
+			next: SetOutput
+
+	SetReportTokens: ScriptTask
+		next: ShouldTryByTokens
+
+	HaveReportTokens?: Gateway
+		switch:
+			conn: SetReportTokens
+			conn: ShoudRequest?
+			else: SetOutput
+
+	CreateManualTask_ExperianReportRetrievalError: SubProcessTask
+		next: CheckConditionResolution
+
+	CheckConditionResolution: Gateway
+		switch:
+			conn: Waiting
+			else: SetRejectionReason
+
+	SetRejectionReason: ScriptTask
+		next: End
+
+	CreateManualTask_ExperianReportMultipleCCRISEntitiesError: SubProcessTask
+		next: SetPayload
+
+	SetPayload: ScriptTask
+		next: GetExperianReport
+
+	ReturnResult: ScriptTask
+		next: CreateManualTask_ExperianReportMultipleCCRISEntitiesError
+
+	ShouldGoToExit_GW?: Gateway
+		switch:
+			else: ReturnResult
+			conn: End
+

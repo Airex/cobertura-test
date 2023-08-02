@@ -1,0 +1,7 @@
+Worflow: ARBM_Retail_DecideBusinessRegistrationNumberCheckResult
+
+	cb183d98-a32b-45e6-83d6-2b41853b6947: FlowVerification
+		next: 
+
+	928eb41d-0556-43c3-b2e5-3deedb81b730: FlowVerification
+

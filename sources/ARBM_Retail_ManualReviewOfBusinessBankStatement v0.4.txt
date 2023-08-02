@@ -1,0 +1,21 @@
+Worflow: ARBM_Retail_ManualReviewOfBusinessBankStatement
+
+	StartEvent: MessageStartEvent
+		next: NewGateway
+
+	End: EndEvent
+
+	NewGateway: Gateway
+		switch:
+			conn: ReturnMockData
+			conn: EnterData
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	EnterDataFromEmpl: MessageEvent
+		next: End
+
+	EnterData: ResponseTask
+		next: EnterDataFromEmpl
+

@@ -1,0 +1,25 @@
+Worflow: TestProcess_VP
+
+	StartEvent: MessageStartEvent
+		next: GetExperianReportXml
+
+	End: EndEvent
+
+	NewScript: ScriptTask
+		next: Notifications_Notify
+
+	Notifications_Notify: ComponentTask
+		next: Files_CreateDownloadLink
+
+	Files_CreateDownloadLink: ComponentTask
+		next: NewMessageResponse
+
+	NewMessageResponse: ResponseTask
+		next: End
+
+	GetExperianReport: ComponentTask
+		next: End
+
+	GetExperianReportXml: ComponentTask
+		next: End
+

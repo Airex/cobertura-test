@@ -1,0 +1,13 @@
+Worflow: ARBM_SME_NotifyPrimaryApplicantWFAboutNPAStatus
+
+	StartEvent: MessageStartEvent
+		next: GetStatusAllGuarantorsApprovedFinancing
+
+	End: EndEvent
+
+	GetStatusAllGuarantorsApprovedFinancing: ScriptTask
+		next: GetStatusAllGuarantorsSignedLetterOfGuarantee
+
+	GetStatusAllGuarantorsSignedLetterOfGuarantee: ScriptTask
+		next: End
+

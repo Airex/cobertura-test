@@ -1,0 +1,31 @@
+Worflow: Test_Datakeeper_via_ZCRE
+
+	StartEvent: MessageStartEvent
+		next: NewMessageResponse
+
+	End: EndEvent
+
+	AddEvent: SubProcessTask
+		next: NewMessageEvent
+
+	UpdateContext: SubProcessTask
+		next: Copy_GetEventState
+
+	GetEventState: SubProcessTask
+		next: UpdateContext
+
+	NewMessageEvent: TimerEvent
+		next: GetEventState
+
+	Copy_GetEventState: SubProcessTask
+		next: Copy_UpdateContext
+
+	Copy_UpdateContext: SubProcessTask
+		next: Copy_2_GetEventState
+
+	Copy_2_GetEventState: SubProcessTask
+		next: End
+
+	NewMessageResponse: SubProcessStartTask
+		next: End
+

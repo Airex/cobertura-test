@@ -1,0 +1,10 @@
+Worflow: ARBM_SME_DataKeeperProcess_TESTING_SendSequenceOfMsg
+
+	StartEvent: MessageStartEvent
+		next: SetContextDataKeeper
+
+	End: EndEvent
+
+	SetContextDataKeeper: SubProcessTask
+		next: End
+

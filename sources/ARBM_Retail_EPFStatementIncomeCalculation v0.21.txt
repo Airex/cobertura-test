@@ -1,0 +1,39 @@
+Worflow: ARBM_Retail_EPFStatementIncomeCalculation
+
+	StartEvent: MessageStartEvent
+		next: CheckdUseZdeCalculation
+
+	End: EndEvent
+
+	GetEPFStatementIncomeError: BoundaryErrorEvent
+		next: SaveOutput
+
+	GetEPFStatementIncome: ComponentTask
+		switch:
+			next: GetEPFStatementIncomeError
+			next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	PerformZdeCalculationError: BoundaryErrorEvent
+		next: GetCalculationResult
+
+	PerformZdeCalculation: ComponentTask
+		switch:
+			next: PerformZdeCalculationError
+			next: GetCalculationResult
+
+	GetCalculationResultError: BoundaryErrorEvent
+		next: SaveOutput
+
+	GetCalculationResult: ScriptTask
+		switch:
+			next: GetCalculationResultError
+			next: SaveOutput
+
+	CheckdUseZdeCalculation: Gateway
+		switch:
+			else: GetEPFStatementIncome
+			conn: PerformZdeCalculation
+

@@ -1,0 +1,13 @@
+Worflow: Test_FindFinAccount
+
+	StartEvent: MessageStartEvent
+		next: GetAccountByAccountID
+
+	End: EndEvent
+
+	GetAccountByAccountID: ComponentTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+

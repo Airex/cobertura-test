@@ -1,0 +1,21 @@
+Worflow: ARBM_Retail_ManualReviewOfEPFStatements
+
+	StartEvent: MessageStartEvent
+		next: NewGateway
+
+	End: EndEvent
+
+	NewGateway: Gateway
+		switch:
+			conn: ReturnMockData
+			else: EnterData
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	EnterDataFromEmpl: MessageEvent
+		next: End
+
+	EnterData: ResponseTask
+		next: EnterDataFromEmpl
+

@@ -1,0 +1,10 @@
+Worflow: TestingEventSendingInZDE_Dmytro_CATCHING
+
+	StartEvent: MessageStartEvent
+		next: Catch
+
+	End: EndEvent
+
+	Catch: MessageEvent
+		next: End
+

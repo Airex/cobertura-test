@@ -1,0 +1,13 @@
+Worflow: ARBM_SME_PushKafkaMsg_CreateIAM_Account_TEST
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	Create_IAM_Account: SubProcessTask
+		next: End
+
+	SetTags: ScriptTask
+		next: Create_IAM_Account
+

@@ -1,0 +1,13 @@
+Worflow: ConditionTrigger
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	TriggerConditions: ScriptTask
+		next: End
+
+	Set_Tags: ScriptTask
+		next: TriggerConditions
+

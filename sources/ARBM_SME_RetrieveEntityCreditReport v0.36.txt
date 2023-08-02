@@ -1,0 +1,46 @@
+Worflow: ARBM_SME_RetrieveEntityCreditReport
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetCountryCode: ComponentTask
+		next: GetExperianReport
+
+	GetExperianReportError: BoundaryErrorEvent
+		next: SaveToDb_Rule4_ExperianReport_Manual_Review
+
+	GetExperianReport: SubProcessTask
+		switch:
+			next: GetExperianReportError
+			next: CheckExperianReport
+
+	CheckExperianReport: Gateway
+		switch:
+			else: SaveToDb_Rule4_ExperianReport_Manual_Review
+			conn: SaveToDb_Rule_ExperianReport_Proceed
+
+	SaveToDb_Rule_ExperianReport_Proceed: ComponentTask
+		next: SaveToS3ExperianPdf
+
+	SaveToDb_Rule4_ExperianReport_Manual_Review: ComponentTask
+		next: SetOutput
+
+	SetOutput: ScriptTask
+		next: End
+
+	SaveToS3ExperianPdfError: BoundaryErrorEvent
+		next: SaveToDb_ExperianReport
+
+	SaveToS3ExperianPdf: ComponentTask
+		switch:
+			next: SaveToS3ExperianPdfError
+			next: SaveToDb_ExperianReport
+
+	SaveToDb_ExperianReport: ComponentTask
+		next: SetOutput
+
+	SetTags: ScriptTask
+		next: GetCountryCode
+

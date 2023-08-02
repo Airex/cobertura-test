@@ -1,0 +1,44 @@
+Worflow: ARBM_Retail_FAServiceKafkaPersonalizationConsumer
+
+	StartEvent: MessageStartEvent
+		next: MutexLockFinancialAccout
+
+	End: EndEvent
+
+	FAPersonalozationResponse: SignalTask
+
+	DW_FindPartyFinancialAccount: ComponentTask
+		next: CheckIfManatoryDataFound
+
+	DW_SetPartyFinancialAccount: ComponentTask
+		next: End
+
+	InitProcess: ScriptTask
+		next: CheckHasDataForUpdate
+
+	CheckHasDataForUpdate: Gateway
+		switch:
+			conn: DW_FindPartyFinancialAccount
+			else: End
+
+	CheckIfManatoryDataFound: Gateway
+		switch:
+			else: WaitFinancingAccountCreated
+			conn: ThrowErrorIfNotFound
+			conn: DW_GetOrderByFinancialAccountId
+
+	WaitFinancingAccountCreated: SignalEvent
+		next: DW_FindPartyFinancialAccount
+
+	ThrowErrorIfNotFound: ScriptTask
+		next: End
+
+	MutexLockFinancialAccout: ComponentTask
+		next: InitProcess
+
+	SetTags: ScriptTask
+		next: DW_SetPartyFinancialAccount
+
+	DW_GetOrderByFinancialAccountId: ComponentTask
+		next: SetTags
+

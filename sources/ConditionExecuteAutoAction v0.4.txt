@@ -1,0 +1,40 @@
+Worflow: ConditionExecuteAutoAction
+
+	StartEvent: MessageStartEvent
+		next: LoadAutoActions
+
+	End: EndEvent
+
+	LoadAutoActions: SubProcessTask
+		next: NewGateway
+
+	NewGateway: Gateway
+		switch:
+			conn: CurrentAction
+			conn: End
+
+	CurrentAction: ScriptTask
+		next: NewGateway_1
+
+	NewGateway_1: Gateway
+		switch:
+			conn: LoadOrder
+			conn: ExecuteAction
+
+	LoadOrder: ScriptTask
+		next: ExecuteAction
+
+	ExecuteActionError: BoundaryErrorEvent
+		next: HandleActionError
+
+	ExecuteAction: ScriptTask
+		switch:
+			next: ExecuteActionError
+			next: FinishAction
+
+	FinishAction: ScriptTask
+		next: NewGateway
+
+	HandleActionError: ScriptTask
+		next: NewGateway
+

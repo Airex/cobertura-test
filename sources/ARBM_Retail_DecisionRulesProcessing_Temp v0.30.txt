@@ -1,0 +1,187 @@
+Worflow: ARBM_Retail_DecisionRulesProcessing_Temp
+
+	b381309d-e4bb-4ea8-a815-63872ea46c92: FlowVerification
+		next: 
+
+	eb98ba3f-7981-456f-96be-a25b76059b59: FlowVerification
+		next: 
+
+	85143700-17a2-496e-9edd-09d14f929719: FlowVerification
+		next: 
+
+	bdaa165f-4efd-41da-815f-4e6986030df2: FlowVerification
+		next: 
+
+	858cee35-b519-4022-ad18-6ba98fd606f9: FlowVerification
+		next: 
+
+	4997ca47-7e2e-4f08-b8d5-131d823e7861: FlowVerification
+		next: 
+
+	874d89cd-fc63-4553-81e3-8baf8b50eed2: FlowVerification
+		next: 
+
+	841b28b4-7b9d-4739-871f-4d4fb9d4b020: FlowVerification
+		next: 
+
+	eed0631a-0276-484d-8af8-6029cb4e4fbe: FlowVerification
+		next: 
+
+	e2a9f4e8-d3ed-4f3a-af1d-9db8bf93e3ad: FlowVerification
+		next: 
+
+	0d006a93-c258-41e0-949e-f0312a104d17: FlowVerification
+		next: 
+
+	0c63b35b-4cfb-4890-8c11-4e29547d13fa: FlowVerification
+		next: 
+
+	aab930b0-ed54-45b6-a083-3276a9273586: FlowVerification
+		next: 
+
+	5ddc0fe9-2558-4eb5-9f2f-8695d62b4cad: FlowVerification
+
+	3530a146-290b-4d5c-b110-9fdb6e1cce26: FlowVerification
+		next: 
+
+	8339a67f-7456-4ad7-b277-e566b50d752b: FlowVerification
+		next: 
+
+	4203169d-21cf-46b1-9af3-74c7b505fdb4: FlowVerification
+		next: 
+
+	eefcd71d-732b-4095-b958-3c6dae1de4d4: FlowVerification
+		next: 
+
+	62d8b054-67a8-4eb3-bdcb-7f4298727105: FlowVerification
+		next: 
+
+	312c5fbf-6304-4fe9-b372-c3197f69cb13: FlowVerification
+		next: 
+
+	1cd539c3-675b-4959-b365-18fcc85e5eaa: FlowVerification
+		next: 
+
+	e4eac23a-580e-44c2-b602-5b6e3d9b29e8: FlowVerification
+		next: 
+
+	6ba77ffa-6c09-4a95-8f87-ec2081c85223: FlowVerification
+		next: 
+
+	5cc55d34-a7ec-468a-ba6e-7254f42b1a68: FlowVerification
+		next: 
+
+	e3243765-8eda-4ac6-9b66-9d3270d9aa9e: FlowVerification
+		next: 
+
+	a379aa4d-ac52-4d2a-b3df-eabd6244e956: FlowVerification
+		next: 
+
+	9bc64d3c-492d-4faa-8a71-44830b20c85c: FlowVerification
+		next: 
+
+	7755ed03-681f-4412-b985-29256c436bcd: FlowVerification
+		next: 
+
+	a8bf64f2-49c6-490d-ac3a-c2c9adae3bc8: FlowVerification
+		next: 
+
+	8bf9b2df-eea8-42c6-9966-b0c899a0930e: FlowVerification
+		next: 
+
+	0d523e40-ab25-4db2-ad34-a8f306be6d15: FlowVerification
+		next: 
+
+	6f4d0d24-4eaf-4357-9806-2366ba484084: FlowVerification
+		next: 
+
+	a21f4f6d-905f-4137-9a21-0d3c79905f9c: FlowVerification
+		next: 
+
+	f95d189d-c560-4e5e-9d8e-af3afcbd8e46: FlowVerification
+		next: 
+
+	ab2b7703-2f38-4246-9450-dea6ebe20828: FlowVerification
+		next: 
+
+	3dba24d2-8e46-462d-b13d-a94e22f562fe: FlowVerification
+		next: 
+
+	de7e6e92-3f94-40dd-b130-ef01be2e4eeb: FlowVerification
+		next: 
+
+	b9910022-171f-4abd-8ef7-7dd29cc71145: FlowVerification
+		next: 
+
+	85717fe1-a289-4cb8-a8ec-7c6bd0cfed05: FlowVerification
+		next: 
+
+	7cd725b0-5ada-4c33-afd4-22952d7f4798: FlowVerification
+		next: 
+
+	69dc511b-6f26-4cff-8a10-2d42da9ed40e: FlowVerification
+		next: 
+
+	ea136904-1856-47f0-86a1-808f20b9699c: FlowVerification
+		next: 
+
+	c133fe21-93f4-4695-934f-b83fe69a29a6: FlowVerification
+		next: 
+
+	b664af13-bc93-49b4-b327-c09224bded33: FlowVerification
+		next: 
+
+	b8897217-8997-41c7-a6b1-449e4f95cb57: FlowVerification
+		next: 
+
+	8e21bf75-4b94-4f34-b569-b70faa48c4e8: FlowVerification
+		next: 
+
+	1842ced5-52f4-4aa9-99cd-b24c7f198cb8: FlowVerification
+		next: 
+
+	af309494-7235-4cf9-80fa-14fcd5778a19: FlowVerification
+		next: 
+
+	f40c6b95-20ae-4dfe-87e4-d428ce7e8ff4: FlowVerification
+		next: 
+
+	3a7d5e46-29ba-40db-a9ff-b0ed8ba262b6: FlowVerification
+		next: 
+
+	bca1b47e-04d9-4eb1-b418-c677bcb9652f: FlowVerification
+		next: 
+
+	3d68a379-4397-4614-b2c4-0bea4db9f48c: FlowVerification
+		next: 
+
+	9852e996-4371-4890-bd63-4bccba26aea0: FlowVerification
+		next: 
+
+	89c0a1b0-ab75-438d-8b0f-6633ce96e345: FlowVerification
+		next: 
+
+	590aa951-fa11-493d-89b9-830140910251: FlowVerification
+		next: 
+
+	679c1cff-7534-4459-849c-0df1923787b5: FlowVerification
+		next: 
+
+	5e075485-5a19-4233-b933-4307579d4b35: FlowVerification
+		next: 
+
+	978426c0-1c76-4334-9e00-78f7960e0f35: FlowVerification
+		next: 
+
+	e9f11d83-e810-4502-a4b1-197b78407319: FlowVerification
+		next: 
+
+	672bdd13-a1e5-43ae-a0d7-855ec8b6c70a: FlowVerification
+		next: 
+
+	e45c05b1-c129-4e38-8fa7-b3edf710bbb6: FlowVerification
+		next: 
+
+	b29a5fc3-1d99-444d-8354-e9dd6dc90f6e: FlowVerification
+		next: 
+

@@ -1,0 +1,7 @@
+Worflow: ARBM_SME_DecideEntityCustomerRiskRatingCheck
+
+	d764a4e5-9bad-47a8-a437-e7ead6060f7f: FlowVerification
+		next: 
+
+	2bc28a7c-19ee-4b67-b3a3-01a117c0e87e: FlowVerification
+

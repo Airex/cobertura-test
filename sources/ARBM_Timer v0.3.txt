@@ -1,0 +1,10 @@
+Worflow: ARBM_Timer
+
+	StartEvent: MessageStartEvent
+		next: TimerEvent
+
+	End: EndEvent
+
+	TimerEvent: TimerEvent
+		next: End
+

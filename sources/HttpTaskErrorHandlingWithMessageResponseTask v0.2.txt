@@ -1,0 +1,33 @@
+Worflow: HttpTaskErrorHandlingWithMessageResponseTask
+
+	StartEvent: MessageStartEvent
+		next: ChooseAction
+
+	End: EndEvent
+
+	ReturnError: ScriptTask
+		next: End
+
+	ChooseAction: Gateway
+		switch:
+			else: ReturnError
+			conn: ReturnWorkflowId
+
+	ReturnRetry: ScriptTask
+		next: End
+
+	HttpCallOnErrorEvent: MessageEvent
+		next: ChooseActionAfterEvent
+
+	ReturnComplete: ScriptTask
+		next: End
+
+	ChooseActionAfterEvent: Gateway
+		switch:
+			conn: ReturnRetry
+			conn: ReturnComplete
+			else: ReturnError
+
+	ReturnWorkflowId: ResponseTask
+		next: HttpCallOnErrorEvent
+

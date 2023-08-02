@@ -1,0 +1,10 @@
+Worflow: ARBM_SME_GetCurrentBaseRate_TEST
+
+	StartEvent: MessageStartEvent
+		next: GetCurrentBaseRate
+
+	End: EndEvent
+
+	GetCurrentBaseRate: ComponentTask
+		next: End
+

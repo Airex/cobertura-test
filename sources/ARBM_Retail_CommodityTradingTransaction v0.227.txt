@@ -1,0 +1,98 @@
+Worflow: ARBM_Retail_CommodityTradingTransaction
+
+	StartEvent: MessageStartEvent
+		next: ShouldSimulateManualTaskIs?
+
+	End: EndEvent
+
+	GetFinancingCommodityTradingDataError: BoundaryErrorEvent
+		next: IsPooling
+
+	GetFinancingCommodityTradingData: SubProcessTask
+		switch:
+			next: GetFinancingCommodityTradingDataError
+			next: PollingDuration
+
+	GetCommodityTradingEcertificatesByBursa: SubProcessTask
+		next: ContractOfTradeOrderAccountEntries
+
+	CheckAvalibleTime: ScriptTask
+		next: IsNotAvalibleTime
+
+	SaveToDb_BursaReport: ComponentTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	Timeout: TimerEvent
+		next: CheckAvalibleTime
+
+	IsNotAvalibleTime: Gateway
+		switch:
+			else: Timeout
+			conn: GetFinancingCommodityTradingData
+			conn: PollingDuration
+
+	ContractOfTradeOrderAccountEntriesError: BoundaryErrorEvent
+		next: SaveToDb_BursaReport
+
+	ContractOfTradeOrderAccountEntries: ComponentTask
+		switch:
+			next: ContractOfTradeOrderAccountEntriesError
+			next: SaveToDb_BursaReport
+
+	IsPooling: Gateway
+		switch:
+			else: IfManualTask
+			conn: GetCommodityTradingEcertificatesByBursa
+
+	Timeout2: TimerEvent
+		next: CheckAvalibleTime
+
+	GetInquiryTradeOrderStatusError: BoundaryErrorEvent
+		next: IsPooling
+
+	GetInquiryTradeOrderStatus: ComponentTask
+		switch:
+			next: GetInquiryTradeOrderStatusError
+			next: IsPooling
+
+	IsNotRecieveEcertNo: Gateway
+		switch:
+			else: GetInquiryTradeOrderStatus
+			conn: GetCommodityTradingEcertificatesByBursa
+
+	ControlPollingDuration: ScriptTask
+		next: Timeout2
+
+	PollingDuration: ScriptTask
+		next: IsNotRecieveEcertNo
+
+	GetDataAfterManualReviewBursa: SubProcessTask
+		next: IsManualStatusIsRetry
+
+	IsManualStatusIsRetry: Gateway
+		switch:
+			conn: ResetPoolingMechanizm
+			conn: SetManualReviewReject
+			else: ContractOfTradeOrderAccountEntries
+
+	ResetPoolingMechanizm: ScriptTask
+		next: CheckAvalibleTime
+
+	IfManualTask: Gateway
+		switch:
+			conn: GetDataAfterManualReviewBursa
+			else: ControlPollingDuration
+
+	TimeErrorResponse: ResponseTask
+
+	SetManualReviewReject: ScriptTask
+		next: End
+
+	ShouldSimulateManualTaskIs?: Gateway
+		switch:
+			else: CheckAvalibleTime
+			conn: GetDataAfterManualReviewBursa
+

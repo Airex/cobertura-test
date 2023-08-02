@@ -1,0 +1,23 @@
+Worflow: FinancialAccountService_CloseFinancialccount
+
+	StartEvent: MessageStartEvent
+		next: CheckMockResponse
+
+	End: EndEvent
+
+	CloseFinancialAccountError: BoundaryErrorEvent
+		next: PrepareOutput
+
+	CloseFinancialAccount: SubProcessTask
+		switch:
+			next: CloseFinancialAccountError
+			next: PrepareOutput
+
+	CheckMockResponse: Gateway
+		switch:
+			conn: CloseFinancialAccount
+			else: PrepareOutput
+
+	PrepareOutput: ScriptTask
+		next: End
+

@@ -1,0 +1,21 @@
+Worflow: ARBM_SME_UpdateStatusInCustomerServiceForSeveralApplicants
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	IsMoreApplicantsToUpdate_GW?: Gateway
+		switch:
+			else: End
+			conn: IncrementCounter
+
+	SetTags: ScriptTask
+		next: UpdateApplicantStatusInCustomerService
+
+	UpdateApplicantStatusInCustomerService: SubProcessTask
+		next: IsMoreApplicantsToUpdate_GW?
+
+	IncrementCounter: ScriptTask
+		next: UpdateApplicantStatusInCustomerService
+

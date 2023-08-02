@@ -1,0 +1,19 @@
+Worflow: ZCRE_PostEvent
+
+	StartEvent: MessageStartEvent
+		next: VerifyEvents
+
+	End: EndEvent
+
+	DW_SaveConditionEvent: ComponentTask
+		next: SetTags
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: PrepareOutput
+
+	VerifyEvents: SubProcessTask
+		next: DW_SaveConditionEvent
+

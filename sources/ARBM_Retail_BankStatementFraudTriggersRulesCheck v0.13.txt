@@ -1,0 +1,4 @@
+Worflow: ARBM_Retail_BankStatementFraudTriggersRulesCheck
+
+	85bf37b3-b799-45bc-b34c-e6621b9bd25b: FlowVerification
+

@@ -1,0 +1,42 @@
+Worflow: BO_EditComment
+
+	StartEvent: MessageStartEvent
+		next: CheckActionData
+
+	End: EndEvent
+
+	PrepareSaveOutput: ScriptTask
+		next: End
+
+	SaveOrderCommentError: BoundaryErrorEvent
+		next: PrepareSaveOutput
+
+	SaveOrderComment: SubProcessTask
+		switch:
+			next: SaveOrderCommentError
+			next: PrepareSaveOutput
+
+	CheckActionData: Gateway
+		switch:
+			else: SetFormPayload
+			conn: CheckNotDelete
+
+	SetFormPayload: ScriptTask
+		next: End
+
+	CheckNotDelete: Gateway
+		switch:
+			conn: SaveOrderComment
+			else: DeleteOrderComment
+
+	DeleteOrderCommentError: BoundaryErrorEvent
+		next: PrepareDeleteOutput
+
+	DeleteOrderComment: ComponentTask
+		switch:
+			next: DeleteOrderCommentError
+			next: PrepareDeleteOutput
+
+	PrepareDeleteOutput: ScriptTask
+		next: End
+

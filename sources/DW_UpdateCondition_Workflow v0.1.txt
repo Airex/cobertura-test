@@ -1,0 +1,7 @@
+Worflow: DW_UpdateCondition_Workflow
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

@@ -1,0 +1,28 @@
+Worflow: ARBM_Retail_GetMappedDataAppToCCRIS
+
+	StartEvent: MessageStartEvent
+		next: SaveCustomerAddressToGlobalVars
+
+	End: EndEvent
+
+	DecideCCRISOccupationSectorCode: SubDecisionTask
+		next: DecideCCRISEmploymentSectorCode
+
+	PrepareFinalCCRISApplicationPayload: ScriptTask
+		next: End
+
+	DecideCCRISEmploymentSectorCode: SubDecisionTask
+		next: DecideCCRISStateCode
+
+	DecideCCRISStateCode: SubDecisionTask
+		next: DecideCCRISEmploymentTypeCode
+
+	DecideCCRISEmploymentTypeCode: SubDecisionTask
+		next: GetDataMappedToCCRISValues
+
+	GetDataMappedToCCRISValues: ScriptTask
+		next: PrepareFinalCCRISApplicationPayload
+
+	SaveCustomerAddressToGlobalVars: ScriptTask
+		next: DecideCCRISOccupationSectorCode
+

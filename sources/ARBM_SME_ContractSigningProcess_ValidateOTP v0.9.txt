@@ -1,0 +1,18 @@
+Worflow: ARBM_SME_ContractSigningProcess_ValidateOTP
+
+	StartEvent: MessageStartEvent
+		next: ValidateOTP
+
+	End: EndEvent
+
+	ValidateOTPError: BoundaryErrorEvent
+		next: SetResult
+
+	ValidateOTP: SubProcessTask
+		switch:
+			next: ValidateOTPError
+			next: SetResult
+
+	SetResult: ScriptTask
+		next: End
+

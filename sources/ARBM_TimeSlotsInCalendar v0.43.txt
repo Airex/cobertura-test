@@ -1,0 +1,13 @@
+Worflow: ARBM_TimeSlotsInCalendar
+
+	StartEvent: MessageStartEvent
+		next: GetCalendarSchedules
+
+	End: EndEvent
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	GetCalendarSchedules: SubProcessTask
+		next: PrepareOutput
+

@@ -1,0 +1,33 @@
+Worflow: ARBM_SME_SaveToDbTaxCountry
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetCountryName: SubProcessTask
+		next: DW_SetClassificationCategories
+
+	IsTaxCountryMY_GW?: Gateway
+		switch:
+			conn: SetClassifications_MY
+			else: GetCountryName
+
+	SetTags: ScriptTask
+		next: DW_GetOrderLineData_ByOrderLineId
+
+	DW_GetOrderLineData_ByOrderLineId: ComponentTask
+		next: SaveToGlobalVarsPartyId
+
+	SaveToGlobalVarsPartyId: ScriptTask
+		next: IsTaxCountryMY_GW?
+
+	SetClassifications_MY: ComponentTask
+		next: End
+
+	DW_SetClassificationCategories: ComponentTask
+		next: SetClassifications_Other
+
+	SetClassifications_Other: ComponentTask
+		next: End
+

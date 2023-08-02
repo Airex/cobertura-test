@@ -1,0 +1,63 @@
+Worflow: ARBM_SME_WaitForFinancingApprovalByNPA
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetSharedContext: SubProcessTask
+		next: GetStatusAllGuarantorsApprovedFinancing
+
+	GetStatusAllGuarantorsApprovedFinancing: ScriptTask
+		next: AllGuarantorsApprovedFinancing_GW?
+
+	GetStatusAnyOfGuarantorsRejectedOrCanceled: ScriptTask
+		next: IsAnyOfGuarantorsRejectedOrCanceled_GW?
+
+	IsAnyOfGuarantorsRejectedOrCanceled_GW?: Gateway
+		switch:
+			conn: SaveOutputReject_1
+			else: GetStatusAnyOfGuarantorsHasFailedTokenVerif
+
+	AllGuarantorsApprovedFinancing_GW?: Gateway
+		switch:
+			else: GetStatusAnyOfGuarantorsRejectedOrCanceled
+			conn: SaveOutputProceed
+
+	SaveOutputProceed: ScriptTask
+		next: End
+
+	SaveOutputReject_1: ScriptTask
+		next: End
+
+	SharedContextWasUpdatedSignal: SignalEvent
+		next: GetSharedContext
+
+	Init: ScriptTask
+		next: GetSharedContext
+
+	UpdateSharedContextByTimerOrBySignal_GW?: Gateway
+		switch:
+			conn: SharedContextWasUpdatedSignal
+			conn: RetryTimer_Succeeded
+
+	RetryTimer: SubProcessStartTask
+		next: UpdateSharedContextByTimerOrBySignal_GW?
+
+	RetryTimer_Succeeded: SubProcessSucceededEvent
+		next: GetSharedContext
+
+	GetStatusAnyOfGuarantorsHasFailedTokenVerif: ScriptTask
+		next: IsAnyOfGuarantorsHasFailedTokenVerif_GW?
+
+	IsAnyOfGuarantorsHasFailedTokenVerif_GW?: Gateway
+		switch:
+			else: RetryTimer
+			conn: SaveOutputReject_2
+
+	SaveOutputReject_2: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: Init
+

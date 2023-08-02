@@ -1,0 +1,28 @@
+Worflow: ARBM_SME_DetermineCustomerRoleForPrimaryApplicant
+
+	Copy_StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	DetermineCustomerRoleForPrimaryApplicant: ScriptTask
+		next: PreparedPayload
+
+	LinkPrimaryApplicantWithSME: ComponentTask
+		next: GetPayloadForTableShareholder
+
+	SendOutputData: ScriptTask
+		next: End
+
+	PreparedPayload: ScriptTask
+		next: LinkPrimaryApplicantWithSME
+
+	SetTags: ScriptTask
+		next: DetermineCustomerRoleForPrimaryApplicant
+
+	DW_BatchOrderUpsert_SetShareholderForPrimaryApplicant: SubProcessAwaitFirstResponseTask
+		next: SendOutputData
+
+	GetPayloadForTableShareholder: ScriptTask
+		next: DW_BatchOrderUpsert_SetShareholderForPrimaryApplicant
+

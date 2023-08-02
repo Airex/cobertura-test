@@ -1,0 +1,35 @@
+Worflow: ARBM_Retail_GetIsWorkContactEmailSuspicious
+
+	StartEvent: MessageStartEvent
+		next: DW_FindAllBlacklistClsByEntityTypeAndCodeValue
+
+	End: EndEvent
+
+	DW_FindAllBlacklistClsByEntityTypeAndCodeValue: ComponentTask
+		next: AreAnyClassificationsFound?
+
+	SaveOutput_IsEmailSuspicious: ScriptTask
+		next: End
+
+	AreAnyClassificationsFound?: Gateway
+		switch:
+			else: SaveOutput_IsEmailNotSuspicious
+			conn: GetPreparedListOfLegalEntitiesIds
+
+	SaveOutput_IsEmailNotSuspicious: ScriptTask
+		next: End
+
+	GetPreparedListOfLegalEntitiesIds: ScriptTask
+		next: DW_FindSuspiciousEmailsByLegalEntitiesIds
+
+	DW_FindSuspiciousEmailsByLegalEntitiesIds: ComponentTask
+		next: GetIsWorkContactEmailSuspicious
+
+	GetIsWorkContactEmailSuspicious: ScriptTask
+		next: IsWorkContactEmailSuspicious?
+
+	IsWorkContactEmailSuspicious?: Gateway
+		switch:
+			conn: SaveOutput_IsEmailSuspicious
+			else: SaveOutput_IsEmailNotSuspicious
+

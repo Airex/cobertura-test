@@ -1,0 +1,25 @@
+Worflow: ARBM_Retail_FraudBlacklistsCheckByBrn_TEST_ONLY_OLD
+
+	StartEvent: MessageStartEvent
+		next: GetIsInBlacklistIdentifiedFraudCasesForCorpCust
+
+	EndEvent: EndEvent
+
+	SaveOutput: ScriptTask
+		next: EndEvent
+
+	GetIsInBlacklistIdentifiedFraudCasesForCorpCust: ScriptTask
+		next: GetIsLegalEntityInBLSuspectedFraudByBRN
+
+	GetIsLegalEntityInBlacklistSuspectedFraudByWorkEmail: SubProcessTask
+		next: GetIsLegalEntityInBLFailedLegalTradeChecksByWorkEmail
+
+	GetIsLegalEntityInBLSuspectedFraudByBRN: ScriptTask
+		next: GetIsLegalEntityInBLFailedLegalTradeChecksByBRN
+
+	GetIsLegalEntityInBLFailedLegalTradeChecksByBRN: ScriptTask
+		next: GetIsLegalEntityInBlacklistSuspectedFraudByWorkEmail
+
+	GetIsLegalEntityInBLFailedLegalTradeChecksByWorkEmail: SubProcessTask
+		next: SaveOutput
+

@@ -1,0 +1,47 @@
+Worflow: ARBM_Retail_NonFraudBlacklistsCheck
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetIsInBlacklistExistingPFCustWithOutstdCrd: ScriptTask
+		next: GetIsInBlacklistPFCustWithSettledCrdAndPastConductIssues
+
+	GetIsInBlacklistPFCustWithSettledCrdAndPastConductIssues: ScriptTask
+		next: GetIsInBlacklistExistingGuarantorsForCorpCustWithOutstdCrd
+
+	GetIsInBlacklistExistingGuarantorsForCorpCustWithOutstdCrd: ScriptTask
+		next: GetIsInBlacklistGrntrsForCorpCustWithStldCrdAndPastCondIss
+
+	GetIsInBlacklistGrntrsForCorpCustWithStldCrdAndPastCondIss: ScriptTask
+		next: GetIsInBlacklistConnectedParties
+
+	GetIsInBlacklistConnectedParties: ScriptTask
+		next: IsCustomerSelfEmployed?
+
+	SaveOutput: ScriptTask
+		next: End
+
+	IsCustomerSelfEmployed?: Gateway
+		switch:
+			else: SaveOutput
+			conn: GetIsInBlacklistExistingCorpCustWithOutstdCrd
+
+	GetIsInBlacklistExistingCorpCustWithOutstdCrd: ScriptTask
+		next: GetIsInBlacklistCorpWithStldCrdAndPastConductIssues
+
+	GetIsInBlacklistCorpWithStldCrdAndPastConductIssues: ScriptTask
+		next: SaveOutput
+
+	IsOverrideOn?: Gateway
+		switch:
+			conn: OverrideOutputResult
+			else: GetIsInBlacklistExistingPFCustWithOutstdCrd
+
+	OverrideOutputResult: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: IsOverrideOn?
+

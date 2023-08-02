@@ -1,0 +1,37 @@
+Worflow: BO_UpdateFinancingProductRates
+
+	StartEvent: MessageStartEvent
+		next: CheckActionData
+
+	End: EndEvent
+
+	SetFormPayload: ScriptTask
+		next: End
+
+	CheckActionData: Gateway
+		switch:
+			else: GetProductsRates
+			conn: GetProductRatesChanges
+
+	GetProductsRates: SubProcessTask
+		next: SetFormPayload
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	UpdateProductRatesError: BoundaryErrorEvent
+		next: PrepareOutput
+
+	UpdateProductRates: SubProcessTask
+		switch:
+			next: UpdateProductRatesError
+			next: PrepareOutput
+
+	GetProductRatesChanges: ScriptTask
+		next: CheckHasChanges
+
+	CheckHasChanges: Gateway
+		switch:
+			else: PrepareOutput
+			conn: UpdateProductRates
+

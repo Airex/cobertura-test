@@ -1,0 +1,11 @@
+Worflow: ARBM_Retail_GetShareholdingPercentageCheckResult
+
+	7829018a-23c9-42a8-bce4-ef728fe8a20f: FlowVerification
+
+	9c348165-012e-4fb4-98f4-6dab2550911c: FlowVerification
+		next: 
+
+	IfShareIsNULL: FlowDecision
+
+	3e9f6d00-2229-4d74-acdb-f24515804a52: FlowVerification
+

@@ -1,0 +1,22 @@
+Worflow: ARBM_SME_GetSharedContext
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetEventsByTypeId: SubProcessTask
+		next: GetApplicantsTrackingEventId
+
+	GetApplicantsTrackingEventId: ScriptTask
+		next: GetEventState
+
+	GetEventState: SubProcessTask
+		next: SaveOutput
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: GetEventsByTypeId
+

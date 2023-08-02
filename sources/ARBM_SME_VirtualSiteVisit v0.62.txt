@@ -1,0 +1,68 @@
+Worflow: ARBM_SME_VirtualSiteVisit
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: IsOnlyEventVirtualSiteVisit?
+
+	isSimulationOn?: Gateway
+		switch:
+			else: Init
+			conn: PrepareSimulationOutput
+
+	PrepareSimulationOutput: ScriptTask
+		next: GetSimulatedRuleClassifications
+
+	SetTags: ScriptTask
+		next: isSimulationOn?
+
+	IsOnlyEventVirtualSiteVisit?: Gateway
+		switch:
+			conn: VirtualSiteVisit_ManualTask1
+			else: VirtualSiteVisit_ManualTask2
+
+	DW_BatchOrderUpsert_SaveToDb_RuleResult: SubProcessStartTask
+		next: End
+
+	GetSimulatedRuleClassifications: ScriptTask
+		next: DW_BatchOrderUpsert_SaveToDb_RuleResult
+
+	VirtualSiteVisit_ManualTask1: SubProcessTask
+		next: End
+
+	VirtualSiteVisit_ManualTask2: SubProcessStartTask
+		next: BoardResolution_ManualTask
+
+	BoardResolution_ManualTask: SubProcessStartTask
+		next: NewGateway
+
+	VirtualSiteVisit_ManualTask2_Succeeded_branch1: SubProcessSucceededEvent
+		next: IsVirtualSiteVisitRejected_GW?
+
+	BoardResolution_ManualTask_Succeeded_branch1: SubProcessSucceededEvent
+		next: End
+
+	IsVirtualSiteVisitRejected_GW?: Gateway
+		switch:
+			else: BoardResolution_ManualTask_Succeeded_branch1
+			conn: End
+
+	NewGateway: Gateway
+		switch:
+			conn: VirtualSiteVisit_ManualTask2_Succeeded_branch1
+			conn: BoardResolution_ManualTask_Succeeded_branch2
+
+	BoardResolution_ManualTask_Succeeded_branch2: SubProcessSucceededEvent
+		next: IsBoardResolutionRejected_GW?
+
+	IsBoardResolutionRejected_GW?: Gateway
+		switch:
+			else: VirtualSiteVisit_ManualTask2_Succeeded_branch2
+			conn: End
+
+	VirtualSiteVisit_ManualTask2_Succeeded_branch2: SubProcessSucceededEvent
+		next: End
+

@@ -1,0 +1,70 @@
+Worflow: ARBM_Retail_FBServiceKafkaBalanceConsumerV2
+
+	StartEvent: MessageStartEvent
+		next: MutexLockFinancialAccout
+
+	End: EndEvent
+
+	FBServiceKafkaBalanceConsumer: SignalTask
+
+	DW_SetStatementLine: ComponentTask
+		next: DW_LinkStatementLineToPaymentMeans
+
+	DW_SetStatement: ComponentTask
+		next: DW_LinkStatementToPaymentMeans
+
+	DW_LinkStatementLineToPaymentMeans: ComponentTask
+		next: End
+
+	DW_FindOrder: ComponentTask
+		next: CheckHasOrder
+
+	DW_FindFinancialAccount: ComponentTask
+		next: CheckHasFinancilaAccount
+
+	DW_FindPaymentMeansBySenderIdSenderScopeId: ComponentTask
+		next: CheckIfManatoryDataFound
+
+	DW_LinkStatementToPaymentMeans: ComponentTask
+		next: DW_SetStatementLine
+
+	CheckIfManatoryDataFound: Gateway
+		switch:
+			conn: WaitFinancingAccountCreated
+			else: ThrowErrorIfNotFound
+			conn: DW_GetOrderByFinancialAccountId
+
+	ThrowErrorIfNotFound: ScriptTask
+		next: End
+
+	InitProcess: ScriptTask
+		next: DW_FindFinancialAccount
+
+	CheckWereToGo: Gateway
+		switch:
+			conn: DW_FindOrder
+			else: DW_FindPaymentMeansBySenderIdSenderScopeId
+			conn: DW_FindFinancialAccount
+
+	WaitFinancingAccountCreated: SignalEvent
+		next: CheckWereToGo
+
+	CheckHasFinancilaAccount: Gateway
+		switch:
+			conn: DW_FindOrder
+			else: CheckIfManatoryDataFound
+
+	CheckHasOrder: Gateway
+		switch:
+			conn: DW_FindPaymentMeansBySenderIdSenderScopeId
+			else: CheckIfManatoryDataFound
+
+	MutexLockFinancialAccout: ComponentTask
+		next: InitProcess
+
+	SetTags: ScriptTask
+		next: DW_SetStatement
+
+	DW_GetOrderByFinancialAccountId: ComponentTask
+		next: SetTags
+

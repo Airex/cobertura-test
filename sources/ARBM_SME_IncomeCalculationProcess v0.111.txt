@@ -1,0 +1,181 @@
+Worflow: ARBM_SME_IncomeCalculationProcess
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	IsFraudDecisionReject?: Gateway
+		switch:
+			conn: SetFrontEndApplicationStatusReject
+			else: CalculateBusinessBankStatementIncomeOffline
+
+	GetPerfiosBankStatementsError: BoundaryErrorEvent
+		next: UpdateFrontEndApplicationStatus
+
+	GetPerfiosBankStatements: SubProcessTask
+		switch:
+			next: GetPerfiosBankStatementsError
+			next: IsNoStatementsBankStAnalysed
+
+	UpdateFrontEndApplicationStatus: ResponseTask
+		next: GetDataManualReviewPerfiosBusinessBankSt_ManualTask
+
+	SetFrontEndApplicationStatusReject: ResponseTask
+		next: GetRulesToBeAddedToBlacklist
+
+	SendOutputData: ScriptTask
+		next: End
+
+	ManualFraudDecision: SubDecisionTask
+		next: SaveToDb_Rule_ManualFraudTriggersRuleCheck
+
+	SaveToDb_Rule_ManualFraudTriggersRuleCheck: ComponentTask
+		next: IsFraudDecisionReject?
+
+	SaveToDb_PerfiosReport: ComponentTask
+		next: IncomeCalculationAndVerificationChecks
+
+	IsNoStatementsBankStAnalysed: Gateway
+		switch:
+			conn: SaveToDb_PerfiosReport
+			else: UpdateFrontEndApplicationStatus
+
+	GetRulesToBeAddedToBlacklist: ScriptTask
+		next: AreRulesPresentToBeAddedToDB?
+
+	AreRulesPresentToBeAddedToDB?: Gateway
+		switch:
+			conn: GetPreparedClsCategoriesToBeSavedToDb
+			else: SendOutputData
+
+	GetPreparedClsCategoriesToBeSavedToDb: ScriptTask
+		next: AddEmailNricBrnToBlacklist
+
+	AddEmailNricBrnToBlacklist: ComponentTask
+		next: GetPreparedClsToBeSavedToDb
+
+	GetPreparedClsToBeSavedToDb: ScriptTask
+		next: DW_SetClassifications
+
+	DW_SetClassifications: ComponentTask
+		next: SendOutputData
+
+	GetDataManualReviewPerfiosBusinessBankSt_ManualTask: SubProcessTask
+		next: IfManualTaskPerfiosRetry
+
+	GetDataManualReviewIncomeCalculation_ManualTask: SubProcessTask
+		next: IfManualTaskIncomeCalcRetry
+
+	IfManualTaskIncomeCalcRetry: Gateway
+		switch:
+			conn: CalculateBusinessBankStatementIncomeOffline
+			else: DecideBusinessBankStatementCheckManualRoute
+
+	IfManualTaskPerfiosRetry: Gateway
+		switch:
+			else: ManualFraudDecision
+			conn: GetPerfiosBankStatements
+
+	IncomeCalculationAndVerificationChecks: SubProcessStartTask
+		next: IncomeTrendAnalysisCheckCalculation
+
+	CalculateBusinessBankStatementIncomeOfflineError: BoundaryErrorEvent
+		next: GetDataManualReviewIncomeCalculation_ManualTask
+
+	CalculateBusinessBankStatementIncomeOffline: SubProcessTask
+		switch:
+			next: CalculateBusinessBankStatementIncomeOfflineError
+			next: IfIncomeCalcOfflineResponseEmpty
+
+	IfIncomeCalcOfflineResponseEmpty: Gateway
+		switch:
+			conn: DecideBusinessBankStatementCheckManualRoute
+			else: GetDataManualReviewIncomeCalculation_ManualTask
+
+	SaveCheckResults: ScriptTask
+		next: FinancialStatementTurnoverVsIncomeCerificationCheck
+
+	FinancialStatementTurnoverVsIncomeCerificationCheck: SubProcessTask
+		next: SendOutputData
+
+	IncomeTrendAnalysisCheckCalculation: SubProcessStartTask
+		next: OverdraftChecksCalculation
+
+	OverdraftChecksCalculation: SubProcessStartTask
+		next: FraudTriggersCheck
+
+	IncomeCalculationAndVerificationChecksSucceeded: SubProcessSucceededEvent
+		next: Copy_NewGateway
+
+	NewGateway: Gateway
+		switch:
+			conn: IncomeCalculationAndVerificationChecksSucceeded
+			conn: IncomeCalculationAndVerificationChecksFailed
+
+	IncomeTrendAnalysisCheckCalculationSucceeded: SubProcessSucceededEvent
+		next: Copy_2_NewGateway
+
+	Copy_NewGateway: Gateway
+		switch:
+			conn: IncomeTrendAnalysisCheckCalculationSucceeded
+			conn: IncomeTrendAnalysisCheckCalculationFailed
+
+	IncomeTrendAnalysisCheckCalculationFailed: SubProcessFailedEvent
+		next: Copy_2_NewGateway
+
+	IncomeCalculationAndVerificationChecksFailed: SubProcessFailedEvent
+		next: Copy_NewGateway
+
+	OverdraftChecksCalculationSucceeded: SubProcessSucceededEvent
+		next: Copy_3_NewGateway
+
+	Copy_2_NewGateway: Gateway
+		switch:
+			conn: OverdraftChecksCalculationSucceeded
+			conn: OverdraftChecksCalculationFailed
+
+	OverdraftChecksCalculationFailed: SubProcessFailedEvent
+		next: Copy_3_NewGateway
+
+	FraudTriggersCheckSucceeded: SubProcessSucceededEvent
+		next: IsCheckStatusReject
+
+	Copy_3_NewGateway: Gateway
+		switch:
+			conn: FraudTriggersCheckSucceeded
+			conn: FraudTriggersCheckFailed
+
+	FraudTriggersCheckFailed: SubProcessFailedEvent
+		next: IsCheckStatusReject
+
+	FraudTriggersCheck: SubProcessStartTask
+		next: NewGateway
+
+	GetBankStatementParameters: SubDecisionTask
+		next: GetPerfiosBankStatements
+
+	DecideBusinessBankStatementCheckManualRoute: SubDecisionTask
+		next: SaveToDb_Rules_SelfEmployedIncomeCheckMR
+
+	IsIncomeCheckStatusManuaReject?: Gateway
+		switch:
+			conn: SetFrontEndApplicationStatusReject
+			else: SaveCheckResults
+
+	SaveToDb_Rules_SelfEmployedIncomeCheckMR: ComponentTask
+		next: IsIncomeCheckStatusManuaReject?
+
+	IfIncomeCalculationResponseEmpty: Gateway
+		switch:
+			conn: SaveCheckResults
+			else: GetDataManualReviewIncomeCalculation_ManualTask
+
+	IsCheckStatusReject: Gateway
+		switch:
+			conn: SetFrontEndApplicationStatusReject
+			else: IfIncomeCalculationResponseEmpty
+
+	SetTags: ScriptTask
+		next: GetBankStatementParameters
+

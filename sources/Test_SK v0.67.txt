@@ -1,0 +1,40 @@
+Worflow: Test_SK
+
+	StartEvent: MessageStartEvent
+		next: NewMessageResponse_1
+
+	End: EndEvent
+
+	NewMessageResponse: ResponseTask
+		next: End
+
+	MutexTryEnter: ComponentTask
+		next: NewMessageEvent
+
+	NewMessageEvent: MessageEvent
+		next: NewMessageResponse
+
+	Get_ConditionTypes: SubProcessTask
+		next: Check_ConditionTypes
+
+	NewGateway: Gateway
+		switch:
+			else: MutexTryEnter
+			conn: Get_ConditionTypes
+			conn: Get_ActionTypes
+
+	Check_ConditionTypes: ScriptTask
+		next: CheckConditionsAndResolutionsWithoutActions
+
+	NewMessageResponse_1: ResponseTask
+		next: End
+
+	Get_ActionTypes: SubProcessTask
+		next: Check_ActionTypes
+
+	Check_ActionTypes: ScriptTask
+		next: CheckConditionsAndResolutionsWithoutActions
+
+	CheckConditionsAndResolutionsWithoutActions: ScriptTask
+		next: End
+

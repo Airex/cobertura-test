@@ -1,0 +1,83 @@
+Worflow: ARBM_Retail_GetFeedzaiFraudScoreProcess
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	IsDataMocked?: Gateway
+		switch:
+			conn: ReturnMockData
+			else: PreparePayload
+
+	ReturnMockData: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: ShouldSimulateGetFeedzaiFraudScoreProcessSucceed?
+
+	GetApplicationFraudDecisionError: BoundaryErrorEvent
+		next: GetFeedzaiFraudScore_ManualTask
+
+	GetApplicationFraudDecision: ComponentTask
+		switch:
+			next: GetApplicationFraudDecisionError
+			next: IsHttpCallError?
+
+	OnAppFraudDecisionStatus: SignalEvent
+		next: IsOnAfdError?
+
+	PrepareOutputProceed: ScriptTask
+		next: End
+
+	SaveOutput: ScriptTask
+		next: End
+
+	IsOnAfdError?: Gateway
+		switch:
+			conn: GetFeedzaiFraudScore_ManualTask
+			else: SaveFraudDecision
+
+	ShouldSimulateGetFeedzaiFraudScoreProcessSucceed?: Gateway
+		switch:
+			else: IsDataMocked?
+			conn: PrepareOutputProceed
+
+	DecideFeedzaiFraudScoreCheck: SubDecisionTask
+		next: SaveOutput
+
+	IsHttpCallError?: Gateway
+		switch:
+			conn: GetFeedzaiFraudScore_ManualTask
+			else: GW_AppFraudDecisionStatus
+
+	GetFeedzaiFraudScore_ManualTask: SubProcessTask
+		next: IsManualTaskSuccessful?
+
+	GW_AppFraudDecisionStatus: Gateway
+		switch:
+			conn: OnAppFraudDecisionStatus
+			conn: TimerWaitForFeedzaiFraudScore
+
+	TimerWaitForFeedzaiFraudScore: TimerEvent
+		next: GetFeedzaiFraudScore_ManualTask
+
+	PreparePayload: ScriptTask
+		next: GetApplicationFraudDecision
+
+	IsManualTaskSuccessful?: Gateway
+		switch:
+			else: GetFeedzaiFraudScore_ManualTask
+			conn: ShouldProceedOrRejectOrRetry?
+
+	ShouldProceedOrRejectOrRetry?: Gateway
+		switch:
+			conn: GetApplicationFraudDecision
+			else: SaveFraudDecision_AfterManualTask
+
+	SaveFraudDecision: ScriptTask
+		next: DecideFeedzaiFraudScoreCheck
+
+	SaveFraudDecision_AfterManualTask: ScriptTask
+		next: DecideFeedzaiFraudScoreCheck
+

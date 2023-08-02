@@ -1,0 +1,16 @@
+Worflow: ARBM_PushExperianReportSnapshotToKafka_Irissu
+
+	StartEvent: MessageStartEvent
+		next: Tags
+
+	End: EndEvent
+
+	KafkaProducer: SubProcessTask
+		next: End
+
+	Tags: ScriptTask
+		next: DW_GetExperianReportByDocumentId_Irissu
+
+	DW_GetExperianReportByDocumentId_Irissu: ComponentTask
+		next: KafkaProducer
+

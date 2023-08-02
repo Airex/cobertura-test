@@ -1,0 +1,21 @@
+Worflow: Files_CreateUploadLinks
+
+	StartEvent: MessageStartEvent
+		next: PrepareOutput
+
+	End: EndEvent
+
+	CheckLoopFinished: Gateway
+		switch:
+			else: End
+			conn: Files_CreateUploadLink
+
+	PrepareOutput: ScriptTask
+		next: CheckLoopFinished
+
+	AddResult: ScriptTask
+		next: CheckLoopFinished
+
+	Files_CreateUploadLink: ComponentTask
+		next: AddResult
+

@@ -1,0 +1,70 @@
+Worflow: ARBM_SME_JumioVerificationAndEKYCResponceCheck
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	RetrieveJumioVerificationDetails: ComponentTask
+		next: SaveJumioResult
+
+	IsJumioResponseRejected: Gateway
+		switch:
+			conn: CheckForExistingCustomerByNRIC
+			conn: setReTriggerEKYC
+			else: SetReject
+
+	setReTriggerEKYC: ScriptTask
+		next: End
+
+	CheckForExistingCustomerByNRIC: SubProcessTask
+		next: JumioEKYCResponseCheckRules
+
+	JumioEKYCResponseCheckRules: SubDecisionTask
+		next: SaveToDb_Rules
+
+	SaveToDb_Rules: ComponentTask
+		next: UpdateApplicantStatusInCustomerService
+
+	SendOutputData: ScriptTask
+		next: isOnEKYCSimulation_GW?
+
+	UpdateApplicantStatusInCustomerService: SubProcessTask
+		next: SendOutputData
+
+	isJumioSimulationOn?: Gateway
+		switch:
+			else: RetrieveJumioVerificationDetails
+			conn: ShouldSimulateRetriggerEkycOnce_GW?
+
+	SaveSimulatedJumioResult: ScriptTask
+		next: IsJumioResponseRejected
+
+	isOnEKYCSimulation_GW?: Gateway
+		switch:
+			conn: UpdateOutputWithSimulatedData
+			else: SaveToDb_Capability_VerifiedIdentityIndicator
+
+	UpdateOutputWithSimulatedData: ScriptTask
+		next: SaveToDb_Simulated_Rules
+
+	SaveToDb_Simulated_Rules: ComponentTask
+		next: SaveToDb_Capability_VerifiedIdentityIndicator
+
+	SaveJumioResult: ScriptTask
+		next: IsJumioResponseRejected
+
+	SetReject: ScriptTask
+		next: SaveToDb_Capability_VerifiedIdentityIndicator
+
+	SetTags: ScriptTask
+		next: isJumioSimulationOn?
+
+	SaveToDb_Capability_VerifiedIdentityIndicator: SubProcessStartTask
+		next: End
+
+	ShouldSimulateRetriggerEkycOnce_GW?: Gateway
+		switch:
+			else: SaveSimulatedJumioResult
+			conn: setReTriggerEKYC
+

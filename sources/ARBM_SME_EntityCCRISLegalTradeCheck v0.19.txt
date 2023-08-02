@@ -1,0 +1,35 @@
+Worflow: ARBM_SME_EntityCCRISLegalTradeCheck
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	CallDataProviderError: BoundaryErrorEvent
+		next: SaveToDb_Rule_CCRISLegalTradeCheckError
+
+	CallDataProvider: ComponentTask
+		switch:
+			next: CallDataProviderError
+			next: IsCCRISLegalTradeCheckFailed?
+
+	EntityCCRISLegalTradeRules: SubDecisionTask
+		next: SaveToDb_Rule_CCRISLegalTradeCheckResult
+
+	SaveToDb_Rule_CCRISLegalTradeCheckResult: ComponentTask
+		next: SaveOutput
+
+	SaveToDb_Rule_CCRISLegalTradeCheckError: ComponentTask
+		next: End
+
+	IsCCRISLegalTradeCheckFailed?: Gateway
+		switch:
+			conn: EntityCCRISLegalTradeRules
+			else: SaveToDb_Rule_CCRISLegalTradeCheckError
+
+	SaveOutput: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: CallDataProvider
+

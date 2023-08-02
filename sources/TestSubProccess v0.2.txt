@@ -1,0 +1,10 @@
+Worflow: TestSubProccess
+
+	StartEvent: MessageStartEvent
+		next: timer
+
+	End: EndEvent
+
+	timer: TimerEvent
+		next: End
+

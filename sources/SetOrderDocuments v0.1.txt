@@ -1,0 +1,7 @@
+Worflow: SetOrderDocuments
+
+	StartEvent: MessageStartEvent
+		next: End
+
+	End: EndEvent
+

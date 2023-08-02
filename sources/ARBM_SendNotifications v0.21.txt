@@ -1,0 +1,47 @@
+Worflow: ARBM_SendNotifications
+
+	StartEvent: MessageStartEvent
+		next: GetIsPhoneNumberBlocklisted
+
+	End: EndEvent
+
+	CheckSendPushNotification: Gateway
+		switch:
+			else: CheckSendSmsNotification
+			conn: SendPushNotification
+
+	CheckSendSmsNotification: Gateway
+		switch:
+			conn: ApplyTemplateParameters
+			else: ThrowIfError
+
+	SendPushNotificationError: BoundaryErrorEvent
+		next: CheckSendSmsNotification
+
+	SendPushNotification: SubProcessTask
+		switch:
+			next: SendPushNotificationError
+			next: CheckSendSmsNotification
+
+	SendSmsNotificationError: BoundaryErrorEvent
+		next: ThrowIfError
+
+	SendSmsNotification: SubProcessTask
+		switch:
+			next: SendSmsNotificationError
+			next: ThrowIfError
+
+	ApplyTemplateParameters: ScriptTask
+		next: SendSmsNotification
+
+	ThrowIfError: ScriptTask
+		next: End
+
+	GetIsPhoneNumberBlocklisted: ScriptTask
+		next: IsPhoneNumberBlocklisted_GW?
+
+	IsPhoneNumberBlocklisted_GW?: Gateway
+		switch:
+			else: CheckSendPushNotification
+			conn: End
+

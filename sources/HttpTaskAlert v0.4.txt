@@ -1,0 +1,10 @@
+Worflow: HttpTaskAlert
+
+	StartEvent: MessageStartEvent
+		next: Alert
+
+	End: EndEvent
+
+	Alert: ScriptTask
+		next: End
+

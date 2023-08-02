@@ -1,0 +1,13 @@
+Worflow: BO_WaitConditionEventProcessed
+
+	StartEvent: MessageStartEvent
+		next: EmptyResponse
+
+	End: EndEvent
+
+	WaitEventProcessed: SignalEvent
+		next: End
+
+	EmptyResponse: ResponseTask
+		next: WaitEventProcessed
+

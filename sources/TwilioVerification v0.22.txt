@@ -1,0 +1,27 @@
+Worflow: TwilioVerification
+
+	StartEvent: MessageStartEvent
+		next: RequestVerification
+
+	End: EndEvent
+
+	InputCode: MessageEvent
+		next: RequestVerificationCheck
+
+	VerificationResponse: ResponseTask
+		next: InputCode
+
+	VerificationCheckResponse: ResponseTask
+		next: pending?
+
+	pending?: Gateway
+		switch:
+			conn: InputCode
+			else: End
+
+	RequestVerification: ComponentTask
+		next: VerificationResponse
+
+	RequestVerificationCheck: ComponentTask
+		next: VerificationCheckResponse
+

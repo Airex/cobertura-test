@@ -1,0 +1,66 @@
+Worflow: ARBM_SME_CheckForExistingCustomerByPhoneNumber
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetCustomerStatusByPhoneNumberError: BoundaryErrorEvent
+		next: ThrowError
+
+	GetCustomerStatusByPhoneNumber: ComponentTask
+		switch:
+			next: GetCustomerStatusByPhoneNumberError
+			next: GW_IsHttpCallError?
+
+	SaveOutputReject: ScriptTask
+		next: SaveRuleResultToDB
+
+	SetTags: ScriptTask
+		next: ShouldSimulateSkip?
+
+	GW_IsExistingCustomer?: Gateway
+		switch:
+			conn: SaveOutputProceed
+			else: GW_ExistingCustomerStatus?
+
+	SaveOutputProceed: ScriptTask
+		next: isNonPrimaryApplicant_GW?
+
+	ThrowError: ScriptTask
+		next: End
+
+	GW_IsHttpCallError?: Gateway
+		switch:
+			else: GW_IsExistingCustomer?
+			conn: ThrowError
+
+	GW_ExistingCustomerStatus?: Gateway
+		switch:
+			conn: SaveExistingCustomerStatusAsArchivedInKafka
+			else: GetIsCustomerWhitelisted
+
+	SaveRuleResultToDB: ComponentTask
+		next: End
+
+	ShouldSimulateSkip?: Gateway
+		switch:
+			else: GetCustomerStatusByPhoneNumber
+			conn: SaveOutputProceed
+
+	SaveExistingCustomerStatusAsArchivedInKafka: SubProcessTask
+		next: SaveOutputProceed
+
+	isNonPrimaryApplicant_GW?: Gateway
+		switch:
+			else: SaveRuleResultToDB
+			conn: End
+
+	GetIsCustomerWhitelisted: ScriptTask
+		next: IsCustomerWhitelisted_GW?
+
+	IsCustomerWhitelisted_GW?: Gateway
+		switch:
+			else: SaveOutputReject
+			conn: SaveOutputProceed
+

@@ -1,0 +1,26 @@
+Worflow: KafkaConsumer
+
+	StartEvent: MessageStartEvent
+		next: Tags
+
+	End: EndEvent
+
+	GetWorkflowNames: ScriptTask
+		next: isWorkflowName?
+
+	isWorkflowName?: Gateway
+		switch:
+			else: End
+			conn: StartWorkflow
+
+	StartWorkflowError: BoundaryErrorEvent
+		next: isWorkflowName?
+
+	StartWorkflow: SubProcessAwaitFirstResponseTask
+		switch:
+			next: StartWorkflowError
+			next: isWorkflowName?
+
+	Tags: ScriptTask
+		next: GetWorkflowNames
+

@@ -1,0 +1,120 @@
+Worflow: ARBM_SME_ContractSigningProcess
+
+	StartEvent: MessageStartEvent
+		next: ShouldSimulateValidationOTP_GW?
+
+	End: EndEvent
+
+	PerformBankSigningCeremony: SubProcessTask
+		next: isErrorPerformBankSigningCeremony?
+
+	PerformCustomerSigningCeremony: SubProcessTask
+		next: isNoReceivedSignedDocument
+
+	CertificateGeneration: SubProcessTask
+		next: ShouldSkipCertificateGeneration_GW?
+
+	CustomerHasExistingCertificate_GW?: Gateway
+		switch:
+			conn: PerformCustomerSigningCeremony
+			else: CertificateGeneration
+
+	ConvertS3ToBase64Error: BoundaryErrorEvent
+		next: SaveError
+
+	ConvertS3ToBase64: ComponentTask
+		switch:
+			next: ConvertS3ToBase64Error
+			next: PerformBankSigningCeremony
+
+	SaveContractToS3: SubProcessTask
+		next: SaveSignedDocumentToGlobalVars_OriginalFlow
+
+	IsMoreDocumentsToSign_GW?: Gateway
+		switch:
+			else: ProcessSigningDocuments
+			conn: PrepareDocument
+
+	PrepareDocument: ScriptTask
+		next: isManualTaskSimulation
+
+	Init: ScriptTask
+		next: PrepareDocument
+
+	SaveSignedDocumentToGlobalVars_OriginalFlow: ScriptTask
+		next: IncrementDocumentOrdinal
+
+	SetTags: ScriptTask
+		next: Init
+
+	isManualTaskSimulation: Gateway
+		switch:
+			conn: GetDataManualContractSign_ManualTask
+			else: ConvertS3ToBase64
+
+	GetDataManualContractSign_ManualTask: SubProcessTask
+		next: isManualTaskRetryOrReject
+
+	isManualTaskRetryOrReject: Gateway
+		switch:
+			conn: ConvertS3ToBase64
+			conn: SetRejectReasonCode
+			else: SaveSignedDocumentToGlobalVars_AfterManualTask
+			conn: ShouldSimulateValidationOTP_GW?
+
+	isNoReceivedSignedDocument: Gateway
+		switch:
+			else: SaveContractToS3
+			conn: SaveError
+
+	SaveError: ScriptTask
+		next: GetDataManualContractSign_ManualTask
+
+	SetRejectReasonCode: ScriptTask
+		next: End
+
+	ProcessSigningDocuments: SubProcessTask
+		next: End
+
+	InitiateNewSigningProcess: SubProcessTask
+		next: SendOTPToCustomer
+
+	SendOTPToCustomer: SubProcessTask
+		next: ValidateOTP
+
+	ValidateOTP: SubProcessTask
+		next: isError?
+
+	ShouldSimulateValidationOTP_GW?: Gateway
+		switch:
+			else: SetTags
+			conn: InitiateNewSigningProcess
+
+	ShouldSkipCertificateGeneration_GW?: Gateway
+		switch:
+			else: PerformCustomerSigningCeremony
+			conn: ContractSigningSimulationTimer
+			conn: SaveError
+
+	ContractSigningSimulationTimer: TimerEvent
+		next: End
+
+	SaveSignedDocumentToGlobalVars_AfterManualTask: ScriptTask
+		next: IncrementDocumentOrdinal
+
+	IncrementDocumentOrdinal: ScriptTask
+		next: IsMoreDocumentsToSign_GW?
+
+	isError?: Gateway
+		switch:
+			conn: GetDataManualContractSign_ManualTask
+			else: SetTags
+
+	isErrorPerformBankSigningCeremony?: Gateway
+		switch:
+			conn: SaveError
+			else: VerifyIfCustomerHasExistingCertificate
+
+	VerifyIfCustomerHasExistingCertificate: SubProcessTask
+		next: CustomerHasExistingCertificate_GW?
+

@@ -1,0 +1,121 @@
+Worflow: HttpTask_Copy
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: Method?
+
+	Method?: Gateway
+		switch:
+			conn: GET
+			conn: POST
+			conn: PUT
+			conn: DELETE
+			conn: HEAD
+			conn: PATCH
+			conn: OPTIONS
+			else: OnUnsupportedMethod
+
+	GETError: BoundaryErrorEvent
+		next: OnError
+
+	GET: HttpMessageTask
+		switch:
+			next: GETError
+			next: OnResult
+
+	OnUnsupportedMethod: ScriptTask
+		next: Statistics
+
+	OnResult: ScriptTask
+		next: Statistics
+
+	Statistics: ScriptTask
+		next: End
+
+	Retry?: Gateway
+		switch:
+			else: HandleErrors?
+			conn: ShouldWaitByNode?
+
+	POSTError: BoundaryErrorEvent
+		next: OnError
+
+	POST: HttpMessageTask
+		switch:
+			next: POSTError
+			next: OnResult
+
+	OnError: ScriptTask
+		next: Retry?
+
+	PUTError: BoundaryErrorEvent
+		next: OnError
+
+	PUT: HttpMessageTask
+		switch:
+			next: PUTError
+			next: OnResult
+
+	DELETEError: BoundaryErrorEvent
+		next: OnError
+
+	DELETE: HttpMessageTask
+		switch:
+			next: DELETEError
+			next: OnResult
+
+	HEADError: BoundaryErrorEvent
+		next: OnError
+
+	HEAD: HttpMessageTask
+		switch:
+			next: HEADError
+			next: OnResult
+
+	PATCHError: BoundaryErrorEvent
+		next: OnError
+
+	PATCH: HttpMessageTask
+		switch:
+			next: PATCHError
+			next: OnResult
+
+	OPTIONSError: BoundaryErrorEvent
+		next: OnError
+
+	OPTIONS: HttpMessageTask
+		switch:
+			next: OPTIONSError
+			next: OnResult
+
+	ShouldWaitByNode?: Gateway
+		switch:
+			else: EventTimer
+			conn: NodeTimer
+
+	EventTimer: TimerEvent
+		next: Method?
+
+	NodeTimer: ScriptTask
+		next: Method?
+
+	HandleErrors?: Gateway
+		switch:
+			conn: HttpCallOnErrorEvent
+			else: Statistics
+
+	HttpCallOnErrorEvent: MessageEvent
+		next: Interrupt?
+
+	Interrupt?: Gateway
+		switch:
+			conn: OnInterrupt
+			else: Init
+
+	OnInterrupt: ScriptTask
+		next: Statistics
+

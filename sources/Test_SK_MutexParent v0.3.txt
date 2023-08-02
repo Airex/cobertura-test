@@ -1,0 +1,25 @@
+Worflow: Test_SK_MutexParent
+
+	StartEvent: MessageStartEvent
+		next: W1
+
+	End: EndEvent
+
+	W1: ScriptTask
+		next: S1
+
+	S1: SubProcessAwaitFirstResponseTask
+		next: W2
+
+	W2: ScriptTask
+		next: S2
+
+	S2: SubProcessAwaitFirstResponseTask
+		next: W3
+
+	W3: ScriptTask
+		next: S3
+
+	S3: SubProcessAwaitFirstResponseTask
+		next: End
+

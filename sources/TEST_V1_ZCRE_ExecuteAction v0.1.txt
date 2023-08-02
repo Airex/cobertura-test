@@ -1,0 +1,94 @@
+Worflow: TEST_V1_ZCRE_ExecuteAction
+
+	StartEvent: MessageStartEvent
+		next: CheckAlreadyDone
+
+	End: EndEvent
+
+	PrepareActionParameters: ScriptTask
+		next: ExecuteAction
+
+	CheckTooEarly: Gateway
+		switch:
+			else: SetTooEarlyStatus
+			conn: CheckTooLate
+
+	SetTooEarlyStatus: ScriptTask
+		next: End
+
+	SetAlreadyDone: ScriptTask
+		next: End
+
+	CheckAlreadyDone: Gateway
+		switch:
+			conn: CheckTooEarly
+			else: SetAlreadyDone
+
+	CheckTooLate: Gateway
+		switch:
+			conn: PrepareActionParameters
+			else: SetTooLateStatus
+
+	SetTooLateStatus: ScriptTask
+		next: End
+
+	ExecuteActionError: BoundaryErrorEvent
+		next: UpdateAction
+
+	ExecuteAction: SubProcessTask
+		switch:
+			next: ExecuteActionError
+			next: UpdateAction
+
+	DW_UpdateConditionAction: ComponentTask
+		next: CheckNeedSaveResult
+
+	PrepareOutput: ScriptTask
+		next: End
+
+	CheckNotUpdateLastSeen: Gateway
+		switch:
+			else: ExecuteAction
+			conn: CheckHasResult
+
+	UpdateAction: ScriptTask
+		next: DW_UpdateConditionAction
+
+	UpdateUsageTracking: ScriptTask
+		next: CheckNotUpdateLastSeen
+
+	GetCondition: SubProcessTask
+		next: ConditionChanges
+
+	CheckHasResult: Gateway
+		switch:
+			else: PrepareOutput
+			conn: GetCondition
+
+	SendConditionCompleted: SignalTask
+		next: CheckHasChanges
+
+	ConditionChanges: ScriptTask
+		next: CheckNeedSendCompletedSignal
+
+	CheckNeedSendCompletedSignal: Gateway
+		switch:
+			else: CheckHasChanges
+			conn: SendConditionCompleted
+
+	CheckHasChanges: Gateway
+		switch:
+			else: DW_UpdateCondition
+			conn: PrepareOutput
+
+	DW_UpdateCondition: ComponentTask
+		next: PrepareOutput
+
+	DW_SetConditionActionResult: ComponentTask
+		next: UpdateUsageTracking
+
+	CheckNeedSaveResult: Gateway
+		switch:
+			else: UpdateUsageTracking
+			conn: DW_SetConditionActionResult
+

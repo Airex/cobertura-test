@@ -1,0 +1,10 @@
+Worflow: ARBM_SME_SigniflowSigning
+
+	StartEvent: MessageStartEvent
+		next: InitiateNewSigningProcess
+
+	End: EndEvent
+
+	InitiateNewSigningProcess: SubProcessTask
+		next: End
+

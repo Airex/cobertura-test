@@ -1,0 +1,16 @@
+Worflow: Files_CheckIfFileExists
+
+	StartEvent: MessageStartEvent
+		next: Build_FileServiceLink
+
+	End: EndEvent
+
+	Build_FileServiceLink: ScriptTask
+		next: Check_IfFileExists
+
+	Prepare_Output: ScriptTask
+		next: End
+
+	Check_IfFileExists: ComponentTask
+		next: Prepare_Output
+

@@ -1,0 +1,230 @@
+Worflow: ZCRE_PerformBofUserTask
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	CheckActionActive: Gateway
+		switch:
+			else: SetScheduled
+			conn: SetCurrentAction
+
+	CheckConditionTriggeredOrFound: Gateway
+		switch:
+			conn: SetNothingExecute
+			else: CheckActionFound
+
+	SetNothingExecute: ScriptTask
+		next: ActionResponse
+
+	SetScheduled: ScriptTask
+		next: ActionResponse
+
+	PrepareActionToExecute: ScriptTask
+		next: CheckConditionTriggeredOrFound
+
+	CheckConditionAction: Gateway
+		switch:
+			conn: TriggerCondition
+			else: GetCondition
+
+	TriggerCondition: SubProcessTask
+		next: PrepareActionToExecute
+
+	GetCondition: SubProcessTask
+		next: GetPerformingRole
+
+	ValidateConditionActionError: BoundaryErrorEvent
+		next: SetUnableExecute
+
+	ValidateConditionAction: SubProcessTask
+		switch:
+			next: ValidateConditionActionError
+			next: UpdateActionBeforeExecute
+
+	CheckActionFound: Gateway
+		switch:
+			else: SetNothingExecute
+			conn: CheckActionActive
+
+	ExecutionResponse: ResponseTask
+		next: RecieveContinue
+
+	RecieveContinue: MessageEvent
+		next: GetFileUploads
+
+	ReceiveCancel: SpareMessageEvent
+		next: GetDraftFileUploads
+
+	ReceiveSaveDraft: SpareMessageEvent
+		next: GetDraftFileUploads
+
+	ReceiveUpdateLastSeen: SpareMessageEvent
+		next: UpdateAction
+
+	CheckExecutionStatus: Gateway
+		switch:
+			conn: SetTooEarly
+			conn: SetAlreadyDone
+			conn: SetTooLate
+			else: CheckPayloadInitialized
+
+	SetTooEarly: ScriptTask
+		next: ActionResponse
+
+	SetAlreadyDone: ScriptTask
+		next: ActionResponse
+
+	SetTooLate: ScriptTask
+		next: ActionResponse
+
+	SetUnableExecute: ScriptTask
+		next: ActionResponse
+
+	ActionResponse: ResponseTask
+		next: CheckHasActionsToWait
+
+	UpdateAction: ScriptTask
+		next: DW_UpdateConditionAction
+
+	DW_UpdateConditionAction: ComponentTask
+		next: SetOutputData
+
+	SetOutputData: ScriptTask
+		next: CheckUpdatePerformed
+
+	CheckNotUpdateLastSeen: Gateway
+		switch:
+			else: ExecutionResponse
+			conn: CheckFinished
+
+	DW_UpdateConditionActionBeforeExecute: ComponentTask
+		next: CheckActionNotFinished
+
+	UpdateActionBeforeExecute: ScriptTask
+		next: DW_UpdateConditionActionBeforeExecute
+
+	ExecuteConditionActionError: BoundaryErrorEvent
+		next: SetUnableExecute
+
+	ExecuteConditionAction: SubProcessTask
+		switch:
+			next: ExecuteConditionActionError
+			next: CheckHasConfirmedUploadFiles
+
+	SetActionPayload: ScriptTask
+		next: ExecuteConditionAction
+
+	End: EndEvent
+
+	SetDraftActionPayload: ScriptTask
+		next: UpdateAction
+
+	CheckPayloadInitialized: Gateway
+		switch:
+			conn: ValidateConditionAction
+			else: UpdateActionBeforeExecute
+
+	SetCurrentAction: ScriptTask
+		next: CheckAccessDenied
+
+	CheckHasActionsToWait: Gateway
+		switch:
+			conn: RecieveContinueClose
+			else: End
+
+	RecieveContinueClose: MessageEvent
+		next: CloseResponse
+
+	CloseResponse: ResponseTask
+		next: End
+
+	SetCompletedBefore: ScriptTask
+		next: ActionResponse
+
+	CheckUpdatePerformed: Gateway
+		switch:
+			conn: CheckNotUpdateLastSeen
+			else: SetCompletedBefore
+
+	CheckFinished: Gateway
+		switch:
+			else: ExecutionResponse
+			conn: CheckNeedCloseCondition
+
+	RecieveUpload: SpareMessageEvent
+		next: GetDocumentsMetadata
+
+	GetDocumentsMetadata: SubProcessTask
+		next: ExecutionResponse
+
+	HandleFileUpload: SubProcessTask
+		next: SetActionPayload
+
+	CheckHasUploadFiles: Gateway
+		switch:
+			conn: HandleFileUpload
+			else: SetActionPayload
+
+	HandleSaveDraftFileUpload: SubProcessTask
+		next: CheckSaveDraftEvent
+
+	CheckHasDraftUploadFiles: Gateway
+		switch:
+			conn: HandleSaveDraftFileUpload
+			else: CheckSaveDraftEvent
+
+	HandleSubmitFileUpload: SubProcessTask
+		next: UpdateAction
+
+	CheckHasConfirmedUploadFiles: Gateway
+		switch:
+			conn: HandleSubmitFileUpload
+			else: UpdateAction
+
+	CheckSaveDraftEvent: Gateway
+		switch:
+			conn: SetDraftActionPayload
+			else: UpdateAction
+
+	CheckActionNotFinished: Gateway
+		switch:
+			conn: ExecutionResponse
+			else: ActionResponse
+
+	GetDraftFileUploads: ScriptTask
+		next: CheckHasDraftUploadFiles
+
+	GetFileUploads: ScriptTask
+		next: CheckHasUploadFiles
+
+	DW_UpdateCondition: ComponentTask
+		next: ActionResponse
+
+	CheckNeedCloseCondition: Gateway
+		switch:
+			conn: DW_UpdateCondition
+			else: ActionResponse
+
+	GetPerformingRole: SubProcessTask
+		next: PrepareActionToExecute
+
+	CheckAccessDenied: Gateway
+		switch:
+			else: SetAccessDenied
+			conn: CheckExecutionStatus
+
+	SetAccessDenied: ScriptTask
+		next: ActionResponse
+
+	RecieveReaction: SpareMessageEvent
+		next: ExecuteReaction
+
+	ExecuteReaction: SubProcessTask
+		next: ReactionResponse
+
+	ReactionResponse: ResponseTask
+		next: RecieveContinue
+
+	SetTags: ScriptTask
+		next: CheckConditionAction
+

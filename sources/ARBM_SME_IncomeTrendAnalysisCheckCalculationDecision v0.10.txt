@@ -1,0 +1,7 @@
+Worflow: ARBM_SME_IncomeTrendAnalysisCheckCalculationDecision
+
+	53edfa67-7ba9-4302-83fe-e7ba0ecce3c9: FlowVerification
+		next: 
+
+	ead01a6e-84d6-47f3-a2fe-4b82e02b468f: FlowVerification
+

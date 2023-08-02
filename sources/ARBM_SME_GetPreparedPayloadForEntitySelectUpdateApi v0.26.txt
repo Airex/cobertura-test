@@ -1,0 +1,39 @@
+Worflow: ARBM_SME_GetPreparedPayloadForEntitySelectUpdateApi
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	GetMultipleEntities: ScriptTask
+		next: GetDefaultPayloadForEntitySelectUpdateApi
+
+	GetDefaultPayloadForEntitySelectUpdateApi: ScriptTask
+		next: GetPayloadForEntitySelectUpdateApi
+
+	GW_PreviewType_ESU?: Gateway
+		switch:
+			else: GetDataForManualTask
+			conn: GetMultipleEntities
+
+	SaveOutput_ManualTask: ScriptTask
+		next: End
+
+	GetDataForManualTask: ScriptTask
+		next: EntitySelectUpdateApi_ManualTask
+
+	GeneratePayloadForEntitySelectUpdateApi: ScriptTask
+		next: SaveOutput_ManualTask
+
+	EntitySelectUpdateApi_ManualTask: SubProcessTask
+		next: GeneratePayloadForEntitySelectUpdateApi
+
+	GetPayloadForEntitySelectUpdateApi: MessageEvent
+		next: SaveOutput_ZDE_MSG
+
+	SaveOutput_ZDE_MSG: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: GW_PreviewType_ESU?
+

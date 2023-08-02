@@ -1,0 +1,22 @@
+Worflow: ARBM_Retail_FraudBlacklistsCheckByBrn
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	EndEvent: EndEvent
+
+	SaveOutput: ScriptTask
+		next: EndEvent
+
+	GetIsInBlacklistIdentifiedFraudCasesForCorpCust: ScriptTask
+		next: GetIsLegalEntityInBLSuspectedFraudByBRN
+
+	GetIsLegalEntityInBLSuspectedFraudByBRN: ScriptTask
+		next: GetIsLegalEntityInBLFailedLegalTradeChecksByBRN
+
+	GetIsLegalEntityInBLFailedLegalTradeChecksByBRN: ScriptTask
+		next: SaveOutput
+
+	SetTags: ScriptTask
+		next: GetIsInBlacklistIdentifiedFraudCasesForCorpCust
+

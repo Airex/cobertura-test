@@ -1,0 +1,19 @@
+Worflow: ARBM_Retail_PrepareUploadDetails
+
+	StartEvent: MessageStartEvent
+		next: SetTags
+
+	End: EndEvent
+
+	Init: ScriptTask
+		next: GetUploadUrl
+
+	Output: ScriptTask
+		next: End
+
+	SetTags: ScriptTask
+		next: Init
+
+	GetUploadUrl: ComponentTask
+		next: Output
+

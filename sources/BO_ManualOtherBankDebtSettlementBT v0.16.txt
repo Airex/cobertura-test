@@ -1,0 +1,62 @@
+Worflow: BO_ManualOtherBankDebtSettlementBT
+
+	StartEvent: MessageStartEvent
+		next: Set_Tags
+
+	End: EndEvent
+
+	Prepare_Output: ScriptTask
+		next: Cleanup
+
+	Init: ScriptTask
+		next: IsActionStartedOrSubmitted?
+
+	IsActionStartedOrSubmitted?: Gateway
+		switch:
+			conn: Prepare_InitialResponsePayload
+			conn: IsSuccessful?
+
+	Prepare_InitialResponsePayload: ScriptTask
+		next: Prepare_Output
+
+	Validate_SetSuccess: ScriptTask
+		next: ShouldSaveCommentToOrder?
+
+	Cleanup: ScriptTask
+		next: End
+
+	Set_Tags: ScriptTask
+		next: Init
+
+	ShouldSaveCommentToOrder?: Gateway
+		switch:
+			else: Prepare_Output
+			conn: Save_OrderComment
+
+	Save_OrderCommentError: BoundaryErrorEvent
+		next: Set_Error
+
+	Save_OrderComment: SubProcessTask
+		switch:
+			next: Save_OrderCommentError
+			next: Prepare_Output
+
+	Set_Error: ScriptTask
+		next: Prepare_Output
+
+	IsSuccessful?: Gateway
+		switch:
+			else: SetUnsuccessful
+			conn: Validate_AccountDetails
+
+	SetUnsuccessful: ScriptTask
+		next: ShouldSaveCommentToOrder?
+
+	Validate_AccountDetails: ScriptTask
+		next: IsAccountDetailsValid?
+
+	IsAccountDetailsValid?: Gateway
+		switch:
+			conn: Validate_SetSuccess
+			else: Prepare_Output
+

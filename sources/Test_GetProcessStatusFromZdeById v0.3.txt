@@ -1,0 +1,10 @@
+Worflow: Test_GetProcessStatusFromZdeById
+
+	StartEvent: MessageStartEvent
+		next: HttpTask
+
+	End: EndEvent
+
+	HttpTask: ComponentTask
+		next: End
+

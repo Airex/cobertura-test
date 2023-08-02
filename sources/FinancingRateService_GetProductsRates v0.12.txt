@@ -1,0 +1,24 @@
+Worflow: FinancingRateService_GetProductsRates
+
+	StartEvent: MessageStartEvent
+		next: Init
+
+	End: EndEvent
+
+	FinancingRateService_GetProducts: ComponentTask
+		next: CheckHasProducts
+
+	FinancingRateService_GetProductRatesById: ComponentTask
+		next: NextIteration
+
+	CheckHasProducts: Gateway
+		switch:
+			conn: FinancingRateService_GetProductRatesById
+			else: End
+
+	NextIteration: ScriptTask
+		next: CheckHasProducts
+
+	Init: ScriptTask
+		next: FinancingRateService_GetProducts
+
